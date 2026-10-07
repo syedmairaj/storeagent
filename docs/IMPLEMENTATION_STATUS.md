@@ -6,7 +6,7 @@ M0 — Architecture Lock
 
 ## Current sub-milestone
 
-M0.4 — Inventory formula specification
+M0.5 — Forecast specification
 
 ## Status
 
@@ -224,3 +224,66 @@ Verification:
 Next allowed sub-milestone:
 
 M0.5 — Forecast specification
+
+
+### M0.5 progress
+
+- [x] M0.5.1 Forecast principles + V1 scope
+- [x] M0.5.2 History sufficiency contract
+- [x] M0.5.3 Weighted moving-average baseline
+- [x] M0.5.4 Trend adjustment
+- [x] M0.5.5 Stockout censoring
+- [x] M0.5.6 Promotion/event treatment
+- [x] M0.5.7 Cold-start behavior
+- [x] M0.5.8 Forecast confidence
+- [x] M0.5.9 Forecast horizons
+- [x] M0.5.10 Backtesting + error metrics
+- [x] M0.5.11 Versioning + reproducibility
+- [x] M0.5.12 Forecast invariants + tests
+- [x] M0.5.13 M0.5 gate
+
+
+### M0.5 completion
+
+Status: PASS
+
+Frozen deterministic forecast architecture:
+
+- forecast principles and V1 scope
+- history sufficiency
+- weighted-demand baseline
+- bounded trend adjustment
+- stockout censoring
+- promotion treatment
+- cold-start policy
+- deterministic forecast confidence
+- forecast horizons
+- backtesting with MAE / WAPE / bias
+- algorithm versioning
+- reproducibility fingerprinting
+
+Key invariants:
+
+- forecasting estimates demand only
+- forecasting does not emit REORDER / REDUCE / PROMOTE / WATCH
+- negative forecast demand is impossible
+- missing data does not silently become zero
+- stockout days do not silently become zero demand
+- known promotion periods do not contaminate baseline demand
+- insufficient history does not publish fabricated numeric forecasts
+- worse data quality cannot increase confidence
+- AI cannot assign or override numeric forecast truth
+- provider SDKs do not belong inside deterministic forecast logic
+- same canonical input + same config + same algorithm versions remains reproducible
+
+Verification:
+
+- 244 tests PASS
+- typecheck PASS
+- lint PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M0.6 — Decision engine rules
