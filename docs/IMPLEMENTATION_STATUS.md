@@ -6,7 +6,7 @@ M0 — Architecture Lock
 
 ## Current sub-milestone
 
-M0.1 — Repository and engineering conventions
+M0.2 — Canonical domain schema
 
 ## Status
 
@@ -14,7 +14,8 @@ IN PROGRESS
 
 ## M0 scope
 
-- [ ] M0.1 Repository + engineering conventions
+- [x] M0.1 Repository + engineering conventions
+  - [x] Design quality constitution added
 - [ ] M0.2 Canonical domain schema
 - [ ] M0.3 Tenancy / RLS architecture
 - [ ] M0.4 Inventory formula specification
@@ -37,3 +38,27 @@ IN PROGRESS
 - Production UI
 
 These begin only after M0 passes.
+
+
+### M0.1 completion
+
+Status: PASS
+
+Verified:
+
+- Node 22 project runtime
+- Next.js 16 foundation
+- React 19
+- strict TypeScript
+- ESLint
+- Tailwind CSS
+- shadcn Base UI / Luma foundation
+- Vitest
+- production build
+- design system constitution
+- engineering conventions
+- clean git diff validation
+
+Next allowed sub-milestone:
+
+M0.2 — Canonical domain schema
