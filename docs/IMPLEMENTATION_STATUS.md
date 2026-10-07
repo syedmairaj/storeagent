@@ -6,7 +6,7 @@ M0 — Architecture Lock
 
 ## Current sub-milestone
 
-M0.2 — Canonical domain schema
+M0.3 — Tenancy / RLS architecture
 
 ## Status
 
@@ -112,3 +112,51 @@ Test count at closure:
 Next allowed sub-milestone:
 
 M0.3 — Tenancy / RLS architecture
+
+
+### M0.3 progress
+
+- [x] M0.3.1 Tenancy model
+- [x] M0.3.2 Membership + role semantics
+- [x] M0.3.3 RLS policy architecture
+- [x] M0.3.4 Server tenant-resolution rules
+- [x] M0.3.5 Service-role boundary
+- [x] M0.3.6 Cross-org attack scenarios
+- [x] M0.3.7 Tenancy architecture tests
+- [x] M0.3.8 M0.3 gate
+
+
+### M0.3 completion
+
+Status: PASS
+
+Frozen:
+
+- Organization as primary tenant boundary
+- authentication separated from authorization
+- multi-organization membership support
+- organization-scoped roles
+- explicit permission model
+- trusted TenantContext resolution
+- no first-organization fallback
+- store ownership validation
+- RLS architecture
+- immutable-history client restrictions
+- trusted server/RPC write boundaries
+- Supabase service-role boundary
+- explicit worker tenant scope
+- provider/billing binding tenant resolution
+- cross-organization threat model
+- AI excluded from authorization
+
+Verification:
+
+- typecheck PASS
+- lint PASS
+- tenancy/security tests PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M0.4 — Inventory formula specification
