@@ -6,7 +6,7 @@ M0 — Architecture Lock
 
 ## Current sub-milestone
 
-M0.3 — Tenancy / RLS architecture
+M0.4 — Inventory formula specification
 
 ## Status
 
@@ -160,3 +160,67 @@ Verification:
 Next allowed sub-milestone:
 
 M0.4 — Inventory formula specification
+
+
+### M0.4 progress
+
+- [x] M0.4.1 Formula specification baseline
+- [x] M0.4.2 Sales velocity implementation contract
+- [x] M0.4.3 Days-of-stock contract
+- [x] M0.4.4 Safety-stock contract
+- [x] M0.4.5 Reorder-point contract
+- [x] M0.4.6 Target-stock contract
+- [x] M0.4.7 Recommended-order-quantity contract
+- [x] M0.4.8 Sell-through / inventory-age / demand-trend contract
+- [x] M0.4.9 Stockout / overstock-risk contract
+- [x] M0.4.10 Supplier MOQ / pack rounding contract
+- [x] M0.4.11 Incoming-stock validity contract
+- [x] M0.4.12 Formula invariants + tests
+- [x] M0.4.13 M0.4 gate
+
+
+### M0.4 completion
+
+Status: PASS
+
+Frozen deterministic inventory logic:
+
+- sales velocity
+- days of stock
+- safety stock
+- reorder point
+- target stock
+- recommended order quantity
+- sell-through
+- inventory age provenance
+- demand trend
+- stockout risk
+- overstock risk
+- MOQ handling
+- pack-size rounding
+- incoming purchase-order validity
+
+Key invariants:
+
+- null means unknown
+- zero means known zero
+- negative reorder quantities are impossible
+- incoming inventory never becomes negative
+- ambiguous incoming state fails closed
+- supplier-constrained quantity never falls below required need
+- pack-size constraints always round upward
+- historical/commercial calculations are versioned
+- deterministic inventory math does not depend on UI, AI, Stripe or provider SDKs
+- AI does not calculate inventory truth
+
+Verification:
+
+- 161 unit/architecture tests PASS
+- typecheck PASS
+- lint PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M0.5 — Forecast specification
