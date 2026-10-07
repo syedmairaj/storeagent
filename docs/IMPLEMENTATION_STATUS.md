@@ -62,3 +62,53 @@ Verified:
 Next allowed sub-milestone:
 
 M0.2 — Canonical domain schema
+
+
+### M0.2 progress
+
+- [x] M0.2.1 Entity catalog + ownership boundaries
+- [x] M0.2.2 Canonical TypeScript types
+- [x] M0.2.3 Relationships + invariants
+- [x] M0.2.4 Money/time/nullability rules
+- [x] M0.2.5 Provider binding semantics
+- [x] M0.2.6 Immutable/history model
+- [x] M0.2.7 Domain-model architecture tests
+- [x] M0.2.8 M0.2 gate
+
+
+### M0.2 completion
+
+Status: PASS
+
+Frozen:
+
+- canonical entity catalog
+- organization/store ownership boundaries
+- provider-independent canonical identity
+- canonical TypeScript domain model
+- domain relationships and invariants
+- exact monetary semantics
+- UTC/store-local time semantics
+- null vs zero semantics
+- provider binding and reconciliation semantics
+- immutable inventory/history model
+- forecast and algorithm versioning
+- immutable recommendation evidence
+- append-only merchant action history
+- AI numeric-truth boundary
+
+Verification:
+
+- typecheck PASS
+- lint PASS
+- unit/architecture tests PASS
+- production build PASS
+- git diff check PASS
+
+Test count at closure:
+
+41 / 41 passing
+
+Next allowed sub-milestone:
+
+M0.3 — Tenancy / RLS architecture
