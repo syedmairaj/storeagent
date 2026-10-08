@@ -440,6 +440,56 @@ M0.8 — Background job architecture
 - [x] M0.8.14 M0.8 gate
 
 
+### M0.8 completion
+
+Status: PASS
+
+Frozen background-job architecture:
+
+- worker tenancy + trusted-scope contract
+- canonical job vocabulary + payload envelope
+- deterministic logical idempotency
+- worker lifecycle state machine
+- claim / lease / crash-recovery semantics
+- deterministic retry + backoff policy
+- terminal failure + dead-work contract
+- concurrency + duplicate-execution protection
+- SyncRun orchestration boundary
+- metrics -> forecast -> decision -> AI pipeline ordering
+- scheduled + event-triggered execution boundary
+- tenant-scoped observability contract
+
+Key invariants:
+
+- BackgroundJob is infrastructure execution truth, not canonical business truth
+- BackgroundJob does not replace SyncRun, ForecastRun or InventoryAction
+- organization ownership remains mandatory under privileged worker execution
+- trigger identifiers and provider identifiers never establish tenant ownership
+- logical idempotency excludes runtime delivery, lease and worker identity
+- duplicate enqueue does not create replacement logical work
+- only the active ownerId + claimToken may mutate leased work
+- retry_wait is infrastructure state and does not mean canonical business failure
+- worker retries do not change deterministic business truth
+- SyncRun idempotency remains distinct from worker-job idempotency
+- metrics own inventory formulas
+- forecasting owns demand estimation
+- decision engine owns commercial action selection
+- AI remains downstream of deterministic truth
+- worker observability does not become canonical commercial truth
+
+Verification at M0.8 closure:
+
+- typecheck PASS
+- lint PASS
+- 753 tests PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M0.9 — Testing / evaluation architecture
+
+
 ## M0.9 — Testing / evaluation architecture
 
 - [x] M0.9.1 Evaluation principles + scenario contract
@@ -505,3 +555,70 @@ Verification at M0.9 closure:
 Next milestone:
 
 M0.10 — M0 architecture gate
+
+
+## M0.10 — M0 architecture gate
+
+### M0.10 completion
+
+Status: PASS
+
+M0 architecture is frozen and internally consistent across:
+
+- engineering foundation
+- canonical commerce domain
+- tenancy / authorization / RLS architecture
+- deterministic inventory formulas
+- deterministic forecasting
+- deterministic decision engine
+- provider adapter anti-corruption boundary
+- background-job orchestration
+- testing / evaluation architecture
+
+Cross-boundary dependency direction:
+
+Canonical commerce domain
+-> metrics
+-> forecasting
+-> decision engine
+-> AI explanation
+
+Provider adapters normalize external data into canonical boundaries but do not own downstream commercial truth.
+
+Worker infrastructure orchestrates execution but does not replace canonical business records or deterministic calculations.
+
+Final M0 invariants:
+
+- Organization is the primary tenant boundary
+- authentication does not equal authorization
+- provider identifiers never establish tenant ownership
+- canonical domain remains provider-independent
+- unknown remains distinct from zero
+- metrics own deterministic inventory arithmetic
+- forecasting owns deterministic demand estimation
+- decision engine owns commercial action selection
+- decision confidence cannot exceed deterministic forecast confidence
+- provider adapters do not calculate downstream metrics, forecasts or decisions
+- BackgroundJob is infrastructure execution truth only
+- SyncRun, ForecastRun and InventoryAction remain canonical business truth
+- retries, leases and duplicate delivery do not create replacement business truth
+- AI remains downstream of deterministic truth
+- AI cannot mutate action, quantity, forecast, risk, confidence or evidence truth
+- evaluation does not duplicate canonical business algorithms
+- reviewed golden outputs remain explicit and are never automatically regenerated
+- deterministic layers contain no UI, billing, AI or commerce-provider SDK dependency
+- all M0 architecture milestones have explicit PASS closure records
+
+Verification at M0 closure:
+
+- typecheck PASS
+- lint PASS
+- 1096 tests PASS
+- production build PASS
+- git diff check PASS
+
+M0 architecture gate: PASS
+
+Next milestone:
+
+M1 — Foundation implementation
