@@ -420,3 +420,21 @@ Verification:
 Next allowed sub-milestone:
 
 M0.8 — Background job architecture
+
+
+## M0.8 — Background job architecture
+
+- [x] M0.8.1 Worker tenancy + trusted-scope contract
+- [x] M0.8.2 Job vocabulary + payload envelope
+- [x] M0.8.3 Deterministic idempotency-key contract
+- [x] M0.8.4 Job lifecycle + state-machine contract
+- [x] M0.8.5 Claim + lease + crash-recovery semantics
+- [x] M0.8.6 Retry + backoff policy
+- [x] M0.8.7 Terminal failure + dead-work policy
+- [x] M0.8.8 Concurrency + duplicate-execution protection
+- [x] M0.8.9 SyncRun orchestration boundary
+- [x] M0.8.10 Forecast/metrics/decision pipeline orchestration
+- [x] M0.8.11 Scheduled + event-triggered execution boundary
+- [x] M0.8.12 Observability + safe payload/logging rules
+- [x] M0.8.13 Background-job invariants + tests
+- [x] M0.8.14 M0.8 gate
