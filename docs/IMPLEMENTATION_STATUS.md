@@ -287,3 +287,72 @@ Verification:
 Next allowed sub-milestone:
 
 M0.6 — Decision engine rules
+
+
+## M0.6 — Decision engine rules
+
+- [x] M0.6.1 Decision principles + precedence model
+- [x] M0.6.2 Decision reason-code contract
+- [x] M0.6.3 REORDER rule
+- [x] M0.6.4 REDUCE rule
+- [x] M0.6.5 PROMOTE rule
+- [x] M0.6.6 WATCH + HEALTHY rules
+- [x] M0.6.7 Conflict resolution
+- [x] M0.6.8 Priority rules
+- [x] M0.6.9 Decision confidence
+- [x] M0.6.10 Evidence snapshot mapping
+- [x] M0.6.11 Versioning + reproducibility
+- [x] M0.6.12 Decision invariants + tests
+- [x] M0.6.13 M0.6 gate
+
+
+### M0.6 completion
+
+Status: PASS
+
+Frozen deterministic decision architecture:
+
+- decision principles and precedence model
+- stable reason-code contract
+- REORDER rule
+- REDUCE rule
+- PROMOTE rule
+- WATCH / HEALTHY rules
+- conflict detection
+- primary-action precedence
+- deterministic priority
+- deterministic decision confidence
+- evidence snapshot mapping
+- algorithm versioning
+- reproducibility fingerprinting
+- canonical orchestration path
+
+Key invariants:
+
+- metrics and forecasting remain the only owners of numeric truth
+- AI cannot choose action type or quantity
+- HEALTHY is not persisted as InventoryAction
+- REORDER is the only V1 action with recommendedQuantity
+- REDUCE and PROMOTE may coexist as compatible excess-family interventions
+- REDUCE is primary when REDUCE + PROMOTE are both valid
+- REORDER + excess-family actions fail closed to WATCH
+- contradictory signals never depend on evaluation order
+- WATCH is used for material uncertainty or commercial conflict
+- known zero is distinct from unknown
+- decision confidence never exceeds underlying forecast confidence
+- priority does not choose action type
+- evidence snapshots preserve decision-time truth
+- deterministic decision modules have no AI, UI, persistence, commerce-provider, or billing SDK dependency
+- same canonical inputs + same config + same algorithm versions are reproducible
+
+Verification:
+
+- 376 tests PASS
+- typecheck PASS
+- lint PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M0.7 — Provider adapter architecture
