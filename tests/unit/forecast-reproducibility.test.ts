@@ -131,15 +131,15 @@ describe("forecast reproducibility", () => {
           algorithmVersions: {
             ...FORECAST_ALGORITHM_VERSIONS_V1,
             weightedDemand:
-              "weighted-demand-v1",
-          },
+              "weighted-demand-v2",
+          } as unknown as typeof FORECAST_ALGORITHM_VERSIONS_V1,
         },
         {
           dailyDemand: [1, 2, 3],
         },
       );
 
-    expect(a.fingerprint).toBe(
+    expect(a.fingerprint).not.toBe(
       b.fingerprint,
     );
   });

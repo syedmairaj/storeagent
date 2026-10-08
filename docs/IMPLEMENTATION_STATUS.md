@@ -438,3 +438,70 @@ M0.8 — Background job architecture
 - [x] M0.8.12 Observability + safe payload/logging rules
 - [x] M0.8.13 Background-job invariants + tests
 - [x] M0.8.14 M0.8 gate
+
+
+## M0.9 — Testing / evaluation architecture
+
+- [x] M0.9.1 Evaluation principles + scenario contract
+- [x] M0.9.2 Versioned deterministic fixture format
+- [x] M0.9.3 Golden expected-output contract
+- [x] M0.9.4 Metrics scenario matrix
+- [x] M0.9.5 Forecast scenario matrix
+- [x] M0.9.6 Decision scenario matrix
+- [x] M0.9.7 Cross-tenant adversarial evaluation matrix
+- [x] M0.9.8 Worker/retry/concurrency evaluation matrix
+- [x] M0.9.9 Reproducibility + regression drift policy
+- [x] M0.9.10 AI numeric-mutation evaluation contract
+- [x] M0.9.11 Evaluation invariants
+- [x] M0.9.12 M0.9 gate
+
+### M0.9 completion
+
+Status: PASS
+
+Frozen testing / evaluation architecture:
+
+- evaluation scenario contract
+- versioned deterministic fixture contract
+- reviewed golden-output contract
+- metrics regression matrix
+- forecast regression matrix
+- decision regression matrix
+- cross-tenant adversarial matrix
+- worker / retry / concurrency matrix
+- reproducibility and regression-drift policy
+- AI numeric-mutation contract
+- global evaluation invariants
+- approved-golden regression gate
+
+Key invariants:
+
+- deterministic fixtures contain input evidence only
+- reviewed expected truth belongs to approved goldens
+- scenario IDs are stable and globally unique
+- golden IDs are stable and globally unique
+- scenario and golden configuration identity must match
+- fixture references are versioned and explicit
+- regression drift fails closed
+- golden files are never automatically regenerated
+- evaluation never replaces canonical business logic
+- forecast and decision reproducibility remain deterministic
+- cross-tenant evaluation fails closed
+- worker retry and lease behavior remain deterministic
+- infrastructure execution state does not replace business truth
+- AI may explain deterministic truth but may not mutate it
+- AI numeric-mutation violations are critical
+- explanation worker remains unimplemented during M0
+- evaluation contracts contain no live network or provider dependency
+
+Verification at M0.9 closure:
+
+- typecheck PASS
+- lint PASS
+- 1086 tests PASS
+- production build PASS
+- git diff check PASS
+
+Next milestone:
+
+M0.10 — M0 architecture gate
