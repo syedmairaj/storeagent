@@ -356,3 +356,67 @@ Verification:
 Next allowed sub-milestone:
 
 M0.7 — Provider adapter architecture
+
+
+## M0.7 — Provider adapter architecture
+
+- [x] M0.7.1 Provider boundary principles + adapter contract
+- [x] M0.7.2 External identity normalization
+- [x] M0.7.3 Timestamp normalization
+- [x] M0.7.4 Money + currency normalization
+- [x] M0.7.5 Quantity + inventory semantics
+- [x] M0.7.6 Order-status normalization
+- [x] M0.7.7 Purchase-order-status normalization
+- [x] M0.7.8 Binding + idempotency contract
+- [x] M0.7.9 Quarantine + reconciliation contract
+- [x] M0.7.10 CSV adapter boundary
+- [x] M0.7.11 Shopify adapter boundary
+- [x] M0.7.12 Provider invariants + tests
+- [x] M0.7.13 M0.7 gate
+
+
+### M0.7 completion
+
+Status: PASS
+
+Frozen:
+
+- provider anti-corruption boundary
+- raw provider payloads remain untrusted until resource-specific validation
+- provider transport and normalization are separate concerns
+- deterministic external identity normalization
+- explicit composite external identity where provider scope requires it
+- UTC timestamp normalization without timezone guessing
+- exact-string money normalization
+- unknown quantity remains distinct from known zero
+- provider inventory semantics are explicit rather than inferred
+- canonical order-status normalization fails closed
+- canonical purchase-order-status normalization fails closed
+- incoming-stock truth remains owned by the frozen M0.4 metric policy
+- durable provider binding identity and replay/idempotency semantics
+- backward compatibility with the earlier provider-binding contract
+- binding conflicts never silently rebind canonical identity
+- quarantine, skip, failure and reconciliation semantics are distinct
+- DataQualityIssue remains the durable domain-quality artifact
+- CSV mappings are explicit and stable identity must not use row number
+- Shopify GIDs remain opaque external identity
+- Shopify inventory retains variant + location scope
+- Shopify API-specific status and inventory mappings require explicit versioned rules
+- provider-specific types remain outside the canonical commerce domain
+- provider modules cannot depend on metrics, forecasting, decision engine, AI, UI, billing or database clients
+- equivalent provider facts should normalize into equivalent canonical StoreAgent semantics
+
+Verification:
+
+- typecheck PASS
+- lint PASS
+- 524 unit/architecture tests PASS
+- production build PASS
+- git diff check PASS
+- no M0.7 package dependency changes
+- no provider-to-engine dependency leaks
+- no provider-specific type leakage into canonical commerce domain
+
+Next allowed sub-milestone:
+
+M0.8 — Background job architecture
