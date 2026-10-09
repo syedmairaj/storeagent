@@ -627,7 +627,7 @@ M1 — Foundation implementation
 ## M1 — Foundation implementation
 
 - [x] M1.1 Runtime + environment + Supabase boundary
-- [ ] M1.2 Authentication + session foundation
+- [x] M1.2 Authentication + session foundation
 - [ ] M1.3 Canonical foundation schema
 - [ ] M1.4 Organization membership + provisioning
 - [ ] M1.5 RLS + tenant enforcement
@@ -686,3 +686,53 @@ Verification at M1.1 closure:
 Next allowed sub-milestone:
 
 M1.2 — Authentication + session foundation
+
+### M1.2 completion
+
+Status: PASS
+
+Implemented authentication/session foundation:
+
+- provider-neutral authenticated identity contract
+- verified JWT claim mapping
+- server-side authenticated identity resolver
+- fail-closed authenticated identity requirement
+- Next.js 16 root Proxy session-refresh boundary
+- Supabase PKCE authentication callback
+- safe same-origin post-auth redirect handling
+- POST-only sign-out route
+- authentication/session architecture documentation
+- authentication claim tests
+- redirect security tests
+- authentication/session architecture tests
+
+Security invariants:
+
+- authentication establishes user identity only
+- authentication does not establish organization or store authorization
+- verified server identity is derived from JWT `sub`
+- server identity validation uses `supabase.auth.getClaims()`
+- `supabase.auth.getSession()` is not trusted as the server authorization boundary
+- JWT tenant-looking claims do not establish StoreAgent tenant ownership
+- organization membership remains owned by StoreAgent tenancy persistence
+- store ownership remains independently validated
+- Proxy owns session refresh, not business authorization
+- normal user authentication never uses the privileged Supabase admin client
+- service-role / secret credentials do not participate in user authentication
+- PKCE callback exchanges an Auth Code rather than accepting client-supplied identity
+- post-auth redirects reject external and protocol-relative destinations
+- sign-out is POST-only
+- M1.2 does not implement organization provisioning, RLS policy persistence or application UI
+
+Verification at M1.2 closure:
+
+- typecheck PASS
+- lint PASS
+- focused authentication tests: 25 PASS
+- full suite: 113 test files / 1132 tests PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M1.3 — Canonical foundation schema
