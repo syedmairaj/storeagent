@@ -629,7 +629,7 @@ M1 — Foundation implementation
 - [x] M1.1 Runtime + environment + Supabase boundary
 - [x] M1.2 Authentication + session foundation
 - [x] M1.3 Canonical foundation schema
-- [ ] M1.4 Organization membership + provisioning
+- [x] M1.4 Organization membership + provisioning
 - [ ] M1.5 RLS + tenant enforcement
 - [ ] M1.6 Authenticated application shell
 - [ ] M1.7 Error + observability boundary
