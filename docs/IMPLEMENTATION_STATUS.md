@@ -622,3 +622,67 @@ M0 architecture gate: PASS
 Next milestone:
 
 M1 — Foundation implementation
+
+
+## M1 — Foundation implementation
+
+- [x] M1.1 Runtime + environment + Supabase boundary
+- [ ] M1.2 Authentication + session foundation
+- [ ] M1.3 Canonical foundation schema
+- [ ] M1.4 Organization membership + provisioning
+- [ ] M1.5 RLS + tenant enforcement
+- [ ] M1.6 Authenticated application shell
+- [ ] M1.7 Error + observability boundary
+- [ ] M1.8 Foundation integration + adversarial tests
+- [ ] M1.9 M1 gate
+
+M1 implementation rules:
+
+- M0 architectural ownership remains frozen.
+- Authentication never substitutes for authorization.
+- Organization remains the primary tenant boundary.
+- Browser code never receives privileged service credentials.
+- Provider identifiers never establish tenant ownership.
+- Database persistence must preserve unknown versus zero semantics.
+- M1 does not implement inventory calculations, forecasts, decisions, AI explanations, provider synchronization or billing.
+- M1 infrastructure must be consumable by later CSV and Shopify milestones without changing canonical domain ownership.
+
+### M1.1 completion
+
+Status: PASS
+
+Implemented foundation boundaries:
+
+- explicit runtime environment contract
+- public Supabase configuration separated from privileged server configuration
+- browser Supabase client
+- request-scoped server Supabase client
+- privileged admin Supabase client
+- server-only enforcement for privileged Supabase access
+- lazy environment validation
+- environment configuration tests
+- Supabase client architecture tests
+
+Security invariants:
+
+- browser code cannot access service-role credentials
+- service-role credentials are never exposed through NEXT_PUBLIC_ variables
+- request-scoped server client uses publishable credentials and remains RLS-compatible
+- privileged admin client is server-only
+- privileged access does not itself authorize tenant access
+- trusted tenant-scope enforcement remains owned by the existing M0 tenancy architecture
+- deterministic metrics, forecasting and decision modules do not depend on Supabase
+- no provider, billing, AI or queue SDK was introduced
+- no database schema or authentication behavior was implemented prematurely
+
+Verification at M1.1 closure:
+
+- typecheck PASS
+- lint PASS
+- 1107 tests PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M1.2 — Authentication + session foundation
