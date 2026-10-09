@@ -8,8 +8,34 @@ import {
 } from "@/lib/auth/redirect";
 
 import {
+  ensureCurrentUserProvisioned,
+} from "@/lib/provisioning/current-user";
+
+import {
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
+
+function callbackFailure(
+  request: NextRequest,
+  errorCode:
+    "callback" |
+    "provisioning",
+) {
+  const failure =
+    new URL(
+      "/",
+      request.url,
+    );
+
+  failure.searchParams.set(
+    "auth_error",
+    errorCode,
+  );
+
+  return NextResponse.redirect(
+    failure,
+  );
+}
 
 export async function GET(
   request: NextRequest,
@@ -33,19 +59,9 @@ export async function GET(
   if (
     !code
   ) {
-    const failure =
-      new URL(
-        "/",
-        request.url,
-      );
-
-    failure.searchParams.set(
-      "auth_error",
+    return callbackFailure(
+      request,
       "callback",
-    );
-
-    return NextResponse.redirect(
-      failure,
     );
   }
 
@@ -64,19 +80,20 @@ export async function GET(
   if (
     error
   ) {
-    const failure =
-      new URL(
-        "/",
-        request.url,
-      );
-
-    failure.searchParams.set(
-      "auth_error",
+    return callbackFailure(
+      request,
       "callback",
     );
+  }
 
-    return NextResponse.redirect(
-      failure,
+  try {
+    await ensureCurrentUserProvisioned(
+      supabase,
+    );
+  } catch {
+    return callbackFailure(
+      request,
+      "provisioning",
     );
   }
 
