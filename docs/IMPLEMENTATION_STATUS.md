@@ -630,7 +630,7 @@ M1 — Foundation implementation
 - [x] M1.2 Authentication + session foundation
 - [x] M1.3 Canonical foundation schema
 - [x] M1.4 Organization membership + provisioning
-- [ ] M1.5 RLS + tenant enforcement
+- [x] M1.5 RLS + tenant enforcement
 - [ ] M1.6 Authenticated application shell
 - [ ] M1.7 Error + observability boundary
 - [ ] M1.8 Foundation integration + adversarial tests
@@ -805,3 +805,80 @@ Verification at M1.3 closure:
 Next allowed sub-milestone:
 
 M1.4 — Organization membership + provisioning
+
+
+### M1.5 completion
+
+Status: PASS
+
+Implemented RLS and tenant enforcement:
+
+- authenticated membership-backed organization visibility
+- authenticated self-only organization membership visibility
+- authenticated membership-backed store visibility
+- authenticated membership-backed location visibility
+- anonymous tenant-table access denied
+- direct authenticated client mutations denied for foundation tenant tables
+- predictable RLS policy names
+- no implicit first/default organization behavior
+- no privileged RLS bypass helper introduced
+- RLS remains enabled on all canonical foundation tables
+- foundation RLS implementation documentation
+- foundation RLS architecture tests
+
+Security invariants:
+
+- authentication alone does not grant organization access
+- organization_members remains the tenant authorization bridge
+- users may read only their own membership rows directly
+- organization reads require matching authenticated membership
+- store reads require matching authenticated organization membership
+- location reads require matching authenticated organization membership
+- cross-organization reads fail closed
+- malicious client-supplied organization identifiers do not grant access
+- direct client membership mutation is denied
+- direct client organization mutation is denied
+- anonymous tenant access is denied
+- tenant isolation remains enforced by RLS independently of application filtering
+- relational ownership remains enforced separately by PostgreSQL constraints
+
+Live adversarial verification:
+
+- User A can read Org A
+- User A cannot read Org B
+- User A sees only own membership
+- User A sees only Store A
+- User A sees only Location A
+- User B can read Org B
+- User B sees only Store B
+- User B sees only Location B
+- User A querying Org B Store rows returns no rows
+- User A querying Org B Location rows returns no rows
+- direct organization INSERT denied
+- direct membership UPDATE denied
+- direct organization DELETE denied
+- anonymous organization SELECT denied
+
+Database verification:
+
+- exactly 4 foundation RLS policies installed
+- organizations RLS enabled
+- organization_members RLS enabled
+- stores RLS enabled
+- locations RLS enabled
+- Supabase database lint PASS
+- local database reset PASS
+
+Verification at M1.5 closure:
+
+- typecheck PASS
+- lint PASS
+- focused RLS architecture tests PASS
+- full test suite PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M1.6 — Authenticated application shell
+
