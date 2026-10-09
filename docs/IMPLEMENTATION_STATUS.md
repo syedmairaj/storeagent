@@ -628,7 +628,7 @@ M1 — Foundation implementation
 
 - [x] M1.1 Runtime + environment + Supabase boundary
 - [x] M1.2 Authentication + session foundation
-- [ ] M1.3 Canonical foundation schema
+- [x] M1.3 Canonical foundation schema
 - [ ] M1.4 Organization membership + provisioning
 - [ ] M1.5 RLS + tenant enforcement
 - [ ] M1.6 Authenticated application shell
@@ -736,3 +736,72 @@ Verification at M1.2 closure:
 Next allowed sub-milestone:
 
 M1.3 — Canonical foundation schema
+
+### M1.3 completion
+
+Status: PASS
+
+Implemented canonical foundation persistence:
+
+- Supabase local development configuration
+- canonical organizations table
+- canonical organization_members table
+- canonical stores table
+- canonical locations table
+- UUID primary keys
+- canonical role constraints
+- canonical store/location status constraints
+- organization membership uniqueness
+- Supabase auth.users membership reference
+- explicit organization ownership
+- composite same-organization Store -> Location ownership constraint
+- tenant/RLS supporting indexes
+- automatic updated_at maintenance
+- RLS enabled fail-closed on all M1.3 tenant tables
+- no RLS policies introduced before M1.5
+- canonical foundation schema documentation
+- schema architecture tests
+
+Database invariants:
+
+- Organization is the primary tenant boundary
+- authentication identity does not imply organization membership
+- one user may belong to multiple organizations
+- one user may belong to an organization only once
+- Store belongs to exactly one Organization
+- Location belongs to exactly one Store and Organization
+- Location organization_id must match Store organization_id
+- cross-organization Location -> Store relationships are rejected by PostgreSQL
+- organization-owned records do not use ad-hoc cascading tenant deletion
+- auth user deletion may remove membership relationships
+- provider IDs do not participate in canonical identity
+- profiles were not invented outside the frozen domain model
+- later commerce, inventory, forecasting, action, billing and AI tables were not prematurely created
+
+Database verification:
+
+- local migration rebuild PASS
+- remote migration applied and synchronized
+- local migration version: 20261009090000
+- remote migration version: 20261009090000
+- local schema and remote schema materially match
+- Supabase database lint: no schema errors
+- cross-organization ownership attack rejected by locations_store_ownership_fk
+- RLS enabled on organizations
+- RLS enabled on organization_members
+- RLS enabled on stores
+- RLS enabled on locations
+- zero M1.3 RLS policies before M1.5
+
+Verification at M1.3 closure:
+
+- focused schema tests: 14 PASS
+- typecheck PASS
+- lint PASS
+- full suite: 114 test files / 1146 tests PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M1.4 — Organization membership + provisioning
