@@ -1928,3 +1928,116 @@ Next milestone:
 
 M3 — CSV ingestion
 
+- [x] M3.1 CSV ingestion contract + import matrix
+- [ ] M3.2 CSV file parsing + structural validation
+- [ ] M3.3 Product + variant CSV normalization
+- [ ] M3.4 Inventory CSV ingestion
+- [ ] M3.5 Orders + order-items CSV ingestion
+- [ ] M3.6 Supplier + purchase-order CSV ingestion
+- [ ] M3.7 Idempotency + provider-binding reconciliation
+- [ ] M3.8 Quarantine + partial-failure accounting
+- [ ] M3.9 End-to-end CSV import orchestration
+- [ ] M3.10 M3 adversarial/final gate\n
+
+### M3.1 completion
+
+Status: PASS
+
+Frozen CSV ingestion architecture:
+
+- CSV is a provider boundary
+- CSV does not redefine canonical commerce semantics
+- canonical UUID identity remains separate from CSV/provider identity
+- CSV source identity resolves through ProviderBinding
+- row number is diagnostic provenance only
+- file name is not durable commercial identity
+- upload timestamp is not durable commercial identity
+- explicit merchant mapping is required
+- unmapped canonical fields are never guessed from similar column names
+- duplicate canonical-field mappings are rejected
+- duplicate source-column mappings are rejected
+- blank mapped cells remain unknown
+- blank numeric cells never silently become zero
+- explicit zero remains distinct from NULL
+- exact monetary semantics remain frozen
+- V1 quantities remain whole units
+
+Stable identity rules:
+
+- merchant-mapped external identity is preferred when present
+- deterministic composite identity is allowed only where the resource contract permits it
+- product-variant SKU fallback remains deterministic
+- row number is never a successful identity fallback
+- missing stable identity quarantines the row
+- identity is never guessed
+- CSV external identity remains case-preserving
+
+Provider-binding replay rules:
+
+- normalized provider-binding identity is resolved before canonical creation
+- existing binding to same canonical entity is idempotent/reconciliation path
+- missing binding may create canonical entity + first binding atomically
+- binding conflicts fail closed
+- provider identity cannot silently rebind canonical ownership
+- external parent identity remains metadata rather than hidden uniqueness
+
+Current-state/history behavior:
+
+- current-state records may reconcile when identity is already proven
+- immutable/history evidence remains append-oriented
+- inventory observations append new snapshots
+- historical tenant/store ownership is never reassigned by CSV replay
+
+Sync-run accounting:
+
+- every operational CSV import belongs to a SyncRun
+- discovered/imported/updated/skipped/quarantined/failed counts remain explicit
+- each row receives exactly one terminal disposition
+- SyncRun identity does not establish tenant ownership
+- trusted organization/integration scope must already be resolved
+
+Quarantine/failure semantics:
+
+- source-validation ambiguity quarantines instead of guessing
+- provider-binding conflict quarantines
+- invalid quantities/money may quarantine
+- ambiguous parent relationship quarantines
+- durable DataQualityIssue persistence remains deferred to M4
+- quarantine remains distinct from infrastructure/persistence failure
+- one bad row does not automatically invalidate independent valid rows
+- file-level contract failures may fail the whole import
+
+Security boundary:
+
+- CSV content never establishes organization ownership
+- CSV content never establishes store authorization
+- provider IDs never authorize tenant access
+- M2 browser ACL/RLS authority remains unchanged
+- ordinary authenticated browser clients do not gain canonical mutation rights
+- CSV ingestion is server-side only
+- service-role usage still requires explicit trusted tenant scope
+
+M3 scope remains limited:
+
+- no derived metrics
+- no forecasting
+- no decision generation
+- no AI explanation
+- no Shopify synchronization
+- no billing
+- no durable DataQualityIssue persistence
+- no operational CSV parser/import route introduced yet
+
+Verification at M3.1 closure:
+
+- typecheck PASS
+- 6 focused CSV/provider test files PASS
+- 60 focused tests PASS
+- lint PASS
+- git diff check PASS
+- M2 boundaries remain unchanged
+
+Next allowed sub-milestone:
+
+M3.2 — CSV file parsing + structural validation
+
