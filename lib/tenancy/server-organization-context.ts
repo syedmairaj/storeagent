@@ -4,6 +4,10 @@ import type {
   AuthenticatedIdentity,
 } from "@/lib/auth/types";
 
+import {
+  AppError,
+} from "@/lib/observability/app-error";
+
 import type {
   OrganizationMemberRole,
 } from "@/lib/commerce-domain/types";
@@ -26,11 +30,28 @@ const ORGANIZATION_MEMBER_ROLES =
   ]);
 
 export class TenantPersistenceError
-  extends Error {
-  constructor() {
-    super(
-      "Unable to resolve tenant persistence.",
-    );
+  extends AppError {
+  constructor(
+    cause?: unknown,
+  ) {
+    super({
+      code:
+        "TENANT_PERSISTENCE_FAILED",
+
+      kind:
+        "operational",
+
+      message:
+        "Unable to resolve tenant persistence.",
+
+      publicMessage:
+        "Unable to load this workspace right now.",
+
+      httpStatus:
+        500,
+
+      cause,
+    });
 
     this.name =
       "TenantPersistenceError";
@@ -91,7 +112,9 @@ export async function resolveServerOrganizationContext(
   if (
     error
   ) {
-    throw new TenantPersistenceError();
+    throw new TenantPersistenceError(
+      error,
+    );
   }
 
   if (

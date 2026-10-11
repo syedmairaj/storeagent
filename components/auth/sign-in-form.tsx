@@ -125,6 +125,7 @@ export function SignInForm() {
 
   return (
     <form
+      method="post"
       onSubmit={
         handleSubmit
       }

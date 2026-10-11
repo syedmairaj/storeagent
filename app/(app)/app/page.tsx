@@ -17,6 +17,10 @@ import {
 } from "@/lib/auth/app-route";
 
 import {
+  AppError,
+} from "@/lib/observability/app-error";
+
+import {
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
 
@@ -65,9 +69,25 @@ export default async function OrganizationSelectionPage() {
   if (
     error
   ) {
-    throw new Error(
-      "Unable to load organizations.",
-    );
+    throw new AppError({
+      code:
+        "DATA_LOAD_FAILED",
+
+      kind:
+        "operational",
+
+      message:
+        "Unable to load organizations.",
+
+      publicMessage:
+        "Unable to load your organizations right now.",
+
+      httpStatus:
+        500,
+
+      cause:
+        error,
+    });
   }
 
   const organizations =

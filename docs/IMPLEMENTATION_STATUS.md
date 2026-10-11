@@ -632,7 +632,7 @@ M1 — Foundation implementation
 - [x] M1.4 Organization membership + provisioning
 - [x] M1.5 RLS + tenant enforcement
 - [x] M1.6 Authenticated application shell
-- [ ] M1.7 Error + observability boundary
+- [x] M1.7 Error + observability boundary
 - [ ] M1.8 Foundation integration + adversarial tests
 - [ ] M1.9 M1 gate
 
@@ -944,4 +944,74 @@ Verification at M1.6 closure:
 Next allowed sub-milestone:
 
 M1.7 — Error + observability boundary
+
+### M1.7 completion
+
+Status: PASS
+
+Implemented application error and observability boundary:
+
+- explicit application error taxonomy
+- expected / operational / programming error categories
+- stable application error codes
+- internal versus public error separation
+- request / correlation ID validation and generation
+- structured application observability context
+- trusted user / organization / store correlation fields
+- structured application log events
+- defensive secret and credential redaction
+- bearer-token and JWT-looking value redaction
+- safe public error payloads
+- typed tenant persistence failures
+- structured authentication callback failure logging
+- structured sign-out failure logging
+- request-id propagation on sign-out responses
+- typed authenticated application persistence failures
+- responsive application error boundary
+- no monitoring-vendor dependency
+- application observability architecture documentation
+
+Security and privacy invariants:
+
+- public errors never expose internal exception messages
+- public errors never expose stack traces
+- observability never establishes authentication or tenant authorization
+- tenant identifiers are logged only when already trusted
+- raw client organization identifiers do not become trusted through logging
+- access tokens are not emitted
+- refresh tokens are not emitted
+- Authorization headers are not emitted
+- cookies are not emitted
+- passwords are not emitted
+- service-role credentials are not emitted
+- provider credentials are not emitted
+- raw sessions and provider payloads are not observability-owned
+- authentication callback authorization codes are not logged
+- observability has no inventory, forecasting or decision ownership
+
+Live verification:
+
+- signed-out `/app` remains protected
+- authorized organization workspace loads normally
+- unauthorized organization access remains fail-closed
+- POST sign-out removes authenticated application access
+- controlled workspace failure returns HTTP 500
+- responsive StoreAgent error boundary renders
+- internal controlled exception text is not exposed in UI
+- stack traces are not exposed in UI
+- safe Next.js error reference/digest is displayed
+- responsive error UI verified at mobile width
+
+Verification at M1.7 closure:
+
+- typecheck PASS
+- lint PASS
+- focused M1.7 tests: 26 PASS
+- full test suite PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M1.8 — Foundation integration + adversarial tests
 

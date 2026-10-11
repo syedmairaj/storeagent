@@ -11,6 +11,10 @@ import {
 } from "@/lib/auth/app-route";
 
 import {
+  AppError,
+} from "@/lib/observability/app-error";
+
+import {
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
 
@@ -69,9 +73,25 @@ export default async function OrganizationLayout({
     error ||
     !organization
   ) {
-    throw new Error(
-      "Unable to load authorized organization.",
-    );
+    throw new AppError({
+      code:
+        "DATA_LOAD_FAILED",
+
+      kind:
+        "operational",
+
+      message:
+        "Unable to load authorized organization.",
+
+      publicMessage:
+        "Unable to load this workspace right now.",
+
+      httpStatus:
+        500,
+
+      cause:
+        error,
+    });
   }
 
   return (
