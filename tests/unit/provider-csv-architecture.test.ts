@@ -67,4 +67,37 @@ describe("CSV adapter architecture", () => {
       'name: "row"',
     );
   });
+
+  it("keeps structural parsing independent from mapping, identity, persistence, and business engines", () => {
+    const source =
+      read(
+        "lib/providers/csv/parser.ts",
+      );
+
+    const forbidden = [
+      "@/lib/providers/csv/mapping",
+      "@/lib/providers/csv/identity",
+      "@/lib/providers/bindings",
+      "@/lib/metrics",
+      "@/lib/forecasting",
+      "@/lib/decision-engine",
+      "@supabase",
+      "openai",
+      "@anthropic",
+      "@google/generative-ai",
+    ];
+
+    for (
+      const dependency
+      of forbidden
+    ) {
+      expect(
+        source.includes(
+          dependency,
+        ),
+        `CSV parser must not depend on ${dependency}`,
+      ).toBe(false);
+    }
+  });
+
 });

@@ -1929,7 +1929,7 @@ Next milestone:
 M3 — CSV ingestion
 
 - [x] M3.1 CSV ingestion contract + import matrix
-- [ ] M3.2 CSV file parsing + structural validation
+- [x] M3.2 CSV file parsing + structural validation
 - [ ] M3.3 Product + variant CSV normalization
 - [ ] M3.4 Inventory CSV ingestion
 - [ ] M3.5 Orders + order-items CSV ingestion
@@ -2040,4 +2040,70 @@ Verification at M3.1 closure:
 Next allowed sub-milestone:
 
 M3.2 — CSV file parsing + structural validation
+
+### M3.2 completion
+
+Status: PASS
+
+Implemented generic deterministic CSV structural parsing:
+
+- accepts string input
+- accepts UTF-8 byte input
+- rejects malformed UTF-8
+- removes leading UTF-8 BOM
+- supports LF line endings
+- supports CRLF line endings
+- recognizes header row
+- preserves source header names
+- preserves source cell whitespace
+- preserves empty cells
+- supports quoted fields
+- supports delimiters inside quoted fields
+- supports escaped double quotes
+- supports embedded newlines inside quoted fields
+- ignores blank physical records
+- preserves logical-record source row number for diagnostics
+
+Structural validation:
+
+- empty CSV rejected
+- blank header names rejected
+- duplicate header names rejected
+- wider rows rejected
+- narrower rows rejected
+- unterminated quoted fields rejected
+- unexpected characters after closing quotes rejected
+- quotes inside unquoted fields rejected
+
+Boundary guarantees:
+
+- parser emits generic CsvRow values only
+- parser does not trim mapped business values
+- parser does not assign provider identity
+- parser does not perform merchant field mapping
+- parser does not resolve ProviderBinding
+- parser does not access Supabase
+- parser does not write canonical persistence
+- parser does not own product/inventory/order/supplier semantics
+- parser does not import metrics
+- parser does not import forecasting
+- parser does not import decision logic
+- parser does not import AI dependencies
+- row number remains diagnostic provenance only
+
+Verification at M3.2 closure:
+
+- typecheck PASS
+- 5 focused CSV/provider test files PASS
+- 61 focused tests PASS
+- lint PASS
+- git diff check PASS
+- no database migration introduced
+- no import route introduced
+- no UI introduced
+- M2 canonical persistence and security boundaries unchanged
+
+Next allowed sub-milestone:
+
+M3.3 — Product + variant CSV normalization
 
