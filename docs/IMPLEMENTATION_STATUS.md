@@ -1935,7 +1935,7 @@ M3 — CSV ingestion
 - [x] M3.5 Orders + order-items CSV ingestion
 - [x] M3.6 Supplier + purchase-order CSV ingestion
 - [x] M3.7 Idempotency + provider-binding reconciliation
-- [ ] M3.8 Quarantine + partial-failure accounting
+- [x] M3.8 Quarantine + partial-failure accounting
 - [ ] M3.9 End-to-end CSV import orchestration
 - [ ] M3.10 M3 adversarial/final gate\n
 
@@ -2718,4 +2718,130 @@ Verification at M3.7 closure:
 Next allowed sub-milestone:
 
 M3.8 — Quarantine + partial-failure accounting
+
+### M3.8 completion
+
+Status: PASS
+
+Implemented deterministic CSV row accounting, transient quarantine envelopes, and partial-failure classification.
+
+SyncRun accounting model:
+
+- canonical SyncRunCounts remains:
+  - discovered
+  - imported
+  - updated
+  - skipped
+  - quarantined
+  - failed
+- discovered is not a terminal disposition
+- discovered increments once when a row enters normalization/accounting
+- each discovered row must receive exactly one terminal disposition
+- terminal dispositions remain:
+  - imported
+  - updated
+  - skipped
+  - quarantined
+  - failed
+- terminal counts must never exceed discovered
+- completed accounting requires terminal total == discovered
+- all counts must be non-negative safe integers
+
+Row accounting integrity:
+
+- row number is used only as transient import-local diagnostic identity
+- row number is never ProviderBinding identity
+- row number is never canonical commerce identity
+- duplicate discovery of the same row is rejected
+- terminal accounting before discovery is rejected
+- assigning a second terminal outcome to the same row is rejected
+- one row cannot increment both quarantined and failed
+- one row cannot increment imported and updated simultaneously
+
+Quarantine semantics:
+
+- quarantine represents understandable source/reconciliation problems
+- normalization problems remain quarantine candidates
+- provider-binding conflict remains quarantine
+- unresolved relationships remain quarantine
+- identity ambiguity remains quarantine
+- provider inconsistency remains quarantine
+- quarantine does not create guessed canonical entities
+- quarantine preserves non-secret provenance:
+  - row number
+  - provider
+  - resource type
+  - external ID when known
+  - external parent ID when known
+  - adapter version
+  - reconciliation reason
+  - normalization/reconciliation issues
+- quarantine metadata is transient in M3
+- durable DataQualityIssue persistence remains deferred to M4
+
+Operational failure semantics:
+
+- unexpected operational/persistence errors classify as failed
+- expected source-validation conditions must not be promoted to failed
+- operational failure classification requires an explicit error code
+- row failure classification does not own retry policy
+- worker retry/dead-work semantics remain in the worker infrastructure layer
+
+Partial-failure semantics:
+
+- one quarantined row does not automatically fail independent valid rows
+- valid independent rows may continue
+- row accounting preserves independent terminal outcomes
+- tenant authorization is not inferred from another row
+- resource consistency requirements may still require orchestration-level abort
+- file-level invalid contracts remain whole-import failures for M3.9
+
+File-level failure boundary remains:
+
+- unreadable CSV structure
+- missing required header/mapping contract
+- invalid trusted integration scope
+- invalid resource adapter configuration
+
+These are not row-level quarantine cases.
+
+Transaction boundary:
+
+- M3.8 introduces no transaction implementation
+- canonical write atomicity remains deferred to M3.9 persistence orchestration
+- canonical entity creation + first ProviderBinding must later be one safe reconciliation unit
+- large imports must not be wrapped in one unbounded transaction
+
+SyncRun status boundary:
+
+- M3.8 does not decide final SyncRunStatus
+- completed vs completed_with_errors vs failed remains orchestration-owned
+- row counts alone do not determine cancellation or whole-import failure
+- M3.9 owns final run lifecycle
+
+Scope exclusions:
+
+- no SyncRun writer
+- no ProviderBinding writer
+- no canonical entity writer
+- no database migration
+- no service-role access
+- no worker retry modification
+- no API route
+- no UI
+- no metrics
+- no forecasting
+- no decisions
+- no AI
+
+Verification at M3.8 closure:
+
+- 12 focused provider/CSV/schema/worker test files PASS
+- 140 focused tests PASS
+- lint PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M3.9 — End-to-end CSV import orchestration
 

@@ -505,4 +505,87 @@ describe("CSV adapter architecture", () => {
     );
   });
 
+
+  it("keeps M3.8 accounting pure and persistence-free", () => {
+    const sources = [
+      read(
+        "lib/providers/csv/accounting.ts",
+      ),
+      read(
+        "lib/providers/csv/quarantine.ts",
+      ),
+      read(
+        "lib/providers/csv/partial-failure.ts",
+      ),
+    ];
+
+    const forbidden = [
+      "@supabase",
+      "@/lib/supabase",
+      ".from(",
+      ".insert(",
+      ".update(",
+      ".upsert(",
+      "react",
+      "next/",
+      "openai",
+      "@anthropic",
+      "@google/generative-ai",
+    ];
+
+    for (const source of sources) {
+      for (const dependency of forbidden) {
+        expect(
+          source.includes(
+            dependency,
+          ),
+          `M3.8 helper must not depend on ${dependency}`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("keeps row number diagnostic rather than provider identity", () => {
+    const source =
+      read(
+        "lib/providers/csv/accounting.ts",
+      );
+
+    expect(
+      source,
+    ).toContain(
+      "Import-local diagnostic row numbers only",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "externalId: rowNumber",
+    );
+  });
+
+  it("does not let CSV accounting own worker retry policy", () => {
+    const source =
+      read(
+        "lib/providers/csv/partial-failure.ts",
+      );
+
+    const forbidden = [
+      "@/workers",
+      "retry_wait",
+      "attemptCount",
+      "lease",
+      "deadWork",
+      "buildWorkerIdempotencyKey",
+    ];
+
+    for (const term of forbidden) {
+      expect(
+        source.includes(
+          term,
+        ),
+      ).toBe(false);
+    }
+  });
+
 });
