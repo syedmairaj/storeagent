@@ -57,6 +57,32 @@ describe("CSV adapter architecture", () => {
     }
   });
 
+  it("keeps Supabase transport in the dedicated CSV persistence adapter", () => {
+    const adapter = read("lib/providers/csv/supabase-persistence.ts");
+
+    expect(adapter).toContain('import "server-only"');
+
+    expect(adapter).toContain("createSupabaseAdminClient");
+
+    expect(adapter).toContain('.from("provider_bindings")');
+
+    expect(adapter).toContain(".rpc(");
+
+    const pureFiles = [
+      "lib/providers/csv/resource-orchestration.ts",
+      "lib/providers/csv/relationship-resolution.ts",
+      "lib/providers/csv/orchestrate-resource.ts",
+    ];
+
+    for (const file of pureFiles) {
+      const source = read(file);
+
+      expect(source).not.toContain("createSupabaseAdminClient");
+
+      expect(source).not.toContain("@supabase/supabase-js");
+    }
+  });
+
   it("does not resolve CSV relationships from canonical SKU", () => {
     const source = read("lib/providers/csv/orchestrate-resource.ts");
 
