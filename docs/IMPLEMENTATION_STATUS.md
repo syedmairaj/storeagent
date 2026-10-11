@@ -1217,7 +1217,7 @@ The StoreAgent foundation is now approved for the next roadmap milestone.
 - [x] M2.4 Orders + order items + returns/refunds
 - [x] M2.5 Suppliers + supplier products + purchase orders
 - [x] M2.6 Provider-neutral integration identity + bindings
-- [ ] M2.7 RLS + relational/adversarial verification
+- [x] M2.7 RLS + relational/adversarial verification
 - [ ] M2.8 M2 gate
 
 M2 implementation rules:
@@ -1715,4 +1715,114 @@ Verification at M2.6 closure:
 Next allowed sub-milestone:
 
 M2.7 — RLS + relational/adversarial verification
+
+### M2.7 completion
+
+Status: PASS
+
+Implemented canonical M2 browser/RLS enforcement across all 13 M2 tables:
+
+- `products`
+- `product_variants`
+- `inventory_snapshots`
+- `orders`
+- `order_items`
+- `return_refunds`
+- `suppliers`
+- `supplier_products`
+- `purchase_orders`
+- `purchase_order_items`
+- `integrations`
+- `provider_bindings`
+- `sync_runs`
+
+Browser privilege boundary:
+
+- anonymous role has zero M2 table privileges
+- authenticated role has SELECT only
+- authenticated INSERT denied
+- authenticated UPDATE denied
+- authenticated DELETE denied
+- authenticated TRUNCATE denied
+- authenticated REFERENCES denied
+- authenticated TRIGGER denied
+- no browser mutation policy introduced
+
+RLS policy model:
+
+- exactly one authenticated SELECT policy per M2 table
+- exactly 13 M2 SELECT policies installed
+- organization membership remains the authorization bridge
+- `auth.uid()` is matched against `organization_members.user_id`
+- row `organization_id` determines tenant visibility
+- store IDs do not establish authorization
+- provider IDs do not establish authorization
+- integration IDs do not establish authorization
+- external IDs do not establish authorization
+
+Current-state protection verified:
+
+- products tenant-isolated
+- product variants tenant-isolated
+- suppliers tenant-isolated
+- supplier-product relationships tenant-isolated
+- purchase orders tenant-isolated
+- purchase-order items tenant-isolated
+- integrations tenant-isolated
+- provider bindings tenant-isolated
+
+Historical protection verified:
+
+- inventory snapshot history tenant-isolated
+- order history tenant-isolated
+- order-item history tenant-isolated
+- return/refund history tenant-isolated
+- sync-run history tenant-isolated
+- ordinary authenticated clients cannot mutate history
+
+Adversarial verification:
+
+- two independent tenant graphs created
+- user A sees own tenant data
+- user A cannot see tenant B data
+- authenticated non-member sees zero M2 rows
+- anonymous M2 access denied
+- authenticated current-state mutation denied
+- authenticated history mutation denied
+- RLS independently enforces organization isolation
+
+Defense-in-depth verification:
+
+- PostgreSQL ACLs restrict authenticated clients to SELECT
+- RLS independently filters SELECT visibility
+- canonical composite foreign keys enforce relational ownership
+- service-role boundary remains separate from browser authorization
+- no privileged RLS bypass helper introduced
+
+Live database verification:
+
+- all 13 M2 tables have RLS enabled
+- exactly 13 M2 SELECT policies installed
+- every policy targets `authenticated`
+- zero anonymous M2 grants
+- exactly 13 authenticated SELECT grants
+- zero authenticated non-SELECT M2 grants
+- M2.7 cross-tenant adversarial SQL PASS
+- transaction rollback PASS
+
+Verification at M2.7 closure:
+
+- typecheck PASS
+- focused tenancy/RLS/M2 tests PASS
+- lint PASS
+- clean local database reset PASS
+- Supabase DB lint PASS
+- M2.7 adversarial SQL PASS
+- direct ACL verification PASS
+- direct RLS policy verification PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M2.8 — M2 final gate
 
