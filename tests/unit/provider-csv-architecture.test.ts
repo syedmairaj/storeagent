@@ -57,6 +57,46 @@ describe("CSV adapter architecture", () => {
     }
   });
 
+  it("keeps CSV dependency planning pure and transport-independent", () => {
+    const source = read("lib/providers/csv/dependency-plan.ts");
+
+    expect(source).toContain("CSV_IMPORT_DEPENDENCIES");
+
+    expect(source).toContain("executeCsvDependencyPlan");
+
+    expect(source).not.toContain("createSupabaseAdminClient");
+
+    expect(source).not.toContain("@supabase/supabase-js");
+
+    expect(source).not.toContain(".rpc(");
+
+    expect(source).not.toContain("parseCsv");
+
+    expect(source).not.toContain("sync_runs");
+
+    expect(source).not.toContain("forecast");
+
+    expect(source).not.toContain("decision-engine");
+  });
+
+  it("keeps CSV row execution downstream of normalization and upstream of file orchestration", () => {
+    const source = read("lib/providers/csv/row-execution.ts");
+
+    expect(source).toContain("discoverCsvRow");
+
+    expect(source).toContain("finalizeCsvRow");
+
+    expect(source).toContain("buildCsvQuarantineEnvelope");
+
+    expect(source).not.toContain("parseCsv");
+
+    expect(source).not.toContain("createSupabaseAdminClient");
+
+    expect(source).not.toContain(".rpc(");
+
+    expect(source).not.toContain("sync_runs");
+  });
+
   it("keeps Supabase transport in the dedicated CSV persistence adapter", () => {
     const adapter = read("lib/providers/csv/supabase-persistence.ts");
 
