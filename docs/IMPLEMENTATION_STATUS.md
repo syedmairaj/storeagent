@@ -634,7 +634,7 @@ M1 — Foundation implementation
 - [x] M1.6 Authenticated application shell
 - [x] M1.7 Error + observability boundary
 - [x] M1.8 Foundation integration + adversarial tests
-- [ ] M1.9 M1 gate
+- [x] M1.9 M1 gate
 
 M1 implementation rules:
 
@@ -805,6 +805,65 @@ Verification at M1.3 closure:
 Next allowed sub-milestone:
 
 M1.4 — Organization membership + provisioning
+
+### M1.4 completion
+
+Status: PASS
+
+Implemented organization membership and provisioning foundation:
+
+- authenticated current-user provisioning boundary
+- PostgreSQL SECURITY DEFINER provisioning RPC
+- provisioning identity derived exclusively from auth.uid()
+- one initial organization created for an unprovisioned authenticated user
+- initial organization name `My Organization`
+- initial organization currency `XXX`
+- initial organization timezone `UTC`
+- owner membership created for the authenticated user
+- repeat provisioning is idempotent
+- advisory locking protects concurrent provisioning
+- uniqueness constraints protect duplicate membership creation
+- application provisioning wrapper for authenticated flows
+- authentication callback invokes provisioning only after successful authentication
+- no client-supplied user id establishes provisioning ownership
+- no first/default organization selection introduced
+
+Security invariants:
+
+- authentication identifies the user but does not itself authorize tenant access
+- provisioning derives the user only from trusted authenticated database context
+- callers cannot provision another user by supplying a user id
+- organization membership remains the authorization bridge
+- initial provisioning does not bypass RLS for ordinary application reads
+- privileged provisioning scope remains narrow and explicit
+- no provider identifiers establish tenant ownership
+- no inventory, forecasting, decision, AI, billing or provider synchronization behavior is introduced
+
+Idempotency invariants:
+
+- first provisioning creates exactly one organization
+- first provisioning creates exactly one owner membership
+- subsequent provisioning calls do not create another organization
+- subsequent provisioning calls do not create another membership
+- concurrent provisioning is serialized safely
+- database uniqueness constraints remain the final duplicate-safety boundary
+
+Verification at M1.4 closure:
+
+- provisioning architecture tests PASS
+- authenticated provisioning verified
+- repeated provisioning verified idempotent
+- owner membership verified
+- canonical defaults verified
+- typecheck PASS
+- lint PASS
+- full test suite PASS
+- production build PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M1.5 — RLS + tenant enforcement
 
 
 ### M1.5 completion
@@ -1094,4 +1153,59 @@ Verification at M1.8 closure:
 Next allowed sub-milestone:
 
 M1.9 — M1 gate
+
+### M1.9 completion
+
+Status: PASS
+
+M1 foundation gate verified:
+
+- M1.1 runtime + environment + Supabase boundary PASS
+- M1.2 authentication + session foundation PASS
+- M1.3 canonical foundation schema PASS
+- M1.4 organization membership + provisioning PASS
+- M1.5 RLS + tenant enforcement PASS
+- M1.6 authenticated application shell PASS
+- M1.7 error + observability boundary PASS
+- M1.8 foundation integration + adversarial verification PASS
+
+Final security gate:
+
+- authentication uses verified `getClaims()` server-side
+- `getSession()` is not used as the server authorization boundary
+- authentication never substitutes for tenant authorization
+- organization remains the primary tenant boundary
+- organization selection remains explicit
+- no first/default organization fallback exists
+- membership matches authenticated user and requested organization
+- provider identifiers do not establish tenant ownership
+- browser code has no privileged Supabase credentials
+- service-role execution requires trusted tenant scope
+- RLS independently enforces tenant isolation
+- anonymous tenant access fails closed
+- cross-organization access fails closed
+- direct browser mutations of foundation tenant tables are denied
+- provisioning is idempotent
+- public errors do not expose internal details
+- observability does not establish authorization
+- secrets and credentials remain outside public observability output
+
+Final M1 verification:
+
+- typecheck PASS
+- lint PASS
+- full suite: 126 test files / 1243 tests PASS
+- production build PASS
+- Supabase DB lint PASS
+- live PostgreSQL adversarial verification PASS
+- provisioning idempotency verification PASS
+- live authenticated and unauthenticated HTTP verification PASS
+- privileged browser credential scan PASS
+- server authentication boundary scan PASS
+- implicit tenant fallback scan PASS
+- git diff check PASS
+
+M1 gate: PASS
+
+The StoreAgent foundation is now approved for the next roadmap milestone.
 
