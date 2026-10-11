@@ -631,7 +631,7 @@ M1 — Foundation implementation
 - [x] M1.3 Canonical foundation schema
 - [x] M1.4 Organization membership + provisioning
 - [x] M1.5 RLS + tenant enforcement
-- [ ] M1.6 Authenticated application shell
+- [x] M1.6 Authenticated application shell
 - [ ] M1.7 Error + observability boundary
 - [ ] M1.8 Foundation integration + adversarial tests
 - [ ] M1.9 M1 gate
@@ -881,4 +881,67 @@ Verification at M1.5 closure:
 Next allowed sub-milestone:
 
 M1.6 — Authenticated application shell
+
+### M1.6 completion
+
+Status: PASS
+
+Implemented authenticated application shell:
+
+- protected authenticated `/app` boundary
+- dedicated `/login` authentication surface
+- verified Supabase authentication
+- explicit organization selection
+- no first/default organization fallback
+- authorized `/app/[organizationId]` workspace
+- membership-backed organization resolution
+- fail-closed foreign-organization access
+- responsive desktop sidebar
+- responsive mobile application header
+- portal-based mobile navigation drawer
+- responsive organization switching
+- authenticated identity and role visibility
+- POST-only sign out
+- honest no-data foundation state
+- browser-safe explicit NEXT_PUBLIC Supabase configuration
+- application-shell architecture tests
+
+Responsive UX foundation:
+
+- permanent navigation on desktop
+- off-canvas navigation on mobile/tablet
+- opaque mobile drawer and dimmed backdrop
+- body scroll locked while drawer is open
+- drawer scroll support on short screens
+- Escape and backdrop close behavior
+- no horizontal overflow
+- mobile navigation remains reachable
+- touch-friendly navigation controls
+- no fabricated inventory or decision data
+
+Security invariants:
+
+- authentication does not establish tenant authorization
+- organization id remains a requested selector only
+- membership matches authenticated user and organization
+- role derives from trusted membership persistence
+- no implicit tenant fallback exists
+- no browser-controlled tenant authority
+- no privileged Supabase admin client in the application shell
+- unauthorized organization access fails closed
+- sign out remains POST-only
+
+Verification at M1.6 closure:
+
+- typecheck PASS
+- lint PASS
+- focused M1.6 tests: 14 PASS
+- full suite: 117 test files / 1185 tests PASS
+- production build PASS
+- git diff check PASS
+- responsive mobile browser verification PASS
+
+Next allowed sub-milestone:
+
+M1.7 — Error + observability boundary
 
