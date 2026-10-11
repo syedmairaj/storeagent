@@ -1209,3 +1209,77 @@ M1 gate: PASS
 
 The StoreAgent foundation is now approved for the next roadmap milestone.
 
+## M2 — Canonical commerce persistence
+
+- [x] M2.1 Canonical persistence contract + table matrix
+- [ ] M2.2 Products + variants
+- [ ] M2.3 Inventory snapshots
+- [ ] M2.4 Orders + order items + returns/refunds
+- [ ] M2.5 Suppliers + supplier products + purchase orders
+- [ ] M2.6 Provider-neutral integration identity + bindings
+- [ ] M2.7 RLS + relational/adversarial verification
+- [ ] M2.8 M2 gate
+
+M2 implementation rules:
+
+- M0 canonical domain ownership remains frozen.
+- M1 authentication, tenancy, RLS and observability boundaries remain frozen.
+- Organization remains the primary tenant boundary.
+- Canonical identity remains independent of provider identity.
+- Provider identifiers never establish tenant ownership.
+- Unknown commercial values remain NULL and never silently become zero.
+- Persisted monetary values preserve exact decimal semantics.
+- V1 inventory quantities remain whole units.
+- Cross-organization relationships must be impossible at the database layer.
+- Cross-store relationships must be impossible where store ownership applies.
+- History records are append-oriented unless an explicit canonical contract says otherwise.
+- M2 does not implement derived metrics, forecasting, decisions, AI explanation, CSV parsing, Shopify synchronization or billing.
+
+### M2.1 completion
+
+Status: PASS
+
+Frozen canonical persistence contract:
+
+- M2 persisted entity scope explicitly defined
+- deferred derived entity scope explicitly defined
+- product and product-variant persistence ownership defined
+- inventory snapshot history ownership defined
+- orders, order items and returns/refunds ownership defined
+- supplier and purchase-order persistence ownership defined
+- provider-neutral integration and binding ownership defined
+- organization/store relational ownership requirements defined
+- NULL-versus-zero semantics explicitly preserved
+- exact monetary persistence semantics explicitly preserved
+- provider binding identity key frozen
+- provider external identifiers remain case-preserving
+- provider identifiers remain non-authoritative for tenancy
+- RLS table classifications defined
+- history/append semantics defined
+- composite ownership FK strategy defined
+- no M2 database migration introduced
+- no M2 product UI introduced
+- no provider synchronization introduced
+
+Deferred from M2 persistence:
+
+- DataQualityIssue -> M4
+- SkuDailyMetric -> M5
+- ForecastRun -> M6
+- SkuForecast -> M6
+- InventoryAction -> M7
+- ActionEvent -> M7 / outcome history
+
+Verification at M2.1 closure:
+
+- typecheck PASS
+- focused M2.1 tests: 2 files / 20 tests PASS
+- lint PASS
+- git diff check PASS
+- M2 migration absence verified
+- persistence architecture contract verified
+
+Next allowed sub-milestone:
+
+M2.2 — Products + variants
+
