@@ -252,4 +252,82 @@ describe("CSV adapter architecture", () => {
     }
   });
 
+
+  it("keeps CSV order normalization upstream of persistence and demand metrics", () => {
+    const source =
+      read(
+        "lib/providers/csv/order-normalization.ts",
+      );
+
+    const forbidden = [
+      "@supabase",
+      "@/lib/supabase",
+      "@/lib/metrics",
+      "@/lib/forecasting",
+      "@/lib/decision-engine",
+      "react",
+      "next/",
+      "openai",
+      "@anthropic",
+      "@google/generative-ai",
+    ];
+
+    for (
+      const dependency
+      of forbidden
+    ) {
+      expect(
+        source.includes(
+          dependency,
+        ),
+        `CSV order normalizer must not depend on ${dependency}`,
+      ).toBe(false);
+    }
+  });
+
+  it("does not manufacture canonical order ownership or UUIDs", () => {
+    const source =
+      read(
+        "lib/providers/csv/order-normalization.ts",
+      );
+
+    for (
+      const forbidden
+      of [
+        "randomUUID",
+        "organizationId:",
+        "storeId:",
+        "orderId:",
+        "variantId:",
+        "locationId:",
+        "canonicalEntityId:",
+      ]
+    ) {
+      expect(
+        source.includes(
+          forbidden,
+        ),
+      ).toBe(false);
+    }
+  });
+
+  it("does not promote order externalReference into provider identity", () => {
+    const source =
+      read(
+        "lib/providers/csv/order-normalization.ts",
+      );
+
+    expect(
+      source,
+    ).toContain(
+      "externalReference:",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      'externalId: mapped(',
+    );
+  });
+
 });

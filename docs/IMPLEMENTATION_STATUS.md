@@ -1932,7 +1932,7 @@ M3 — CSV ingestion
 - [x] M3.2 CSV file parsing + structural validation
 - [x] M3.3 Product + variant CSV normalization
 - [x] M3.4 Inventory CSV ingestion
-- [ ] M3.5 Orders + order-items CSV ingestion
+- [x] M3.5 Orders + order-items CSV ingestion
 - [ ] M3.6 Supplier + purchase-order CSV ingestion
 - [ ] M3.7 Idempotency + provider-binding reconciliation
 - [ ] M3.8 Quarantine + partial-failure accounting
@@ -2319,4 +2319,126 @@ Verification at M3.4 closure:
 Next allowed sub-milestone:
 
 M3.5 — Orders + order-items CSV ingestion
+
+### M3.5 completion
+
+Status: PASS
+
+Implemented deterministic CSV normalization for orders and order items.
+
+Order identity:
+
+- order requires explicit stable externalId
+- externalReference remains optional commercial/provider evidence
+- externalReference is never promoted into provider identity
+- externalReference may be non-unique
+- row number is never order identity
+- order provider identity remains case-preserving
+
+Order normalization:
+
+- orderedAt is required
+- orderedAt requires explicit timezone
+- timestamps normalize deterministically to UTC
+- order currency is required
+- currency uses canonical three-letter normalization
+- order status uses the frozen canonical order-status normalizer
+- supported canonical statuses remain:
+  - pending
+  - open
+  - completed
+  - cancelled
+  - refunded
+  - partially_refunded
+  - unknown
+- unsupported/missing provider status maps fail-closed to unknown
+- unsupported status is never guessed into completed/open
+
+Order commercial values:
+
+- grossAmount is optional
+- discountAmount is optional
+- netAmount is optional
+- blank money remains NULL
+- explicit zero remains exact zero
+- malformed money quarantines
+- negative commercial money quarantines
+- JavaScript floating-point money is not introduced
+
+Order-item identity:
+
+- order item requires explicit stable externalId
+- diagnostic CSV row number is never durable identity
+- SKU alone is not used as order-item identity
+- parent order identity is carried separately as externalParentId
+- externalParentId remains relationship provenance, not hidden binding uniqueness
+
+Order-item relationships:
+
+- parent order source identity is required
+- variant source identity is required
+- explicit variantExternalId is preferred
+- stable SKU composite identity remains valid variant fallback
+- location source identity remains optional
+- unresolved required relationships quarantine
+- canonical orderId, variantId, and locationId remain downstream concerns
+
+Order-item quantities:
+
+- quantity is required
+- quantity must be a non-negative whole unit
+- explicit zero quantity remains valid because canonical M2 permits known zero
+- fractional quantities quarantine
+- negative quantities quarantine
+- unsafe quantities quarantine through existing provider helpers
+
+Order-item commercial values:
+
+- unitPriceAmount is optional
+- discountAmount is optional
+- unitCostAmount is optional
+- currency is optional when all item money is unknown
+- currency is required when any item monetary value is supplied
+- known monetary zero remains exact zero
+- blank monetary values remain NULL
+- malformed or negative monetary values quarantine
+
+Persistence/reconciliation boundary:
+
+- normalization creates provider candidates only
+- no canonical UUID is generated
+- no organization ownership is assigned
+- no store ownership is assigned
+- no canonical orderId is assigned
+- no canonical variantId is assigned
+- no canonical locationId is assigned
+- no ProviderBinding write occurs
+- no canonical order/order-item write occurs
+- order reconciliation remains downstream
+- immutable ownership relationships remain protected by M2 schema
+
+Scope exclusions:
+
+- return/refund CSV normalization is not included in M3.5
+- no metrics calculation
+- no sales-velocity calculation
+- no forecasting
+- no decisions
+- no AI
+- no UI
+- no API route
+- no database migration
+- no SyncRun mutation
+
+Verification at M3.5 closure:
+
+- typecheck PASS
+- 15 focused CSV/provider/schema test files PASS
+- 219 focused tests PASS
+- lint PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M3.6 — Supplier + purchase-order CSV ingestion
 
