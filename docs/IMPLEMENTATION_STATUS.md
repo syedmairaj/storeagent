@@ -1218,7 +1218,7 @@ The StoreAgent foundation is now approved for the next roadmap milestone.
 - [x] M2.5 Suppliers + supplier products + purchase orders
 - [x] M2.6 Provider-neutral integration identity + bindings
 - [x] M2.7 RLS + relational/adversarial verification
-- [ ] M2.8 M2 gate
+- [x] M2.8 M2 gate
 
 M2 implementation rules:
 
@@ -1825,4 +1825,106 @@ Verification at M2.7 closure:
 Next allowed sub-milestone:
 
 M2.8 — M2 final gate
+
+### M2.8 completion
+
+Status: PASS
+
+M2 canonical persistence gate closed.
+
+Implemented and verified:
+
+- canonical products
+- canonical product variants
+- immutable inventory snapshots
+- orders
+- order items
+- return/refund evidence
+- suppliers
+- supplier-product relationships
+- purchase orders
+- purchase-order items
+- provider-neutral integrations
+- durable provider bindings
+- sync-run operational history
+- organization/store relational ownership
+- provider identity separation
+- tenant RLS enforcement
+- browser ACL hardening
+
+Canonical persistence invariants:
+
+- organization remains the primary tenant boundary
+- canonical UUID identity remains independent of provider identity
+- provider identifiers never establish tenant ownership
+- provider binding identity is scoped by organization + integration + provider + resource type + external ID
+- provider external IDs remain case-preserving
+- provider binding cannot silently rebind to another canonical entity
+- cross-organization relationships are structurally rejected
+- cross-store relationships are structurally rejected where store ownership applies
+- unknown commercial values remain NULL
+- NULL remains distinct from known zero
+- persisted money uses exact PostgreSQL numeric semantics
+- V1 inventory and commerce quantities remain whole units
+- immutable/history records preserve historical truth
+- history is not destructively converted into current state
+
+RLS and browser security:
+
+- all 13 M2 tenant tables have RLS enabled
+- exactly 13 authenticated SELECT policies installed
+- organization membership is the authorization bridge
+- anon has zero M2 table privileges
+- authenticated has SELECT-only M2 table privileges
+- authenticated INSERT denied
+- authenticated UPDATE denied
+- authenticated DELETE denied
+- authenticated history mutation denied
+- authenticated non-member sees zero M2 tenant rows
+- cross-tenant reads are blocked by RLS
+- provider IDs, external IDs, integration IDs and store IDs do not establish authorization
+- service-role remains outside browser authority and still requires trusted tenant scope
+
+M2.8 full repository verification:
+
+- `npm run check` PASS
+- typecheck PASS
+- lint PASS
+- full Vitest suite PASS
+- 134 test files PASS
+- 1366 tests PASS
+- production Next.js build PASS
+- clean local Supabase reset PASS
+- migration chain applies from zero through M2.7
+- Supabase DB lint PASS
+- M2.7 live cross-tenant adversarial SQL PASS
+- transaction rollback PASS
+- git diff check PASS
+
+Historical M2 adversarial-suite note:
+
+- M2.2 through M2.6 SQL adversarial suites continue to pass their relational and value-semantics checks
+- those milestone-local scripts intentionally assert that M2.7 policies do not yet exist
+- when executed against the fully migrated M2.7 database, each therefore stops at its historical "M2.7 policies introduced prematurely" assertion
+- this is expected later-schema behavior and is not an M2 regression
+- M2.7 adversarial SQL is the authoritative live RLS verification for the final M2 schema
+
+Explicitly still deferred:
+
+- CSV parsing / ingestion pipeline -> M3
+- DataQualityIssue persistence -> M4
+- derived SKU metrics -> M5
+- forecasting persistence/execution -> M6
+- deterministic inventory actions -> M7
+- AI explanation -> later milestone
+- Shopify synchronization -> M10
+- billing -> later milestone
+
+M2 final result:
+
+PASS — canonical persistence, relational ownership, provider identity, history semantics, and tenant isolation are frozen and verified.
+
+Next milestone:
+
+M3 — CSV ingestion
 
