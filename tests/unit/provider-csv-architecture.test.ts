@@ -588,4 +588,102 @@ describe("CSV adapter architecture", () => {
     }
   });
 
+
+  it("derives M3.9 trusted CSV scope only from canonical integration state", () => {
+    const source =
+      read(
+        "lib/providers/csv/trusted-context.ts",
+      );
+
+    expect(
+      source,
+    ).toContain(
+      '"integration_binding"',
+    );
+
+    expect(
+      source,
+    ).toContain(
+      'integration.provider !==',
+    );
+
+    expect(
+      source,
+    ).toContain(
+      'integration.status !==',
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "CsvRow",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "readCsvMappedValue",
+    );
+  });
+
+  it("keeps M3.9A lifecycle and scope helpers persistence-free", () => {
+    const sources = [
+      read(
+        "lib/providers/csv/trusted-context.ts",
+      ),
+      read(
+        "lib/providers/csv/sync-run-lifecycle.ts",
+      ),
+    ];
+
+    const forbidden = [
+      "createSupabaseAdminClient",
+      "@supabase",
+      ".from(",
+      ".insert(",
+      ".update(",
+      ".upsert(",
+      ".rpc(",
+      "react",
+      "next/",
+      "openai",
+    ];
+
+    for (const source of sources) {
+      for (const dependency of forbidden) {
+        expect(
+          source.includes(
+            dependency,
+          ),
+          `M3.9A helper must not depend on ${dependency}`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("does not let organization-scoped CSV integration invent store scope", () => {
+    const source =
+      read(
+        "lib/providers/csv/trusted-context.ts",
+      );
+
+    expect(
+      source,
+    ).toContain(
+      "requireCsvStoreScopedContext",
+    );
+
+    expect(
+      source,
+    ).toContain(
+      "integration.storeId",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "row.storeId",
+    );
+  });
+
 });
