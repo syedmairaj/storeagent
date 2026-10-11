@@ -1213,7 +1213,7 @@ The StoreAgent foundation is now approved for the next roadmap milestone.
 
 - [x] M2.1 Canonical persistence contract + table matrix
 - [x] M2.2 Products + variants
-- [ ] M2.3 Inventory snapshots
+- [x] M2.3 Inventory snapshots
 - [ ] M2.4 Orders + order items + returns/refunds
 - [ ] M2.5 Suppliers + supplier products + purchase orders
 - [ ] M2.6 Provider-neutral integration identity + bindings
@@ -1359,4 +1359,81 @@ Verification at M2.2 closure:
 Next allowed sub-milestone:
 
 M2.3 — Inventory snapshots
+
+### M2.3 completion
+
+Status: PASS
+
+Implemented canonical inventory history:
+
+- `inventory_snapshots`
+- organization ownership
+- store ownership
+- location ownership
+- product-variant ownership
+- composite organization/store/location enforcement
+- composite organization/store/variant enforcement
+- observed timestamp
+- nullable on-hand quantity
+- nullable available quantity
+- nullable committed quantity
+- nullable incoming quantity
+- provider source provenance
+- created_at only; no mutable updated_at state
+- RLS enabled fail-closed
+- M2.7 read policies intentionally deferred
+
+Strengthened foundation ownership:
+
+- `locations` now exposes composite
+  `(organization_id, store_id, id)` ownership
+  for downstream store-scoped canonical foreign keys
+
+History semantics verified:
+
+- inventory observations are append-oriented
+- later observation creates another row
+- existing snapshots cannot be updated
+- existing snapshots cannot be deleted
+- historical observations remain preserved
+
+Value semantics verified:
+
+- NULL means unknown
+- zero means known zero
+- NULL remains distinct from zero
+- known quantities use whole-unit integer persistence
+- known quantities must be non-negative
+- invalid provider source values are rejected
+
+Relational invariants verified:
+
+- snapshot cannot use a location from another organization
+- snapshot cannot use a location from another store
+- snapshot cannot use a variant from another organization
+- location and variant ownership are enforced structurally by PostgreSQL
+
+Live database verification:
+
+- clean migration chain applied through M2.3
+- Supabase DB lint PASS
+- relational/adversarial SQL PASS
+- inventory snapshot RLS enabled
+- zero M2.7 inventory policies installed
+- authenticated inventory reads remain fail-closed before M2.7
+
+Verification at M2.3 closure:
+
+- typecheck PASS
+- focused M2 tests PASS
+- lint PASS
+- Supabase DB lint PASS
+- adversarial SQL PASS
+- direct RLS/policy verification PASS
+- location composite ownership constraint verified
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M2.4 — Orders + order items + returns/refunds
 
