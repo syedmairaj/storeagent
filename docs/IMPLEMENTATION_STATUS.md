@@ -1214,7 +1214,7 @@ The StoreAgent foundation is now approved for the next roadmap milestone.
 - [x] M2.1 Canonical persistence contract + table matrix
 - [x] M2.2 Products + variants
 - [x] M2.3 Inventory snapshots
-- [ ] M2.4 Orders + order items + returns/refunds
+- [x] M2.4 Orders + order items + returns/refunds
 - [ ] M2.5 Suppliers + supplier products + purchase orders
 - [ ] M2.6 Provider-neutral integration identity + bindings
 - [ ] M2.7 RLS + relational/adversarial verification
@@ -1436,4 +1436,82 @@ Verification at M2.3 closure:
 Next allowed sub-milestone:
 
 M2.4 — Orders + order items + returns/refunds
+
+### M2.4 completion
+
+Status: PASS
+
+Implemented canonical demand-history persistence:
+
+- `orders`
+- `order_items`
+- `return_refunds`
+- organization ownership on every row
+- store ownership on every row
+- composite order ownership for order items
+- composite variant ownership
+- optional location ownership
+- composite return/refund ownership against order + variant + order item
+- exact PostgreSQL numeric monetary persistence
+- nullable unknown monetary values
+- required order currency
+- nullable order-item and return/refund currency
+- whole-unit order quantities
+- nullable whole-unit returned quantities
+- provider source provenance
+- frozen order-status vocabulary
+- non-unique external-reference indexing
+- RLS enabled fail-closed
+- M2.7 policies intentionally deferred
+
+Ownership invariants verified:
+
+- order item cannot reference an order from another organization
+- order item cannot reference a variant from another organization
+- order item cannot reference a location from another store
+- return/refund cannot claim an order-item/variant mismatch
+- canonical order ownership cannot be reassigned
+- canonical order-item identity cannot be reassigned
+- canonical return/refund identity cannot be reassigned
+
+Reconciliation semantics verified:
+
+- legitimate order status reconciliation remains allowed
+- provider reconciliation cannot silently reassign tenant/store ownership
+- provider external reference remains evidence, not canonical tenant identity
+
+Value semantics verified:
+
+- unknown gross amount remains NULL
+- unknown discount amount remains NULL
+- unknown net amount remains NULL
+- NULL monetary value remains distinct from zero
+- negative returned quantity is rejected
+- source commercial money is not over-constrained by M2
+
+Live database verification:
+
+- clean migration chain applied through M2.4
+- Supabase DB lint PASS
+- M2.4 adversarial SQL PASS
+- orders RLS enabled
+- order_items RLS enabled
+- return_refunds RLS enabled
+- zero M2.7 policies installed
+- authenticated demand-history access remains fail-closed before M2.7
+
+Verification at M2.4 closure:
+
+- typecheck PASS
+- focused M2 tests PASS
+- lint PASS
+- clean local DB reset PASS
+- Supabase DB lint PASS
+- adversarial SQL PASS
+- direct RLS/policy verification PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M2.5 — Suppliers + supplier products + purchase orders
 
