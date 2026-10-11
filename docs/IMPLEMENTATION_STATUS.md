@@ -1930,7 +1930,7 @@ M3 — CSV ingestion
 
 - [x] M3.1 CSV ingestion contract + import matrix
 - [x] M3.2 CSV file parsing + structural validation
-- [ ] M3.3 Product + variant CSV normalization
+- [x] M3.3 Product + variant CSV normalization
 - [ ] M3.4 Inventory CSV ingestion
 - [ ] M3.5 Orders + order-items CSV ingestion
 - [ ] M3.6 Supplier + purchase-order CSV ingestion
@@ -2106,4 +2106,107 @@ Verification at M3.2 closure:
 Next allowed sub-milestone:
 
 M3.3 — Product + variant CSV normalization
+
+### M3.3 completion
+
+Status: PASS
+
+Implemented deterministic CSV normalization for products and product variants.
+
+Product normalization:
+
+- product adapter must declare resource type `product`
+- adapter version must be non-blank
+- product requires explicit stable external identity
+- product title is required
+- product title is never used as durable identity
+- optional brand remains NULL when blank or absent
+- optional category remains NULL when blank or absent
+- product status normalizes only to canonical:
+  - active
+  - draft
+  - archived
+- unsupported product status quarantines
+- missing required product fields quarantine
+- product normalization produces provider candidate data only
+
+Product-variant normalization:
+
+- variant adapter must declare resource type `product_variant`
+- positive safe diagnostic row number required
+- explicit external ID is preferred
+- stable SKU composite identity remains valid fallback when explicit external ID is absent
+- SKU remains required canonical data even when external ID exists
+- stable parent product external identity is required
+- unresolved parent identity quarantines
+- external identity case remains preserved
+- optional barcode remains NULL when blank or absent
+- optional variant title remains NULL when blank or absent
+- variant status normalizes only to canonical:
+  - active
+  - inactive
+  - archived
+- unsupported variant status quarantines
+
+Commercial semantics:
+
+- exact monetary strings use existing provider-money normalization
+- JavaScript floating-point money is not introduced
+- redundant decimal zeroes normalize deterministically
+- known zero remains exact zero
+- blank money remains NULL
+- negative commercial money quarantines
+- malformed money quarantines
+- currency uses canonical three-letter normalization
+- currency is required when variant money is supplied
+- currency may remain known when monetary amounts are unknown
+
+Provider-result semantics:
+
+- accepted records carry explicit provider identity
+- invalid source records quarantine rather than guess
+- normalization issues use existing provider issue codes
+- canonical candidate payloads contain no diagnostic row number
+- normalization does not generate canonical UUIDs
+- normalization does not assign organization ownership
+- normalization does not assign store ownership
+- normalization does not create ProviderBinding records
+
+CSV mapping vocabulary extended explicitly for:
+
+- brand
+- category
+- costAmount
+- sellingPriceAmount
+
+Generic `amount` remains available for later resource adapters and is not
+silently overloaded for product-variant commercial fields.
+
+Boundary guarantees:
+
+- parser remains separate from product/variant normalization
+- mapping remains explicit
+- normalization remains upstream of persistence
+- no Supabase dependency introduced
+- no database migration introduced
+- no canonical persistence writes introduced
+- no SyncRun mutation introduced
+- no route introduced
+- no UI introduced
+- no metrics dependency introduced
+- no forecasting dependency introduced
+- no decision-engine dependency introduced
+- no AI dependency introduced
+
+Verification at M3.3 closure:
+
+- typecheck PASS
+- 9 focused provider/CSV test files PASS
+- 120 focused tests PASS
+- lint PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M3.4 — Inventory CSV ingestion
 

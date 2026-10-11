@@ -100,4 +100,68 @@ describe("CSV adapter architecture", () => {
     }
   });
 
+
+  it("keeps product and variant CSV normalization upstream of persistence and commercial engines", () => {
+    const source =
+      read(
+        "lib/providers/csv/product-normalization.ts",
+      );
+
+    const forbidden = [
+      "@supabase",
+      "@/lib/supabase",
+      "@/lib/metrics",
+      "@/lib/forecasting",
+      "@/lib/decision-engine",
+      "react",
+      "next/",
+      "openai",
+      "@anthropic",
+      "@google/generative-ai",
+    ];
+
+    for (
+      const dependency
+      of forbidden
+    ) {
+      expect(
+        source.includes(
+          dependency,
+        ),
+        `CSV product normalizer must not depend on ${dependency}`,
+      ).toBe(false);
+    }
+  });
+
+  it("does not manufacture canonical UUIDs or tenant ownership during CSV normalization", () => {
+    const source =
+      read(
+        "lib/providers/csv/product-normalization.ts",
+      );
+
+    expect(
+      source,
+    ).not.toContain(
+      "randomUUID",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "organizationId:",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "storeId:",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "canonicalEntityId:",
+    );
+  });
+
 });
