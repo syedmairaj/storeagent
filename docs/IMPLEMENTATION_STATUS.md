@@ -633,7 +633,7 @@ M1 — Foundation implementation
 - [x] M1.5 RLS + tenant enforcement
 - [x] M1.6 Authenticated application shell
 - [x] M1.7 Error + observability boundary
-- [ ] M1.8 Foundation integration + adversarial tests
+- [x] M1.8 Foundation integration + adversarial tests
 - [ ] M1.9 M1 gate
 
 M1 implementation rules:
@@ -1014,4 +1014,84 @@ Verification at M1.7 closure:
 Next allowed sub-milestone:
 
 M1.8 — Foundation integration + adversarial tests
+
+### M1.8 completion
+
+Status: PASS
+
+Implemented foundation integration and adversarial verification:
+
+- deterministic cross-layer M1 integration matrix
+- explicit adversarial tenant threat matrix
+- authentication-to-tenant-resolution composition checks
+- explicit organization selection verification
+- no first/default organization fallback verification
+- browser privileged-credential boundary verification
+- service-role trusted-scope verification
+- safe public-error integration verification
+- observability redaction integration verification
+- live PostgreSQL RLS adversarial verification
+- live anonymous isolation verification
+- live authenticated cross-organization isolation verification
+- live direct mutation denial verification
+- live foundation RLS policy verification
+- live provisioning idempotency verification
+- live signed-out application protection verification
+- live authorized organization access verification
+- live foreign organization denial verification
+- live nonexistent organization denial verification
+- live post-signout stale workspace denial verification
+
+Security invariants verified:
+
+- authentication does not establish organization authorization
+- requested organization id remains only a selector
+- organization membership remains the authorization bridge
+- user and organization must both match trusted persistence
+- foreign organization identifiers do not grant access
+- foreign store identifiers do not grant access
+- known provider/resource identifiers do not establish tenant ownership
+- no implicit first-membership fallback exists
+- anonymous users cannot read tenant data
+- authenticated browser clients cannot directly mutate foundation tenant tables
+- privileged execution still requires trusted tenant scope
+- RLS remains enabled on organizations
+- RLS remains enabled on organization_members
+- RLS remains enabled on stores
+- RLS remains enabled on locations
+- exactly four foundation RLS policies remain installed
+- repeated provisioning remains idempotent
+- repeated provisioning produces exactly one owner membership
+- repeated provisioning produces exactly one organization
+- provisioning defaults remain canonical
+- public errors do not expose internal exception messages
+- public errors do not expose stack traces
+- observability does not establish authorization
+- secrets, tokens, cookies and credentials remain redacted
+
+Live verification:
+
+- signed-out `/app` returns redirect to `/login?next=/app`
+- authorized workspace loads successfully
+- foreign organization access redirects fail-closed
+- nonexistent organization access redirects fail-closed
+- sign-out returns 303
+- revisiting a previously authorized workspace after sign-out redirects to login
+
+Verification at M1.8 closure:
+
+- typecheck PASS
+- lint PASS
+- focused M1.8 tests: 3 files / 32 tests PASS
+- full suite: 126 test files / 1243 tests PASS
+- production build PASS
+- Supabase DB lint PASS
+- live PostgreSQL adversarial checks PASS
+- provisioning idempotency checks PASS
+- live HTTP/browser adversarial checks PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M1.9 — M1 gate
 
