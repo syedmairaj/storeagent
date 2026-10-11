@@ -1934,7 +1934,7 @@ M3 — CSV ingestion
 - [x] M3.4 Inventory CSV ingestion
 - [x] M3.5 Orders + order-items CSV ingestion
 - [x] M3.6 Supplier + purchase-order CSV ingestion
-- [ ] M3.7 Idempotency + provider-binding reconciliation
+- [x] M3.7 Idempotency + provider-binding reconciliation
 - [ ] M3.8 Quarantine + partial-failure accounting
 - [ ] M3.9 End-to-end CSV import orchestration
 - [ ] M3.10 M3 adversarial/final gate\n
@@ -2602,4 +2602,120 @@ Verification at M3.6 closure:
 Next allowed sub-milestone:
 
 M3.7 — Idempotency + provider-binding reconciliation
+
+### M3.7 completion
+
+Status: PASS
+
+Implemented deterministic provider-binding reconciliation planning and SyncRun replay identity.
+
+Provider binding identity:
+
+- durable identity remains:
+  - organizationId
+  - integrationId
+  - provider
+  - resourceType
+  - externalId
+- surrounding external identity whitespace normalizes
+- external ID case is preserved
+- delimiter-safe JSON-array key construction is reused
+- externalParentId remains mutable relationship metadata
+- externalParentId is not hidden uniqueness
+- sourceMetadata remains mutable reconciliation metadata
+
+Provider binding replay:
+
+- no existing binding => create
+- same durable identity + same canonical target => idempotent
+- same durable identity + different canonical target => conflict
+- unrelated existing binding comparison => rejected
+- organization mismatch is rejected
+- integration mismatch is rejected
+- provider/resource namespace mismatch is rejected
+- canonical target is never silently rebound
+
+Metadata reconciliation:
+
+- metadata may reconcile only after durable identity matches
+- metadata may reconcile only after canonical target matches
+- changed externalParentId is detected as metadata reconciliation
+- changed sourceMetadata is detected as metadata reconciliation
+- metadata changes never convert a binding conflict into success
+
+Persistence boundary:
+
+- M3.7 remains pure planning/classification
+- existing frozen assessProviderBindingReplay() is reused
+- existing normalizeProviderBindingIdentity() is reused
+- no duplicate binding identity algorithm introduced
+- no Supabase dependency introduced
+- no database query introduced
+- no provider binding insert/update introduced
+- persistence retains responsibility for transactional enforcement
+
+SyncRun idempotency:
+
+- SyncRun replay identity is:
+  - organizationId
+  - integrationId
+  - idempotencyKey
+- storeId is deliberately not a separate SyncRun replay-key component
+- replay identity matches the frozen M2 database uniqueness
+- blank trusted scope/idempotency values are rejected
+- delimiter-safe JSON-array serialization is used
+- no existing logical run => create
+- same replay identity => idempotent
+- unrelated existing run comparison => rejected
+- SyncRun idempotency prevents duplicate operation execution
+- SyncRun idempotency does not replace row-level ProviderBinding reconciliation
+
+CSV replay semantics:
+
+- repeated files do not derive canonical current-state identity from file name/hash
+- row-level durable identity remains provider-binding based
+- file-level idempotency and resource identity solve different problems
+- current-state entity duplication prevention remains identity based
+- historical append behavior remains resource-specific
+
+Conflict semantics:
+
+- binding conflict remains an expected source/reconciliation condition
+- conflict must quarantine/fail closed downstream
+- conflict is not last-write-wins
+- conflict never reassigns canonicalEntityId
+- durable DataQualityIssue persistence remains deferred to M4
+
+Operational disposition boundary:
+
+- M3.7 does not decide imported vs updated terminal row accounting by itself
+- canonical write outcome remains necessary to determine imported vs updated
+- accepted/skipped/quarantined normalization semantics remain unchanged
+- M3.8/M3.9 own later row-level operational accounting/orchestration
+
+Scope exclusions:
+
+- no canonical entity writer
+- no ProviderBinding writer
+- no SyncRun writer
+- no transaction implementation
+- no API route
+- no UI
+- no database migration
+- no metrics
+- no forecasting
+- no decisions
+- no AI
+
+Verification at M3.7 closure:
+
+- typecheck PASS
+- 10 focused provider/CSV/schema test files PASS
+- 124 focused tests PASS
+- lint PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M3.8 — Quarantine + partial-failure accounting
 

@@ -430,4 +430,79 @@ describe("CSV adapter architecture", () => {
     }
   });
 
+
+  it("keeps M3.7 reconciliation planning free of persistence", () => {
+    const sources = [
+      read(
+        "lib/providers/binding-reconciliation.ts",
+      ),
+      read(
+        "lib/providers/sync-run-idempotency.ts",
+      ),
+    ];
+
+    const forbidden = [
+      "@supabase",
+      "@/lib/supabase",
+      ".from(",
+      ".insert(",
+      ".update(",
+      ".upsert(",
+      "react",
+      "next/",
+      "openai",
+      "@anthropic",
+      "@google/generative-ai",
+    ];
+
+    for (const source of sources) {
+      for (const dependency of forbidden) {
+        expect(
+          source.includes(
+            dependency,
+          ),
+          `M3.7 reconciliation helper must not depend on ${dependency}`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("reuses the frozen provider binding replay classifier", () => {
+    const source =
+      read(
+        "lib/providers/binding-reconciliation.ts",
+      );
+
+    expect(
+      source,
+    ).toContain(
+      "assessProviderBindingReplay",
+    );
+
+    expect(
+      source,
+    ).toContain(
+      "normalizeProviderBindingIdentity",
+    );
+  });
+
+  it("does not include externalParentId in durable provider binding identity", () => {
+    const source =
+      read(
+        "lib/providers/binding-reconciliation.ts",
+      );
+
+    expect(
+      source,
+    ).toContain(
+      "mutableMetadata",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "externalParentId: incoming.externalParentId,\n      canonicalEntityId",
+    );
+  });
+
 });
