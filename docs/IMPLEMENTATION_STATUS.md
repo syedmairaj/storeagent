@@ -1216,7 +1216,7 @@ The StoreAgent foundation is now approved for the next roadmap milestone.
 - [x] M2.3 Inventory snapshots
 - [x] M2.4 Orders + order items + returns/refunds
 - [x] M2.5 Suppliers + supplier products + purchase orders
-- [ ] M2.6 Provider-neutral integration identity + bindings
+- [x] M2.6 Provider-neutral integration identity + bindings
 - [ ] M2.7 RLS + relational/adversarial verification
 - [ ] M2.8 M2 gate
 
@@ -1616,4 +1616,103 @@ Verification at M2.5 closure:
 Next allowed sub-milestone:
 
 M2.6 — Provider-neutral integration identity + bindings
+
+### M2.6 completion
+
+Status: PASS
+
+Implemented provider-neutral integration persistence:
+
+- `integrations`
+- `provider_bindings`
+- `sync_runs`
+- organization-owned integrations
+- optional store-scoped integrations
+- provider-neutral provider vocabulary
+- non-secret integration configuration
+- durable provider-binding identity
+- polymorphic canonical binding validation
+- sync-run idempotency identity
+- nullable sync cursors
+- explicit sync counts
+- reconciliation metadata
+- operational sync history
+- RLS enabled fail-closed
+- M2.7 policies intentionally deferred
+
+Provider-binding identity frozen as:
+
+- `organization_id`
+- `integration_id`
+- `provider`
+- `resource_type`
+- `external_id`
+
+Provider identity semantics verified:
+
+- external IDs remain case-preserving
+- surrounding whitespace aliases are rejected
+- external parent ID is not part of binding uniqueness
+- canonical entity ID remains separate from provider external ID
+- provider identifiers never establish tenant ownership
+- provider must match the trusted integration provider
+- integration must already belong to the same organization
+- durable provider identity cannot silently rebind to another canonical entity
+
+Canonical-target ownership verified:
+
+- provider bindings validate canonical targets against canonical tables
+- cross-organization canonical binding is rejected
+- store-scoped integration cannot bind store-scoped canonical entities from another store
+- organization-scoped integration remains organization-wide
+- bound canonical entities cannot be deleted while bindings exist
+
+Sync-run semantics verified:
+
+- explicit idempotency key
+- duplicate sync idempotency identity rejected
+- cross-organization integration linkage rejected
+- store-scoped sync run must match integration store
+- lifecycle reconciliation remains allowed
+- tenant/integration/idempotency identity cannot be reassigned
+- sync runs cannot be deleted
+- cursor before/after remain nullable
+- reconciliation metadata remains separate from canonical identity
+
+Security and credential boundary verified:
+
+- integration configuration stores non-secret configuration only
+- access tokens are not persisted
+- refresh tokens are not persisted
+- API keys are not persisted
+- client secrets are not persisted
+- provider identity never establishes authorization
+
+Live database verification:
+
+- clean migration chain applied through M2.6
+- Supabase DB lint PASS
+- M2.6 adversarial SQL PASS
+- integrations RLS enabled
+- provider_bindings RLS enabled
+- sync_runs RLS enabled
+- zero M2.7 policies installed
+- authenticated integration access remains fail-closed before M2.7
+- durable provider-binding unique constraint present
+
+Verification at M2.6 closure:
+
+- typecheck PASS
+- focused M2/provider tests PASS
+- lint PASS
+- clean local DB reset PASS
+- Supabase DB lint PASS
+- adversarial SQL PASS
+- direct RLS/policy verification PASS
+- provider-binding durable identity verification PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M2.7 — RLS + relational/adversarial verification
 
