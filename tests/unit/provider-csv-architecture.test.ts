@@ -164,4 +164,92 @@ describe("CSV adapter architecture", () => {
     );
   });
 
+
+  it("keeps CSV inventory observations outside ProviderBinding identity", () => {
+    const source =
+      read(
+        "lib/providers/csv/inventory-normalization.ts",
+      );
+
+    expect(
+      source,
+    ).toContain(
+      'observationType:',
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "ProviderBinding",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "ProviderNormalizationResult",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "canonicalEntityId",
+    );
+  });
+
+  it("keeps CSV inventory normalization upstream of persistence and commercial engines", () => {
+    const source =
+      read(
+        "lib/providers/csv/inventory-normalization.ts",
+      );
+
+    const forbidden = [
+      "@supabase",
+      "@/lib/supabase",
+      "@/lib/metrics",
+      "@/lib/forecasting",
+      "@/lib/decision-engine",
+      "react",
+      "next/",
+      "openai",
+      "@anthropic",
+      "@google/generative-ai",
+    ];
+
+    for (
+      const dependency
+      of forbidden
+    ) {
+      expect(
+        source.includes(
+          dependency,
+        ),
+        `CSV inventory normalizer must not depend on ${dependency}`,
+      ).toBe(false);
+    }
+  });
+
+  it("does not manufacture tenant ownership or canonical inventory IDs", () => {
+    const source =
+      read(
+        "lib/providers/csv/inventory-normalization.ts",
+      );
+
+    for (
+      const forbidden
+      of [
+        "randomUUID",
+        "organizationId:",
+        "storeId:",
+        "locationId:",
+        "variantId:",
+      ]
+    ) {
+      expect(
+        source.includes(
+          forbidden,
+        ),
+      ).toBe(false);
+    }
+  });
+
 });

@@ -231,6 +231,9 @@ export type ProviderSyncRecordDisposition =
 export type CsvCanonicalField =
   | "externalId"
   | "externalParentId"
+  | "variantExternalId"
+  | "locationExternalId"
+  | "observedAt"
   | "sku"
   | "title"
   | "brand"
@@ -253,10 +256,20 @@ export interface CsvColumnMapping {
   sourceColumn: string;
 }
 
-export interface CsvAdapterConfig {
+export interface CsvMappingConfig {
+  mappings: readonly CsvColumnMapping[];
+}
+
+export interface CsvAdapterConfig
+  extends CsvMappingConfig {
   resourceType: ProviderResourceType;
   adapterVersion: string;
-  mappings: readonly CsvColumnMapping[];
+}
+
+export interface CsvInventoryAdapterConfig
+  extends CsvMappingConfig {
+  observationType: "inventory_snapshot";
+  adapterVersion: string;
 }
 
 export type CsvRow = Readonly<Record<string, string | null | undefined>>;

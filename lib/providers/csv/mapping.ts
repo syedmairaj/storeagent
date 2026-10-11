@@ -1,5 +1,5 @@
 import type {
-  CsvAdapterConfig,
+  CsvMappingConfig,
   CsvCanonicalField,
   CsvColumnMapping,
   CsvRow,
@@ -65,7 +65,7 @@ export function validateCsvMappings(
 }
 
 export function csvSourceColumnForField(
-  config: CsvAdapterConfig,
+  config: CsvMappingConfig,
   field: CsvCanonicalField,
 ): string | null {
   validateCsvMappings(
@@ -88,7 +88,7 @@ export function csvSourceColumnForField(
 
 export function readCsvMappedValue(
   row: CsvRow,
-  config: CsvAdapterConfig,
+  config: CsvMappingConfig,
   field: CsvCanonicalField,
 ): string | null {
   const sourceColumn =

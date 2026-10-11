@@ -215,6 +215,20 @@ V1 quantities remain whole units.
 
 Repeated CSV ingestion must respect canonical entity class.
 
+Inventory observations are append-only historical evidence.
+
+Inventory snapshot identity is not provider-binding identity.
+
+Inventory observation scope is:
+
+- variant source identity
+- location source identity
+- observed timestamp
+
+Variant and location references must resolve safely before canonical history is
+appended.
+
+
 Current-state records may reconcile when provider identity already resolves to
 the same canonical entity.
 
@@ -236,7 +250,17 @@ Historical records must not be silently reassigned to another tenant or store.
 
 ## Provider-binding replay
 
-For each normalized source resource:
+Provider bindings apply to durable external resources that map to stable
+canonical entities.
+
+Append-only observations such as inventory snapshots do not receive their own
+ProviderBinding.
+
+An inventory observation instead carries stable source references for its
+variant and location. Those references must later resolve to existing canonical
+variant/location ownership before the snapshot can be appended.
+
+For each bindable normalized source resource:
 
 1. build normalized provider-binding identity
 2. resolve existing binding

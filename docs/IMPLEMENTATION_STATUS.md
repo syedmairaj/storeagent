@@ -1931,7 +1931,7 @@ M3 — CSV ingestion
 - [x] M3.1 CSV ingestion contract + import matrix
 - [x] M3.2 CSV file parsing + structural validation
 - [x] M3.3 Product + variant CSV normalization
-- [ ] M3.4 Inventory CSV ingestion
+- [x] M3.4 Inventory CSV ingestion
 - [ ] M3.5 Orders + order-items CSV ingestion
 - [ ] M3.6 Supplier + purchase-order CSV ingestion
 - [ ] M3.7 Idempotency + provider-binding reconciliation
@@ -2209,4 +2209,114 @@ Verification at M3.3 closure:
 Next allowed sub-milestone:
 
 M3.4 — Inventory CSV ingestion
+
+### M3.4 completion
+
+Status: PASS
+
+Implemented deterministic CSV inventory-observation normalization.
+
+Inventory observation model:
+
+- inventory snapshots remain append-only historical evidence
+- inventory snapshots do not receive ProviderBinding identity
+- durable variant and location resources remain the bindable entities
+- inventory observation scope is:
+  - variant source identity
+  - location source identity
+  - observed timestamp
+- canonical variant/location UUID resolution remains downstream
+- inventory normalization does not assign canonical UUIDs
+
+CSV inventory mapping vocabulary added explicitly:
+
+- variantExternalId
+- locationExternalId
+- observedAt
+
+Shared CSV mapping contract:
+
+- CsvMappingConfig owns only column mappings
+- bindable CsvAdapterConfig extends CsvMappingConfig
+- CsvInventoryAdapterConfig extends CsvMappingConfig separately
+- mapping helpers no longer require ProviderResourceType
+- inventory observations do not invent a fake bindable resource type
+
+Variant relationship semantics:
+
+- explicit variant external identity is preferred
+- stable SKU composite identity remains valid fallback
+- variant identity case is preserved
+- missing stable variant identity quarantines
+- variant reference is not silently inferred from mutable product data
+
+Location relationship semantics:
+
+- stable location external identity is required
+- location identity case is preserved
+- location names are not used as identity
+- missing location identity quarantines
+- canonical location resolution remains downstream and must fail closed
+
+Timestamp semantics:
+
+- observedAt is required
+- timestamp must include explicit timezone
+- timezone offsets normalize deterministically to UTC
+- impossible or ambiguous timestamps quarantine
+- machine-local timezone is never used
+
+Inventory quantity semantics:
+
+- on-hand, available, committed, and incoming remain independent
+- no arithmetic is performed between provider quantity fields
+- blank quantities remain NULL
+- explicit zero remains known zero
+- quantities must be non-negative whole units
+- negative quantities quarantine
+- fractional quantities quarantine
+- unsafe quantities quarantine through existing provider helpers
+- an observation with all four quantities unknown quarantines
+- four explicit zero quantities remain a valid observation
+
+Historical semantics:
+
+- normalization produces an inventory observation candidate only
+- no historical snapshot is rewritten
+- no snapshot update semantics introduced
+- no snapshot delete semantics introduced
+- persistence remains append-oriented
+- M2 immutable inventory database protections remain unchanged
+
+Boundary guarantees:
+
+- no ProviderBinding is created for inventory snapshots
+- no ProviderNormalizationResult bindable-resource contract is misused
+- no canonicalEntityId is manufactured
+- no organization ownership is assigned
+- no store ownership is assigned
+- no canonical locationId is assigned
+- no canonical variantId is assigned
+- no Supabase dependency introduced
+- no database migration introduced
+- no persistence write path introduced
+- no SyncRun mutation introduced
+- no import route introduced
+- no UI introduced
+- no metrics dependency introduced
+- no forecasting dependency introduced
+- no decision-engine dependency introduced
+- no AI dependency introduced
+
+Verification at M3.4 closure:
+
+- typecheck PASS
+- 11 focused CSV/provider/schema test files PASS
+- 155 focused tests PASS
+- lint PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M3.5 — Orders + order-items CSV ingestion
 
