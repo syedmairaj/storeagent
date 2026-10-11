@@ -1215,7 +1215,7 @@ The StoreAgent foundation is now approved for the next roadmap milestone.
 - [x] M2.2 Products + variants
 - [x] M2.3 Inventory snapshots
 - [x] M2.4 Orders + order items + returns/refunds
-- [ ] M2.5 Suppliers + supplier products + purchase orders
+- [x] M2.5 Suppliers + supplier products + purchase orders
 - [ ] M2.6 Provider-neutral integration identity + bindings
 - [ ] M2.7 RLS + relational/adversarial verification
 - [ ] M2.8 M2 gate
@@ -1514,4 +1514,106 @@ Verification at M2.4 closure:
 Next allowed sub-milestone:
 
 M2.5 — Suppliers + supplier products + purchase orders
+
+### M2.5 completion
+
+Status: PASS
+
+Implemented canonical supplier and purchase-order persistence:
+
+- `suppliers`
+- `supplier_products`
+- `purchase_orders`
+- `purchase_order_items`
+- organization-scoped supplier ownership
+- organization-scoped supplier-product relationships
+- store-scoped purchase-order ownership
+- store-scoped purchase-order-item ownership
+- composite supplier ownership
+- composite variant ownership
+- optional destination-location ownership
+- exact PostgreSQL numeric commercial values
+- nullable supplier logistics/commercial truth
+- nullable purchase-order supplier and timing truth
+- whole-unit purchase-order quantities
+- frozen purchase-order status vocabulary
+- provider source provenance
+- updated_at triggers on mutable current-state records
+- RLS enabled fail-closed
+- M2.7 policies intentionally deferred
+
+Foundation ownership strengthened:
+
+- `product_variants` now exposes
+  `(organization_id, id)`
+  for organization-scoped supplier-product ownership
+
+Supplier semantics verified:
+
+- supplier remains organization-scoped
+- no store ownership invented for suppliers
+- default lead time may be NULL
+- known default lead time must be >= 0
+- supplier SKU may be NULL
+- supplier unit cost may be NULL
+- supplier currency may be NULL
+- supplier-product lead time may be NULL
+- known lead time must be >= 0
+- minimum order quantity may be NULL
+- known minimum order quantity must be > 0
+- pack size may be NULL
+- known pack size must be > 0
+- preferred remains explicit boolean state
+
+Purchase-order semantics verified:
+
+- supplier may be NULL when source truth is incomplete
+- external reference may be NULL
+- ordered_at may be NULL
+- expected_at may be NULL
+- received_at may be NULL
+- currency may be NULL
+- received quantity may be NULL
+- zero received quantity remains distinct from NULL
+- destination location may be NULL
+- provider source remains provenance only
+
+Relational invariants verified:
+
+- supplier-product cannot reference a supplier from another organization
+- supplier-product cannot reference a variant from another organization
+- purchase order cannot reference a supplier from another organization
+- purchase-order item cannot cross organization/store variant ownership
+- purchase-order item cannot cross destination-location ownership
+- purchase-order ownership cannot be reassigned
+- supplier-product canonical identity cannot be reassigned
+- purchase-order-item canonical identity cannot be reassigned
+- same-organization supplier reconciliation remains allowed
+
+Live database verification:
+
+- clean migration chain applied through M2.5
+- Supabase DB lint PASS
+- M2.5 adversarial SQL PASS
+- suppliers RLS enabled
+- supplier_products RLS enabled
+- purchase_orders RLS enabled
+- purchase_order_items RLS enabled
+- zero M2.7 policies installed
+- authenticated supplier/PO access remains fail-closed before M2.7
+
+Verification at M2.5 closure:
+
+- typecheck PASS
+- focused M2 tests: 6 files / 86 tests PASS
+- lint PASS
+- clean local DB reset PASS
+- Supabase DB lint PASS
+- adversarial SQL PASS
+- direct RLS/policy verification PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M2.6 — Provider-neutral integration identity + bindings
 
