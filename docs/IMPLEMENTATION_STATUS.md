@@ -1212,7 +1212,7 @@ The StoreAgent foundation is now approved for the next roadmap milestone.
 ## M2 — Canonical commerce persistence
 
 - [x] M2.1 Canonical persistence contract + table matrix
-- [ ] M2.2 Products + variants
+- [x] M2.2 Products + variants
 - [ ] M2.3 Inventory snapshots
 - [ ] M2.4 Orders + order items + returns/refunds
 - [ ] M2.5 Suppliers + supplier products + purchase orders
@@ -1282,4 +1282,81 @@ Verification at M2.1 closure:
 Next allowed sub-milestone:
 
 M2.2 — Products + variants
+
+### M2.2 completion
+
+Status: PASS
+
+Implemented canonical product persistence:
+
+- `products`
+- `product_variants`
+- organization ownership on products
+- store ownership on products
+- organization ownership on variants
+- store ownership on variants
+- product ownership on variants
+- composite organization/store/product ownership enforcement
+- product status constraint
+- product-variant status constraint
+- required non-blank product title
+- required non-blank SKU
+- nullable brand
+- nullable category
+- nullable barcode
+- nullable variant title
+- nullable cost amount
+- nullable selling price amount
+- nullable currency
+- exact PostgreSQL numeric money persistence
+- non-negative known commercial amounts
+- duplicate SKU policy preserved
+- updated_at triggers
+- indexes for tenant/store/product access
+- RLS enabled fail-closed
+- M2.7 read policies intentionally deferred
+
+Relational invariants verified:
+
+- product cannot reference a store from another organization
+- variant cannot reference a product from another organization
+- variant cannot cross store ownership
+- product and variant ownership are enforced by PostgreSQL composite foreign keys
+- canonical UUID identity remains separate from provider identity
+
+Value semantics verified:
+
+- unknown cost remains NULL
+- unknown selling price remains NULL
+- unknown currency remains NULL
+- known zero cost remains zero
+- known zero selling price remains zero
+- NULL remains distinct from zero
+- negative known commercial values are rejected
+- duplicate SKUs remain permitted
+
+Live database verification:
+
+- clean local database reset PASS
+- M2.2 migration applied from zero PASS
+- Supabase DB lint PASS
+- relational/adversarial SQL PASS
+- product RLS enabled
+- product_variant RLS enabled
+- zero M2.7 product policies installed
+- authenticated product reads remain fail-closed before M2.7
+
+Verification at M2.2 closure:
+
+- typecheck PASS
+- focused M2 tests PASS
+- lint PASS
+- database reset PASS
+- Supabase DB lint PASS
+- adversarial SQL PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M2.3 — Inventory snapshots
 

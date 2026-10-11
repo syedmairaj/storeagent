@@ -90,13 +90,33 @@ describe("M2 persistence architecture", () => {
     expect(domain).not.toContain("shopifyVariantId:");
   });
 
-  it("keeps M2.1 migration-free", () => {
+  it("keeps deferred derived persistence out of current M2 migrations", () => {
     const migrationDirectory = path.join(ROOT, "supabase/migrations");
 
-    const m2Migrations = fs
+    const sources = fs
       .readdirSync(migrationDirectory)
-      .filter((name) => name.toLowerCase().includes("m2_"));
+      .filter((name) => name.toLowerCase().includes("m2_"))
+      .map((name) =>
+        fs.readFileSync(
+          path.join(migrationDirectory, name),
+          "utf8",
+        ),
+      )
+      .join("\n")
+      .replace(/\s+/g, " ")
+      .toLowerCase();
 
-    expect(m2Migrations).toEqual([]);
+    for (const deferredTable of [
+      "data_quality_issues",
+      "sku_daily_metrics",
+      "forecast_runs",
+      "sku_forecasts",
+      "inventory_actions",
+      "action_events",
+    ]) {
+      expect(sources).not.toContain(
+        `create table public.${deferredTable}`,
+      );
+    }
   });
 });
