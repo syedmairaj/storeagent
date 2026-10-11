@@ -330,4 +330,104 @@ describe("CSV adapter architecture", () => {
     );
   });
 
+
+  it("keeps supplier-product CSV normalization outside ProviderBinding identity", () => {
+    const source =
+      read(
+        "lib/providers/csv/supplier-normalization.ts",
+      );
+
+    expect(
+      source,
+    ).toContain(
+      "relationshipType",
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      '"supplier_product" as ProviderResourceType',
+    );
+
+    expect(
+      source,
+    ).not.toContain(
+      "canonicalEntityId",
+    );
+  });
+
+  it("keeps CSV supplier and PO normalization upstream of persistence and inventory truth", () => {
+    const sources = [
+      read(
+        "lib/providers/csv/supplier-normalization.ts",
+      ),
+      read(
+        "lib/providers/csv/purchase-order-normalization.ts",
+      ),
+    ];
+
+    const forbidden = [
+      "@supabase",
+      "@/lib/supabase",
+      "@/lib/metrics",
+      "@/lib/forecasting",
+      "@/lib/decision-engine",
+      "calculateValidIncomingPurchaseOrderLine",
+      "calculateValidIncomingPurchaseOrders",
+      "react",
+      "next/",
+      "openai",
+      "@anthropic",
+      "@google/generative-ai",
+    ];
+
+    for (
+      const source
+      of sources
+    ) {
+      for (
+        const dependency
+        of forbidden
+      ) {
+        expect(
+          source.includes(
+            dependency,
+          ),
+          `M3.6 CSV normalizer must not depend on ${dependency}`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("does not manufacture canonical supplier or purchase-order ownership", () => {
+    const source =
+      read(
+        "lib/providers/csv/purchase-order-normalization.ts",
+      )
+      +
+      read(
+        "lib/providers/csv/supplier-normalization.ts",
+      );
+
+    for (
+      const forbidden
+      of [
+        "randomUUID",
+        "organizationId:",
+        "storeId:",
+        "supplierId:",
+        "purchaseOrderId:",
+        "variantId:",
+        "destinationLocationId:",
+        "canonicalEntityId:",
+      ]
+    ) {
+      expect(
+        source.includes(
+          forbidden,
+        ),
+      ).toBe(false);
+    }
+  });
+
 });

@@ -240,9 +240,23 @@ export type CsvCanonicalField =
   | "category"
   | "barcode"
   | "orderedAt"
+  | "expectedAt"
+  | "receivedAt"
   | "externalReference"
+  | "supplierExternalId"
+  | "supplierSku"
+  | "destinationLocationExternalId"
+  | "defaultLeadTimeDays"
+  | "leadTimeDays"
+  | "minimumOrderQuantity"
+  | "packSize"
+  | "preferred"
+  | "email"
+  | "phone"
   | "status"
   | "quantity"
+  | "orderedQuantity"
+  | "receivedQuantity"
   | "currency"
   | "amount"
   | "grossAmount"
@@ -275,6 +289,12 @@ export interface CsvAdapterConfig
 export interface CsvInventoryAdapterConfig
   extends CsvMappingConfig {
   observationType: "inventory_snapshot";
+  adapterVersion: string;
+}
+
+export interface CsvSupplierProductAdapterConfig
+  extends CsvMappingConfig {
+  relationshipType: "supplier_product";
   adapterVersion: string;
 }
 

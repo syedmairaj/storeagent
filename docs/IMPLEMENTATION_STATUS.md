@@ -1933,7 +1933,7 @@ M3 — CSV ingestion
 - [x] M3.3 Product + variant CSV normalization
 - [x] M3.4 Inventory CSV ingestion
 - [x] M3.5 Orders + order-items CSV ingestion
-- [ ] M3.6 Supplier + purchase-order CSV ingestion
+- [x] M3.6 Supplier + purchase-order CSV ingestion
 - [ ] M3.7 Idempotency + provider-binding reconciliation
 - [ ] M3.8 Quarantine + partial-failure accounting
 - [ ] M3.9 End-to-end CSV import orchestration
@@ -2441,4 +2441,165 @@ Verification at M3.5 closure:
 Next allowed sub-milestone:
 
 M3.6 — Supplier + purchase-order CSV ingestion
+
+### M3.6 completion
+
+Status: PASS
+
+Implemented deterministic CSV normalization for suppliers, supplier-product relationships, purchase orders, and purchase-order items.
+
+Supplier identity and scope:
+
+- supplier is a bindable ProviderResourceType
+- supplier requires explicit stable externalId
+- supplier name is mutable descriptive data only
+- supplier name is never used as provider identity
+- supplier remains organization-scoped
+- no store ownership is invented for supplier
+- default lead time may be unknown
+- supplier currency may be unknown
+- supplier email may be unknown
+- supplier phone may be unknown
+- lead time accepts known zero
+- negative/fractional lead time quarantines
+
+Supplier-product relationship:
+
+- supplier_product is not a ProviderResourceType
+- supplier_product receives no ProviderBinding
+- relationship identity is resolved from supplier + variant
+- supplier external identity is required
+- variant external identity is required
+- explicit variantExternalId is preferred
+- stable SKU composite identity remains valid variant fallback
+- supplier SKU is optional descriptive/provider data
+- unit cost is optional exact decimal data
+- currency is required when unit cost is known
+- lead time may be unknown
+- minimum order quantity may be unknown
+- pack size may be unknown
+- MOQ must be greater than zero when known
+- pack size must be greater than zero when known
+- preferred defaults to false when absent
+- no canonical supplierId or variantId is created during normalization
+
+Purchase-order identity:
+
+- purchase order is a bindable ProviderResourceType
+- PO requires explicit stable externalId
+- externalReference remains optional provider/commercial evidence
+- externalReference is never promoted into provider identity
+- supplier relationship is optional
+- supplier external identity is retained separately as relationship provenance
+
+Purchase-order status:
+
+- status normalization uses frozen canonical PurchaseOrderStatus vocabulary
+- supported canonical statuses remain:
+  - draft
+  - submitted
+  - confirmed
+  - partially_received
+  - received
+  - cancelled
+  - unknown
+- unsupported/missing statuses map fail-closed to unknown
+- provider normalization does not interpret incoming-stock truth
+
+Purchase-order timestamps:
+
+- orderedAt is optional
+- expectedAt is optional
+- receivedAt is optional
+- supplied timestamps require explicit timezone
+- timestamps normalize deterministically to UTC
+- malformed/tz-less timestamps quarantine
+- missing timestamps remain NULL
+
+Purchase-order currency:
+
+- PO currency remains optional
+- known currency uses canonical three-letter normalization
+- invalid currency quarantines
+
+Purchase-order-item identity:
+
+- purchase-order item is a bindable ProviderResourceType
+- PO item requires explicit stable externalId
+- diagnostic CSV row number is never durable identity
+- parent PO identity is carried as externalParentId
+- externalParentId remains relationship provenance, not hidden binding uniqueness
+
+Purchase-order-item relationships:
+
+- parent PO source identity is required
+- variant source identity is required
+- explicit variantExternalId is preferred
+- stable SKU composite identity remains valid variant fallback
+- destination location source identity remains optional
+- canonical purchaseOrderId, variantId, and destinationLocationId remain downstream concerns
+
+Purchase-order-item quantities:
+
+- orderedQuantity is required
+- orderedQuantity must be a non-negative whole unit
+- explicit ordered zero remains structurally valid
+- receivedQuantity is optional
+- explicit received zero remains known zero
+- negative/fractional/unsafe quantities quarantine
+
+Incoming-stock boundary:
+
+- CSV/provider normalization does not calculate valid incoming inventory
+- receivedQuantity greater than orderedQuantity is preserved as source evidence
+- received > ordered is not rejected during normalization
+- deterministic incoming-stock-v1 owns commercial consistency checks
+- RECEIVED_EXCEEDS_ORDERED remains a metrics-layer reason code
+- unknown PO status remains fail-closed downstream
+
+Purchase-order-item commercial data:
+
+- unitCostAmount is optional
+- exact decimal normalization is used
+- negative/malformed unit cost quarantines
+- currency is required when unit cost is known
+- currency may remain NULL when unit cost is unknown
+
+Persistence/reconciliation boundary:
+
+- no canonical UUIDs are generated
+- no organization ownership is assigned
+- no store ownership is assigned
+- no ProviderBinding write occurs
+- no supplier-product canonical write occurs
+- no supplier canonical write occurs
+- no purchase-order canonical write occurs
+- no purchase-order-item canonical write occurs
+- reconciliation remains downstream in later M3 milestones
+
+Scope exclusions:
+
+- no incoming-stock calculation
+- no supplier recommendation logic
+- no reorder calculation
+- no metrics
+- no forecasting
+- no decisions
+- no AI
+- no UI
+- no API route
+- no database migration
+- no SyncRun mutation
+
+Verification at M3.6 closure:
+
+- typecheck PASS
+- 17 focused CSV/provider/schema test files PASS
+- 232 focused tests PASS
+- lint PASS
+- git diff check PASS
+
+Next allowed sub-milestone:
+
+M3.7 — Idempotency + provider-binding reconciliation
 
