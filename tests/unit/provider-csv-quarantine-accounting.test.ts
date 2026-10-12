@@ -1,261 +1,163 @@
-import {
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { describe, expect, it } from "vitest";
 
-import {
-  buildCsvQuarantineEnvelope,
-} from "@/lib/providers/csv/quarantine";
+import { buildCsvQuarantineEnvelope } from "@/lib/providers/csv/quarantine";
 
 import {
   classifyCsvOperationalFailure,
   classifyCsvReconciliationFailure,
 } from "@/lib/providers/csv/partial-failure";
 
-describe(
-  "CSV quarantine envelope",
-  () => {
-    it(
-      "preserves non-secret row reconciliation provenance",
-      () => {
-        expect(
-          buildCsvQuarantineEnvelope(
-            7,
-            {
-              provider:
-                "csv",
+describe("CSV quarantine envelope", () => {
+  it("preserves non-secret row reconciliation provenance", () => {
+    expect(
+      buildCsvQuarantineEnvelope(7, {
+        provider: "csv",
 
-              resourceType:
-                "product_variant",
+        resourceType: "product_variant",
 
-              externalId:
-                "SKU-AbC",
+        externalId: "SKU-AbC",
 
-              externalParentId:
-                "PROD-1",
+        externalParentId: "PROD-1",
 
-              adapterVersion:
-                "csv-variant-v1",
+        adapterVersion: "csv-variant-v1",
 
-              reasonCode:
-                "RELATIONSHIP_UNRESOLVED",
+        reasonCode: "RELATIONSHIP_UNRESOLVED",
 
-              issues: [
-                {
-                  code:
-                    "RELATIONSHIP_UNRESOLVED",
+        issues: [
+          {
+            code: "RELATIONSHIP_UNRESOLVED",
 
-                  message:
-                    "Parent product could not be resolved.",
+            message: "Parent product could not be resolved.",
 
-                  field:
-                    "externalParentId",
-                },
-              ],
-            },
-          ),
-        ).toEqual({
-          rowNumber: 7,
+            field: "externalParentId",
+          },
+        ],
+      }),
+    ).toEqual({
+      rowNumber: 7,
 
-          provider:
-            "csv",
+      subjectType: "resource",
 
-          resourceType:
-            "product_variant",
+      provider: "csv",
 
-          externalId:
-            "SKU-AbC",
+      resourceType: "product_variant",
 
-          externalParentId:
-            "PROD-1",
+      externalId: "SKU-AbC",
 
-          adapterVersion:
-            "csv-variant-v1",
+      externalParentId: "PROD-1",
 
-          reasonCode:
-            "RELATIONSHIP_UNRESOLVED",
+      adapterVersion: "csv-variant-v1",
 
-          issues: [
-            {
-              code:
-                "RELATIONSHIP_UNRESOLVED",
+      reasonCode: "RELATIONSHIP_UNRESOLVED",
 
-              message:
-                "Parent product could not be resolved.",
+      issues: [
+        {
+          code: "RELATIONSHIP_UNRESOLVED",
 
-              field:
-                "externalParentId",
-            },
-          ],
-        });
-      },
-    );
+          message: "Parent product could not be resolved.",
 
-    it(
-      "supports explicit binding-conflict quarantine",
-      () => {
-        const envelope =
-          buildCsvQuarantineEnvelope(
-            8,
-            {
-              provider:
-                "csv",
+          field: "externalParentId",
+        },
+      ],
+    });
+  });
 
-              resourceType:
-                "order",
+  it("supports explicit binding-conflict quarantine", () => {
+    const envelope = buildCsvQuarantineEnvelope(8, {
+      provider: "csv",
 
-              externalId:
-                "ORD-1",
+      resourceType: "order",
 
-              externalParentId:
-                null,
+      externalId: "ORD-1",
 
-              adapterVersion:
-                "csv-order-v1",
+      externalParentId: null,
 
-              reasonCode:
-                "BINDING_CONFLICT",
+      adapterVersion: "csv-order-v1",
 
-              issues: [],
-            },
-          );
+      reasonCode: "BINDING_CONFLICT",
 
-        expect(
-          envelope.reasonCode,
-        ).toBe(
-          "BINDING_CONFLICT",
-        );
-      },
-    );
+      issues: [],
+    });
 
-    it(
-      "rejects invalid diagnostic row number",
-      () => {
-        expect(() =>
-          buildCsvQuarantineEnvelope(
-            0,
-            {
-              provider:
-                "csv",
+    expect(envelope.reasonCode).toBe("BINDING_CONFLICT");
+  });
 
-              resourceType:
-                "order",
+  it("rejects invalid diagnostic row number", () => {
+    expect(() =>
+      buildCsvQuarantineEnvelope(0, {
+        provider: "csv",
 
-              externalId:
-                "ORD-1",
+        resourceType: "order",
 
-              externalParentId:
-                null,
+        externalId: "ORD-1",
 
-              adapterVersion:
-                "csv-order-v1",
+        externalParentId: null,
 
-              reasonCode:
-                "BINDING_CONFLICT",
+        adapterVersion: "csv-order-v1",
 
-              issues: [],
-            },
-          ),
-        ).toThrow(
-          "CSV row number must be a positive safe integer.",
-        );
-      },
-    );
+        reasonCode: "BINDING_CONFLICT",
 
-    it(
-      "rejects blank adapter version",
-      () => {
-        expect(() =>
-          buildCsvQuarantineEnvelope(
-            2,
-            {
-              provider:
-                "csv",
+        issues: [],
+      }),
+    ).toThrow("CSV row number must be a positive safe integer.");
+  });
 
-              resourceType:
-                "order",
+  it("rejects blank adapter version", () => {
+    expect(() =>
+      buildCsvQuarantineEnvelope(2, {
+        provider: "csv",
 
-              externalId:
-                "ORD-1",
+        resourceType: "order",
 
-              externalParentId:
-                null,
+        externalId: "ORD-1",
 
-              adapterVersion:
-                " ",
+        externalParentId: null,
 
-              reasonCode:
-                "BINDING_CONFLICT",
+        adapterVersion: " ",
 
-              issues: [],
-            },
-          ),
-        ).toThrow(
-          "CSV quarantine adapterVersion must not be blank.",
-        );
-      },
-    );
-  },
-);
+        reasonCode: "BINDING_CONFLICT",
 
-describe(
-  "CSV partial-failure classification",
-  () => {
-    it.each([
-      "NORMALIZATION_QUARANTINED",
-      "BINDING_CONFLICT",
-      "IDENTITY_AMBIGUOUS",
-      "RELATIONSHIP_UNRESOLVED",
-      "PROVIDER_INCONSISTENCY",
-    ] as const)(
-      "classifies reconciliation reason %s as quarantine",
-      (
+        issues: [],
+      }),
+    ).toThrow("CSV quarantine adapterVersion must not be blank.");
+  });
+});
+
+describe("CSV partial-failure classification", () => {
+  it.each([
+    "NORMALIZATION_QUARANTINED",
+    "BINDING_CONFLICT",
+    "IDENTITY_AMBIGUOUS",
+    "RELATIONSHIP_UNRESOLVED",
+    "PROVIDER_INCONSISTENCY",
+  ] as const)(
+    "classifies reconciliation reason %s as quarantine",
+    (reasonCode) => {
+      expect(classifyCsvReconciliationFailure(reasonCode)).toEqual({
+        disposition: "quarantined",
+
         reasonCode,
-      ) => {
-        expect(
-          classifyCsvReconciliationFailure(
-            reasonCode,
-          ),
-        ).toEqual({
-          disposition:
-            "quarantined",
+      });
+    },
+  );
 
-          reasonCode,
-        });
-      },
-    );
+  it("classifies unexpected operational failure as failed", () => {
+    expect(
+      classifyCsvOperationalFailure({
+        errorCode: "CANONICAL_WRITE_FAILED",
+      }),
+    ).toEqual({
+      disposition: "failed",
 
-    it(
-      "classifies unexpected operational failure as failed",
-      () => {
-        expect(
-          classifyCsvOperationalFailure({
-            errorCode:
-              "CANONICAL_WRITE_FAILED",
-          }),
-        ).toEqual({
-          disposition:
-            "failed",
+      errorCode: "CANONICAL_WRITE_FAILED",
+    });
+  });
 
-          errorCode:
-            "CANONICAL_WRITE_FAILED",
-        });
-      },
-    );
-
-    it(
-      "requires operational failure code",
-      () => {
-        expect(() =>
-          classifyCsvOperationalFailure({
-            errorCode:
-              " ",
-          }),
-        ).toThrow(
-          "errorCode must not be empty.",
-        );
-      },
-    );
-  },
-);
+  it("requires operational failure code", () => {
+    expect(() =>
+      classifyCsvOperationalFailure({
+        errorCode: " ",
+      }),
+    ).toThrow("errorCode must not be empty.");
+  });
+});

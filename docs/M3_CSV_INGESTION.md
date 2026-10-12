@@ -228,7 +228,6 @@ Inventory observation scope is:
 Variant and location references must resolve safely before canonical history is
 appended.
 
-
 Current-state records may reconcile when provider identity already resolves to
 the same canonical entity.
 
@@ -538,3 +537,186 @@ M3.1 is complete when:
 - browser mutation authority is not broadened
 - downstream M4+ features remain deferred
 - no operational CSV parser/import route has been introduced yet
+
+---
+
+## M3.9D-E durable SyncRun orchestration
+
+M3.9D-E adds the durable operational-import boundary around the M3 CSV execution pipeline.
+
+### Operational identity
+
+Every operational CSV import is owned by one explicit SyncRun identity:
+
+- organizationId
+- integrationId
+- idempotencyKey
+
+The trusted store scope remains part of integration authorization and execution validation, but storeId is not an additional SyncRun replay-key component.
+
+An idempotency key identifies one operational import attempt.
+
+It does not identify:
+
+- canonical products
+- variants
+- orders
+- suppliers
+- inventory observations
+- CSV rows
+
+Canonical/current-state replay remains ProviderBinding-based.
+
+### Acquisition before row persistence
+
+Trusted integration context must be validated before SyncRun acquisition.
+
+SyncRun acquisition occurs before CSV preflight and before any canonical row persistence.
+
+This ensures that:
+
+- structural/preflight failures can be recorded durably as failed runs
+- two callers with the same operational key cannot both execute row persistence
+- append-only history is protected from exact same-key replay
+
+The durable begin result is one of:
+
+- `started`
+- `replayed`
+- `in_progress`
+
+`started` grants row-execution ownership.
+
+`replayed` and `in_progress` must not execute the CSV row pipeline.
+
+### Exact replay
+
+For the same:
+
+- organization
+- integration
+- idempotency key
+
+a terminal existing SyncRun is replayed.
+
+Replay returns:
+
+- the original SyncRun ID
+- persisted terminal status
+- persisted discovered/imported/updated/skipped/quarantined/failed counts
+
+Replay does not fabricate row-level execution results.
+
+Therefore the operational replay result carries `execution = null`.
+
+### In-progress duplicate
+
+If the same operational key already has a non-terminal SyncRun, the caller receives `in_progress`.
+
+The second caller must not execute canonical persistence.
+
+M3.9D-E does not add:
+
+- leases
+- worker takeover
+- stale-run recovery
+- automatic retry ownership
+
+Those concerns remain outside this milestone.
+
+### New key semantics
+
+The same CSV data with a different explicit idempotency key is a new operational import.
+
+For that new import:
+
+- current-state resources reconcile by ProviderBinding identity
+- equivalent current-state resources may be skipped
+- append-only inventory observations append according to historical resource semantics
+
+A file-level SyncRun key therefore does not replace resource identity.
+
+### Row failure vs whole-import failure
+
+Row-level operational persistence errors are handled by the existing D-D row-accounting boundary.
+
+A row-level unexpected persistence error:
+
+- receives row disposition `failed`
+- increments failed count exactly once
+- may allow independent rows to continue
+- causes terminal SyncRun status `completed_with_errors` when the import otherwise completes
+
+A whole-import exception includes structural/preflight/orchestration failures that escape the row pipeline.
+
+A whole-import exception:
+
+- transitions the owned SyncRun to `failed`
+- preserves the original exception to the caller
+
+Failure-finalization errors must not replace or hide the original orchestration error.
+
+### Completion invariant
+
+A running SyncRun may complete only when:
+
+`imported + updated + skipped + quarantined + failed == discovered`
+
+All values must be non-negative whole safe integers.
+
+Terminal status is:
+
+- `completed` when quarantined == 0 and failed == 0
+- `completed_with_errors` when quarantined > 0 or failed > 0
+
+Skipped rows do not by themselves produce completed_with_errors.
+
+### Immutable history protection
+
+Inventory snapshots remain append-only historical evidence and do not receive their own ProviderBinding.
+
+M3.9D-E protects exact operational replay as follows:
+
+Same plan + same idempotency key:
+
+- first call executes
+- inventory snapshot appends once
+- second call replays prior SyncRun
+- row persistence does not execute
+- inventory snapshot count does not increase
+
+Same plan + new idempotency key:
+
+- new SyncRun is acquired
+- current-state entities reconcile
+- inventory snapshot appends again
+
+This preserves both requirements:
+
+- no duplicate work for the same operational import
+- legitimate append-only evidence for a new operational import
+
+### Security boundary
+
+The SyncRun orchestration RPCs are service-role-only.
+
+M3.9D-E does not broaden:
+
+- anon grants
+- authenticated browser mutation grants
+- canonical-table browser mutation authority
+- M2 RLS boundaries
+
+CSV data never establishes tenant authority.
+
+### Remaining M3.9 hardening
+
+M3.9D-E does not close all M3.9 hardening work.
+
+Remaining work includes M3.9D-F:
+
+- typed reconciliation conflict classification
+- duplicate-row hardening
+- contradictory source-history handling
+- concurrency hardening beyond SyncRun acquisition
+- final resource/history adversarial coverage

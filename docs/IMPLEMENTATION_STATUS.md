@@ -39,7 +39,6 @@ IN PROGRESS
 
 These begin only after M0 passes.
 
-
 ### M0.1 completion
 
 Status: PASS
@@ -63,7 +62,6 @@ Next allowed sub-milestone:
 
 M0.2 — Canonical domain schema
 
-
 ### M0.2 progress
 
 - [x] M0.2.1 Entity catalog + ownership boundaries
@@ -74,7 +72,6 @@ M0.2 — Canonical domain schema
 - [x] M0.2.6 Immutable/history model
 - [x] M0.2.7 Domain-model architecture tests
 - [x] M0.2.8 M0.2 gate
-
 
 ### M0.2 completion
 
@@ -113,7 +110,6 @@ Next allowed sub-milestone:
 
 M0.3 — Tenancy / RLS architecture
 
-
 ### M0.3 progress
 
 - [x] M0.3.1 Tenancy model
@@ -124,7 +120,6 @@ M0.3 — Tenancy / RLS architecture
 - [x] M0.3.6 Cross-org attack scenarios
 - [x] M0.3.7 Tenancy architecture tests
 - [x] M0.3.8 M0.3 gate
-
 
 ### M0.3 completion
 
@@ -161,7 +156,6 @@ Next allowed sub-milestone:
 
 M0.4 — Inventory formula specification
 
-
 ### M0.4 progress
 
 - [x] M0.4.1 Formula specification baseline
@@ -177,7 +171,6 @@ M0.4 — Inventory formula specification
 - [x] M0.4.11 Incoming-stock validity contract
 - [x] M0.4.12 Formula invariants + tests
 - [x] M0.4.13 M0.4 gate
-
 
 ### M0.4 completion
 
@@ -225,7 +218,6 @@ Next allowed sub-milestone:
 
 M0.5 — Forecast specification
 
-
 ### M0.5 progress
 
 - [x] M0.5.1 Forecast principles + V1 scope
@@ -241,7 +233,6 @@ M0.5 — Forecast specification
 - [x] M0.5.11 Versioning + reproducibility
 - [x] M0.5.12 Forecast invariants + tests
 - [x] M0.5.13 M0.5 gate
-
 
 ### M0.5 completion
 
@@ -288,7 +279,6 @@ Next allowed sub-milestone:
 
 M0.6 — Decision engine rules
 
-
 ## M0.6 — Decision engine rules
 
 - [x] M0.6.1 Decision principles + precedence model
@@ -304,7 +294,6 @@ M0.6 — Decision engine rules
 - [x] M0.6.11 Versioning + reproducibility
 - [x] M0.6.12 Decision invariants + tests
 - [x] M0.6.13 M0.6 gate
-
 
 ### M0.6 completion
 
@@ -357,7 +346,6 @@ Next allowed sub-milestone:
 
 M0.7 — Provider adapter architecture
 
-
 ## M0.7 — Provider adapter architecture
 
 - [x] M0.7.1 Provider boundary principles + adapter contract
@@ -373,7 +361,6 @@ M0.7 — Provider adapter architecture
 - [x] M0.7.11 Shopify adapter boundary
 - [x] M0.7.12 Provider invariants + tests
 - [x] M0.7.13 M0.7 gate
-
 
 ### M0.7 completion
 
@@ -421,7 +408,6 @@ Next allowed sub-milestone:
 
 M0.8 — Background job architecture
 
-
 ## M0.8 — Background job architecture
 
 - [x] M0.8.1 Worker tenancy + trusted-scope contract
@@ -438,7 +424,6 @@ M0.8 — Background job architecture
 - [x] M0.8.12 Observability + safe payload/logging rules
 - [x] M0.8.13 Background-job invariants + tests
 - [x] M0.8.14 M0.8 gate
-
 
 ### M0.8 completion
 
@@ -488,7 +473,6 @@ Verification at M0.8 closure:
 Next allowed sub-milestone:
 
 M0.9 — Testing / evaluation architecture
-
 
 ## M0.9 — Testing / evaluation architecture
 
@@ -556,7 +540,6 @@ Next milestone:
 
 M0.10 — M0 architecture gate
 
-
 ## M0.10 — M0 architecture gate
 
 ### M0.10 completion
@@ -622,7 +605,6 @@ M0 architecture gate: PASS
 Next milestone:
 
 M1 — Foundation implementation
-
 
 ## M1 — Foundation implementation
 
@@ -864,7 +846,6 @@ Verification at M1.4 closure:
 Next allowed sub-milestone:
 
 M1.5 — RLS + tenant enforcement
-
 
 ### M1.5 completion
 
@@ -2845,3 +2826,178 @@ Next allowed sub-milestone:
 
 M3.9 — End-to-end CSV import orchestration
 
+### M3.9D-E — Durable SyncRun orchestration + whole-import idempotency
+
+Status: PASS
+
+Purpose:
+
+- give every operational CSV import durable SyncRun ownership before row persistence
+- prevent exact same-key replay from re-executing D-D row persistence
+- preserve append-only inventory history without weakening resource-level ProviderBinding reconciliation
+- keep operational import identity separate from canonical commerce identity
+
+Durable SyncRun replay identity remains exactly:
+
+- organizationId
+- integrationId
+- explicit idempotencyKey
+
+storeId remains trusted execution scope but is deliberately not a separate SyncRun replay-key component.
+
+Idempotency-key boundary:
+
+- idempotencyKey is supplied by the trusted orchestration boundary
+- idempotencyKey is operational import identity
+- idempotencyKey is not canonical entity identity
+- idempotencyKey is not CSV row identity
+- idempotencyKey must not be derived casually from file name, row number, upload timestamp, or mutable metadata
+- same source content with a new explicit idempotencyKey is a new operational import
+
+Database ownership:
+
+- service-role-only `csv_begin_sync_run(...)`
+- service-role-only `csv_complete_sync_run(...)`
+- service-role-only `csv_fail_sync_run(...)`
+- ordinary browser mutation grants remain unchanged
+- existing M2 RLS/browser mutation boundaries remain frozen
+
+`csv_begin_sync_run(...)` behavior:
+
+- validates exact active CSV integration scope before ownership acquisition
+- validates organization and exact integration store scope
+- trims and requires a non-blank idempotency key
+- durable lookup uses `(organization_id, integration_id, idempotency_key)`
+- absent key => atomically creates one running SyncRun and returns `started`
+- existing non-terminal run => returns `in_progress`
+- existing terminal run => returns `replayed`
+- terminal replay returns persisted status and persisted row counts
+- concurrent duplicate acquisition is protected by the database unique key and unique-violation reconciliation path
+- a second caller for the same operational key must not gain row-execution ownership
+
+Terminal replay semantics:
+
+- completed is terminal
+- completed_with_errors is terminal
+- failed is terminal
+- cancelled is terminal
+- terminal same-key replay never re-runs D-D
+- failed/cancelled same-key replay requires a new idempotencyKey for a new operational attempt
+
+Completion semantics:
+
+- completion is allowed only from running
+- all six counts must be non-negative
+- completion requires:
+  - imported
+  - updated
+  - skipped
+  - quarantined
+  - failed
+    to sum exactly to discovered
+- quarantined > 0 or failed > 0 => completed_with_errors
+- otherwise => completed
+- skipped rows alone do not make the run completed_with_errors
+- completed counts are persisted durably and returned on replay
+
+Failure semantics:
+
+- whole-import structural/preflight/orchestration exceptions transition the SyncRun to failed
+- original orchestration exceptions remain observable to the caller
+- failure-finalization errors must not mask the original import exception
+- row-level persistence errors already classified by D-D remain row terminal disposition `failed`
+- row-level failed rows do not automatically become whole-import SyncRun `failed`
+- a normally completed import containing failed/quarantined rows becomes completed_with_errors
+
+D-D ownership boundary:
+
+- `executeCsvImportPlan()` remains the row normalization/dependency/persistence engine
+- D-E wraps D-D rather than duplicating it
+- `started` => D-D executes
+- `replayed` => D-D does not execute
+- `in_progress` => D-D does not execute
+- replay result intentionally has `execution: null`
+- persisted prior counts are returned instead of fabricated row executions
+
+Current-state vs history replay behavior:
+
+- ProviderBinding identity remains resource-level current-state reconciliation identity
+- SyncRun idempotency remains file/workflow-level operational identity
+- same plan + same idempotencyKey:
+  - current-state persistence does not re-run
+  - append-only inventory persistence does not re-run
+  - prior SyncRun is replayed
+- same plan + new idempotencyKey:
+  - this is a new operational import
+  - current-state resources reconcile/skip by ProviderBinding identity
+  - append-only inventory observations append again according to resource history semantics
+
+Live end-to-end proof:
+
+- first execution with key A:
+  - executed
+  - one product imported
+  - one variant imported
+  - one inventory snapshot appended
+- second execution with key A:
+  - replayed
+  - same SyncRun ID
+  - `execution = null`
+  - inventory snapshot count remains one
+- execution with key B:
+  - executed as a new operational import
+  - product/variant reconcile without duplication
+  - inventory snapshot count becomes two
+- exactly two durable SyncRuns exist for keys A and B
+
+M3.9D-E exclusions:
+
+- no API route
+- no merchant UI
+- no retry/lease/recovery worker model
+- no automatic restart of failed/cancelled same-key runs
+- no DataQualityIssue persistence
+- no metrics
+- no forecasting
+- no decision engine
+- no AI
+- no Shopify ingestion
+- no billing changes
+
+Focused verification completed before full closure gate:
+
+- D-E SyncRun schema contract tests PASS
+- SyncRun lifecycle tests PASS
+- generic SyncRun idempotency tests PASS
+- typed Supabase SyncRun persistence tests PASS
+- typed Supabase SyncRun live RPC tests PASS twice
+- operational import execution tests PASS
+- operational import replay live E2E tests PASS twice
+- D-E focused regression: 61 tests PASS
+- expected non-live live-test skips: 5
+- typecheck PASS
+- lint PASS
+- git diff check PASS
+
+Full closure verification:
+
+- full repository `npm run check` PASS
+- 161 test files PASS
+- 1691 tests PASS
+- 3 live-test files skipped in ordinary test mode
+- 7 live tests skipped in ordinary test mode
+- Next.js production build PASS
+- clean Supabase reset through `20261012090000_m3_9_csv_sync_run_orchestration.sql` PASS
+- Supabase database lint PASS with no schema errors
+- D-E SyncRun live SQL PASS
+- D-E SyncRun adversarial SQL PASS
+- live TypeScript SyncRun persistence verification 2/2 PASS
+- live TypeScript operational replay verification 3/3 PASS
+- combined final D-E TypeScript live gate 5/5 PASS
+- typecheck PASS
+- lint PASS
+- git diff check PASS
+
+Next implementation after D-E closure:
+
+M3.9D-F — conflict typing + duplicate/history/concurrency hardening
