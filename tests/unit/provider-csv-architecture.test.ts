@@ -57,6 +57,34 @@ describe("CSV adapter architecture", () => {
     }
   });
 
+  it("keeps CSV import assembly deterministic and outside SyncRun persistence", () => {
+    const source = read("lib/providers/csv/import-assembly.ts");
+
+    expect(source).toContain("parseCsv");
+
+    expect(source).toContain("executeCsvDependencyPlan");
+
+    expect(source).toContain("executeCsvResourceRow");
+
+    expect(source).toContain("orchestrateCsvProduct");
+
+    expect(source).not.toContain("createSupabaseAdminClient");
+
+    expect(source).not.toContain(".rpc(");
+
+    expect(source).not.toContain("sync_runs");
+
+    expect(source).not.toContain("bindCsvLocation");
+
+    expect(source).not.toContain("@/lib/metrics");
+
+    expect(source).not.toContain("@/lib/forecasting");
+
+    expect(source).not.toContain("@/lib/decision-engine");
+
+    expect(source).not.toContain("openai");
+  });
+
   it("keeps CSV dependency planning pure and transport-independent", () => {
     const source = read("lib/providers/csv/dependency-plan.ts");
 

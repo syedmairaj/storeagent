@@ -131,9 +131,16 @@ export async function executeCsvResourceRow<TCanonical>(
   rowNumber: number,
   result: ProviderNormalizationResult<TCanonical>,
   orchestrate: (
-    accepted: ProviderNormalizationAccepted<TCanonical>,
+    accepted: ProviderNormalizationAccepted<TCanonical> & {
+      provider: "csv";
+    },
   ) => Promise<CsvResourceOrchestrationResult>,
 ): Promise<CsvExecutedRow> {
+  if (result.provider !== "csv") {
+    throw new Error(
+      `CSV row execution received provider "${result.provider}".`,
+    );
+  }
   const discovered = discoverCsvRow(state, rowNumber);
 
   if (result.disposition === "skipped") {
@@ -163,7 +170,11 @@ export async function executeCsvResourceRow<TCanonical>(
   return executeAccepted(
     discovered,
     rowNumber,
-    () => orchestrate(result),
+    () =>
+      orchestrate({
+        ...result,
+        provider: "csv",
+      }),
     (failure) =>
       buildCsvQuarantineEnvelope(rowNumber, {
         provider: result.provider,

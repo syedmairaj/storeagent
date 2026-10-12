@@ -339,3 +339,40 @@ describe("CSV row execution", () => {
     });
   });
 });
+
+describe("CSV row execution provider boundary", () => {
+  it("rejects a non-CSV accepted record before orchestration", async () => {
+    const state = createCsvImportAccountingState();
+
+    const orchestrate = vi.fn();
+
+    await expect(
+      executeCsvResourceRow(
+        state,
+        31,
+        {
+          disposition: "accepted",
+
+          provider: "shopify",
+
+          resourceType: "product",
+
+          externalId: "PRODUCT-1",
+
+          externalParentId: null,
+
+          adapterVersion: "wrong-provider-v1",
+
+          canonical: {
+            title: "Product",
+          },
+
+          issues: [],
+        },
+        orchestrate,
+      ),
+    ).rejects.toThrow('CSV row execution received provider "shopify".');
+
+    expect(orchestrate).not.toHaveBeenCalled();
+  });
+});
