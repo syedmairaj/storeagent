@@ -7,6 +7,10 @@ import {
 } from "./partial-failure";
 
 import {
+  CsvPersistenceConflictError,
+} from "./persistence-errors";
+
+import {
   CsvRelationshipUnresolvedError,
   resolveCsvBinding,
   resolveOptionalCsvBinding,
@@ -55,6 +59,15 @@ function relationshipFailure(
   };
 }
 
+function bindingConflictFailure():
+  CsvResourceOrchestrationResult {
+  return {
+    disposition: "quarantined",
+    reasonCode: "BINDING_CONFLICT",
+    issues: [],
+  };
+}
+
 function operationalFailure(
   error: unknown,
 ): CsvResourceOrchestrationResult {
@@ -87,6 +100,18 @@ async function safely(
   try {
     return await work();
   } catch (error) {
+    if (
+
+      error instanceof
+
+      CsvPersistenceConflictError
+
+    ) {
+
+      return bindingConflictFailure();
+
+    }
+
     if (
       error instanceof
       CsvRelationshipUnresolvedError

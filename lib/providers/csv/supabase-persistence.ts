@@ -2,6 +2,11 @@ import "server-only";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
+import {
+  CSV_RECONCILIATION_CONFLICT_SQLSTATE,
+  CsvPersistenceConflictError,
+} from "@/lib/providers/csv/persistence-errors";
+
 import type {
   CsvBindingLookup,
   CsvPersistedResource,
@@ -88,6 +93,10 @@ async function callRpc(
   const { data, error } = await client.rpc(rpcName, args);
 
   if (error) {
+    if (error.code === CSV_RECONCILIATION_CONFLICT_SQLSTATE) {
+      throw new CsvPersistenceConflictError(rpcName);
+    }
+
     throw new Error(
       `CSV persistence RPC "${rpcName}" failed: ${error.message}`,
     );
