@@ -79,6 +79,29 @@ function terminalResult(
   };
 }
 
+export function executeCsvPreclassifiedRow(
+  state: CsvImportAccountingState,
+  rowNumber: number,
+  input:
+    | {
+        disposition: "skipped";
+      }
+    | {
+        disposition: "quarantined";
+        quarantine: CsvQuarantineEnvelope;
+      },
+): CsvExecutedRow {
+  const discovered = discoverCsvRow(state, rowNumber);
+
+  if (input.disposition === "skipped") {
+    return terminalResult(discovered, rowNumber, "skipped");
+  }
+
+  return terminalResult(discovered, rowNumber, "quarantined", {
+    quarantine: input.quarantine,
+  });
+}
+
 function persistedDisposition(
   value: CsvResourceOrchestrationResult,
 ): value is Extract<

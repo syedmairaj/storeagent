@@ -4,6 +4,7 @@ import type {
   CsvAdapterConfig,
   CsvInventoryAdapterConfig,
   CsvSupplierProductAdapterConfig,
+  ProviderNormalizationResult,
 } from "@/lib/providers/types";
 
 import {
@@ -20,9 +21,20 @@ import type {
 
 import { executeCsvDependencyPlan } from "./dependency-plan";
 
+import {
+  analyzeCsvDuplicates,
+  csvInventoryDuplicateIdentity,
+  csvResourceDuplicateIdentity,
+  csvSupplierProductDuplicateIdentity,
+} from "./duplicate-analysis";
+
+import type { CsvDuplicateDecision } from "./duplicate-analysis";
+
 import type { CsvDependencyTask, CsvImportLane } from "./dependency-plan";
 
 import { normalizeCsvInventoryObservation } from "./inventory-normalization";
+
+import type { CsvInventoryObservationResult } from "./inventory-normalization";
 
 import {
   orchestrateCsvInventorySnapshot,
@@ -53,12 +65,19 @@ import {
   normalizeCsvPurchaseOrderRow,
 } from "./purchase-order-normalization";
 
+import {
+  buildCsvInventoryQuarantineEnvelope,
+  buildCsvQuarantineEnvelope,
+  buildCsvSupplierProductQuarantineEnvelope,
+} from "./quarantine";
+
 import type { CsvQuarantineEnvelope } from "./quarantine";
 
 import type { CsvResourcePersistencePort } from "./resource-orchestration";
 
 import {
   executeCsvInventoryRow,
+  executeCsvPreclassifiedRow,
   executeCsvResourceRow,
   executeCsvSupplierProductRow,
 } from "./row-execution";
@@ -69,6 +88,8 @@ import {
   normalizeCsvSupplierProductRow,
   normalizeCsvSupplierRow,
 } from "./supplier-normalization";
+
+import type { CsvSupplierProductResult } from "./supplier-normalization";
 
 import type { CsvTrustedImportContext } from "./trusted-context";
 
@@ -194,6 +215,217 @@ function publicRowResult(
   };
 }
 
+interface CsvNormalizedBatchRow<TResult> {
+  rowNumber: number;
+  normalized: TResult;
+}
+
+type CsvDuplicateTerminal =
+  | {
+      disposition: "skipped";
+    }
+  | {
+      disposition: "quarantined";
+      quarantine: CsvQuarantineEnvelope;
+    };
+
+function analyzeResourceDuplicates<TCanonical>(
+  rows: readonly CsvNormalizedBatchRow<
+    ProviderNormalizationResult<TCanonical>
+  >[],
+): ReadonlyMap<number, CsvDuplicateDecision> {
+  return analyzeCsvDuplicates(
+    rows.flatMap(({ rowNumber, normalized }) => {
+      if (normalized.disposition !== "accepted") {
+        return [];
+      }
+
+      return [
+        {
+          rowNumber,
+          identity: csvResourceDuplicateIdentity({
+            resourceType: normalized.resourceType,
+            externalId: normalized.externalId,
+          }),
+          payload: {
+            externalParentId: normalized.externalParentId,
+            canonical: normalized.canonical,
+          },
+        },
+      ];
+    }),
+  );
+}
+
+function analyzeInventoryDuplicates(
+  rows: readonly CsvNormalizedBatchRow<CsvInventoryObservationResult>[],
+): ReadonlyMap<number, CsvDuplicateDecision> {
+  return analyzeCsvDuplicates(
+    rows.flatMap(({ rowNumber, normalized }) => {
+      if (normalized.disposition !== "accepted") {
+        return [];
+      }
+
+      return [
+        {
+          rowNumber,
+          identity: csvInventoryDuplicateIdentity({
+            variantExternalId: normalized.variantExternalId,
+            locationExternalId: normalized.locationExternalId,
+            observedAt: normalized.canonical.observedAt,
+          }),
+          payload: normalized.canonical,
+        },
+      ];
+    }),
+  );
+}
+
+function analyzeSupplierProductDuplicates(
+  rows: readonly CsvNormalizedBatchRow<CsvSupplierProductResult>[],
+): ReadonlyMap<number, CsvDuplicateDecision> {
+  return analyzeCsvDuplicates(
+    rows.flatMap(({ rowNumber, normalized }) => {
+      if (normalized.disposition !== "accepted") {
+        return [];
+      }
+
+      return [
+        {
+          rowNumber,
+          identity: csvSupplierProductDuplicateIdentity({
+            supplierExternalId: normalized.supplierExternalId,
+            variantExternalId: normalized.variantExternalId,
+          }),
+          payload: normalized.canonical,
+        },
+      ];
+    }),
+  );
+}
+
+function duplicateDecision(
+  rowNumber: number,
+  decisions: ReadonlyMap<number, CsvDuplicateDecision>,
+): CsvDuplicateDecision | null {
+  return decisions.get(rowNumber) ?? null;
+}
+
+function resourceDuplicateTerminal<TCanonical>(
+  rowNumber: number,
+  normalized: ProviderNormalizationResult<TCanonical>,
+  decisions: ReadonlyMap<number, CsvDuplicateDecision>,
+): CsvDuplicateTerminal | null {
+  if (normalized.disposition !== "accepted") {
+    return null;
+  }
+
+  const decision = duplicateDecision(rowNumber, decisions);
+
+  if (
+    decision === null ||
+    decision.disposition === "unique" ||
+    decision.disposition === "representative"
+  ) {
+    return null;
+  }
+
+  if (decision.disposition === "redundant") {
+    return {
+      disposition: "skipped",
+    };
+  }
+
+  return {
+    disposition: "quarantined",
+    quarantine: buildCsvQuarantineEnvelope(rowNumber, {
+      provider: normalized.provider,
+      resourceType: normalized.resourceType,
+      externalId: normalized.externalId,
+      externalParentId: normalized.externalParentId,
+      adapterVersion: normalized.adapterVersion,
+      reasonCode: "DUPLICATE_CONFLICT",
+      issues: [],
+    }),
+  };
+}
+
+function inventoryDuplicateTerminal(
+  rowNumber: number,
+  normalized: CsvInventoryObservationResult,
+  decisions: ReadonlyMap<number, CsvDuplicateDecision>,
+): CsvDuplicateTerminal | null {
+  if (normalized.disposition !== "accepted") {
+    return null;
+  }
+
+  const decision = duplicateDecision(rowNumber, decisions);
+
+  if (
+    decision === null ||
+    decision.disposition === "unique" ||
+    decision.disposition === "representative"
+  ) {
+    return null;
+  }
+
+  if (decision.disposition === "redundant") {
+    return {
+      disposition: "skipped",
+    };
+  }
+
+  return {
+    disposition: "quarantined",
+    quarantine: buildCsvInventoryQuarantineEnvelope({
+      rowNumber,
+      adapterVersion: normalized.adapterVersion,
+      variantExternalId: normalized.variantExternalId,
+      locationExternalId: normalized.locationExternalId,
+      reasonCode: "DUPLICATE_CONFLICT",
+      issues: [],
+    }),
+  };
+}
+
+function supplierProductDuplicateTerminal(
+  rowNumber: number,
+  normalized: CsvSupplierProductResult,
+  decisions: ReadonlyMap<number, CsvDuplicateDecision>,
+): CsvDuplicateTerminal | null {
+  if (normalized.disposition !== "accepted") {
+    return null;
+  }
+
+  const decision = duplicateDecision(rowNumber, decisions);
+
+  if (
+    decision === null ||
+    decision.disposition === "unique" ||
+    decision.disposition === "representative"
+  ) {
+    return null;
+  }
+
+  if (decision.disposition === "redundant") {
+    return {
+      disposition: "skipped",
+    };
+  }
+
+  return {
+    disposition: "quarantined",
+    quarantine: buildCsvSupplierProductQuarantineEnvelope({
+      rowNumber,
+      adapterVersion: normalized.adapterVersion,
+      supplierExternalId: normalized.supplierExternalId,
+      variantExternalId: normalized.variantExternalId,
+      reasonCode: "DUPLICATE_CONFLICT",
+      issues: [],
+    }),
+  };
+}
+
 function addExecutionTask(
   tasks: CsvDependencyTask<CsvImportExecutedRow>[],
   rows: CsvImportExecutedRow[],
@@ -247,21 +479,35 @@ export async function executeCsvImportPlan(
 
     runtimes.push(runtime);
 
+    const productConfig = plan.products.config;
+
     const parsed = parseCsv(plan.products.source);
 
-    for (const parsedRow of parsed.rows) {
-      const normalized = normalizeCsvProductRow(
-        parsedRow.row,
-        plan.products.config,
+    const normalizedRows = parsed.rows.map((parsedRow) => ({
+      rowNumber: parsedRow.rowNumber,
+      normalized: normalizeCsvProductRow(parsedRow.row, productConfig),
+    }));
+
+    const duplicateDecisions = analyzeResourceDuplicates(normalizedRows);
+
+    for (const { rowNumber, normalized } of normalizedRows) {
+      const duplicate = resourceDuplicateTerminal(
+        rowNumber,
+        normalized,
+        duplicateDecisions,
       );
 
+      if (duplicate !== null) {
+        addExecutionTask(tasks, rows, runtime, async (accounting) =>
+          executeCsvPreclassifiedRow(accounting, rowNumber, duplicate),
+        );
+
+        continue;
+      }
+
       addExecutionTask(tasks, rows, runtime, (accounting) =>
-        executeCsvResourceRow(
-          accounting,
-          parsedRow.rowNumber,
-          normalized,
-          (accepted) =>
-            orchestrateCsvProduct(plan.context, accepted, persistence),
+        executeCsvResourceRow(accounting, rowNumber, normalized, (accepted) =>
+          orchestrateCsvProduct(plan.context, accepted, persistence),
         ),
       );
     }
@@ -272,21 +518,35 @@ export async function executeCsvImportPlan(
 
     runtimes.push(runtime);
 
+    const supplierConfig = plan.suppliers.config;
+
     const parsed = parseCsv(plan.suppliers.source);
 
-    for (const parsedRow of parsed.rows) {
-      const normalized = normalizeCsvSupplierRow(
-        parsedRow.row,
-        plan.suppliers.config,
+    const normalizedRows = parsed.rows.map((parsedRow) => ({
+      rowNumber: parsedRow.rowNumber,
+      normalized: normalizeCsvSupplierRow(parsedRow.row, supplierConfig),
+    }));
+
+    const duplicateDecisions = analyzeResourceDuplicates(normalizedRows);
+
+    for (const { rowNumber, normalized } of normalizedRows) {
+      const duplicate = resourceDuplicateTerminal(
+        rowNumber,
+        normalized,
+        duplicateDecisions,
       );
 
+      if (duplicate !== null) {
+        addExecutionTask(tasks, rows, runtime, async (accounting) =>
+          executeCsvPreclassifiedRow(accounting, rowNumber, duplicate),
+        );
+
+        continue;
+      }
+
       addExecutionTask(tasks, rows, runtime, (accounting) =>
-        executeCsvResourceRow(
-          accounting,
-          parsedRow.rowNumber,
-          normalized,
-          (accepted) =>
-            orchestrateCsvSupplier(plan.context, accepted, persistence),
+        executeCsvResourceRow(accounting, rowNumber, normalized, (accepted) =>
+          orchestrateCsvSupplier(plan.context, accepted, persistence),
         ),
       );
     }
@@ -297,21 +557,35 @@ export async function executeCsvImportPlan(
 
     runtimes.push(runtime);
 
+    const orderConfig = plan.orders.config;
+
     const parsed = parseCsv(plan.orders.source);
 
-    for (const parsedRow of parsed.rows) {
-      const normalized = normalizeCsvOrderRow(
-        parsedRow.row,
-        plan.orders.config,
+    const normalizedRows = parsed.rows.map((parsedRow) => ({
+      rowNumber: parsedRow.rowNumber,
+      normalized: normalizeCsvOrderRow(parsedRow.row, orderConfig),
+    }));
+
+    const duplicateDecisions = analyzeResourceDuplicates(normalizedRows);
+
+    for (const { rowNumber, normalized } of normalizedRows) {
+      const duplicate = resourceDuplicateTerminal(
+        rowNumber,
+        normalized,
+        duplicateDecisions,
       );
 
+      if (duplicate !== null) {
+        addExecutionTask(tasks, rows, runtime, async (accounting) =>
+          executeCsvPreclassifiedRow(accounting, rowNumber, duplicate),
+        );
+
+        continue;
+      }
+
       addExecutionTask(tasks, rows, runtime, (accounting) =>
-        executeCsvResourceRow(
-          accounting,
-          parsedRow.rowNumber,
-          normalized,
-          (accepted) =>
-            orchestrateCsvOrder(plan.context, accepted, persistence),
+        executeCsvResourceRow(accounting, rowNumber, normalized, (accepted) =>
+          orchestrateCsvOrder(plan.context, accepted, persistence),
         ),
       );
     }
@@ -322,22 +596,39 @@ export async function executeCsvImportPlan(
 
     runtimes.push(runtime);
 
+    const productVariantConfig = plan.productVariants.config;
+
     const parsed = parseCsv(plan.productVariants.source);
 
-    for (const parsedRow of parsed.rows) {
-      const normalized = normalizeCsvProductVariantRow(
+    const normalizedRows = parsed.rows.map((parsedRow) => ({
+      rowNumber: parsedRow.rowNumber,
+      normalized: normalizeCsvProductVariantRow(
         parsedRow.row,
-        plan.productVariants.config,
+        productVariantConfig,
         parsedRow.rowNumber,
+      ),
+    }));
+
+    const duplicateDecisions = analyzeResourceDuplicates(normalizedRows);
+
+    for (const { rowNumber, normalized } of normalizedRows) {
+      const duplicate = resourceDuplicateTerminal(
+        rowNumber,
+        normalized,
+        duplicateDecisions,
       );
 
+      if (duplicate !== null) {
+        addExecutionTask(tasks, rows, runtime, async (accounting) =>
+          executeCsvPreclassifiedRow(accounting, rowNumber, duplicate),
+        );
+
+        continue;
+      }
+
       addExecutionTask(tasks, rows, runtime, (accounting) =>
-        executeCsvResourceRow(
-          accounting,
-          parsedRow.rowNumber,
-          normalized,
-          (accepted) =>
-            orchestrateCsvProductVariant(plan.context, accepted, persistence),
+        executeCsvResourceRow(accounting, rowNumber, normalized, (accepted) =>
+          orchestrateCsvProductVariant(plan.context, accepted, persistence),
         ),
       );
     }
@@ -348,21 +639,38 @@ export async function executeCsvImportPlan(
 
     runtimes.push(runtime);
 
+    const purchaseOrderConfig = plan.purchaseOrders.config;
+
     const parsed = parseCsv(plan.purchaseOrders.source);
 
-    for (const parsedRow of parsed.rows) {
-      const normalized = normalizeCsvPurchaseOrderRow(
+    const normalizedRows = parsed.rows.map((parsedRow) => ({
+      rowNumber: parsedRow.rowNumber,
+      normalized: normalizeCsvPurchaseOrderRow(
         parsedRow.row,
-        plan.purchaseOrders.config,
+        purchaseOrderConfig,
+      ),
+    }));
+
+    const duplicateDecisions = analyzeResourceDuplicates(normalizedRows);
+
+    for (const { rowNumber, normalized } of normalizedRows) {
+      const duplicate = resourceDuplicateTerminal(
+        rowNumber,
+        normalized,
+        duplicateDecisions,
       );
 
+      if (duplicate !== null) {
+        addExecutionTask(tasks, rows, runtime, async (accounting) =>
+          executeCsvPreclassifiedRow(accounting, rowNumber, duplicate),
+        );
+
+        continue;
+      }
+
       addExecutionTask(tasks, rows, runtime, (accounting) =>
-        executeCsvResourceRow(
-          accounting,
-          parsedRow.rowNumber,
-          normalized,
-          (accepted) =>
-            orchestrateCsvPurchaseOrder(plan.context, accepted, persistence),
+        executeCsvResourceRow(accounting, rowNumber, normalized, (accepted) =>
+          orchestrateCsvPurchaseOrder(plan.context, accepted, persistence),
         ),
       );
     }
@@ -373,26 +681,39 @@ export async function executeCsvImportPlan(
 
     runtimes.push(runtime);
 
+    const inventoryConfig = plan.inventorySnapshots.config;
+
     const parsed = parseCsv(plan.inventorySnapshots.source);
 
-    for (const parsedRow of parsed.rows) {
-      const normalized = normalizeCsvInventoryObservation(
+    const normalizedRows = parsed.rows.map((parsedRow) => ({
+      rowNumber: parsedRow.rowNumber,
+      normalized: normalizeCsvInventoryObservation(
         parsedRow.row,
-        plan.inventorySnapshots.config,
+        inventoryConfig,
         parsedRow.rowNumber,
+      ),
+    }));
+
+    const duplicateDecisions = analyzeInventoryDuplicates(normalizedRows);
+
+    for (const { rowNumber, normalized } of normalizedRows) {
+      const duplicate = inventoryDuplicateTerminal(
+        rowNumber,
+        normalized,
+        duplicateDecisions,
       );
 
+      if (duplicate !== null) {
+        addExecutionTask(tasks, rows, runtime, async (accounting) =>
+          executeCsvPreclassifiedRow(accounting, rowNumber, duplicate),
+        );
+
+        continue;
+      }
+
       addExecutionTask(tasks, rows, runtime, (accounting) =>
-        executeCsvInventoryRow(
-          accounting,
-          parsedRow.rowNumber,
-          normalized,
-          (accepted) =>
-            orchestrateCsvInventorySnapshot(
-              plan.context,
-              accepted,
-              persistence,
-            ),
+        executeCsvInventoryRow(accounting, rowNumber, normalized, (accepted) =>
+          orchestrateCsvInventorySnapshot(plan.context, accepted, persistence),
         ),
       );
     }
@@ -403,18 +724,39 @@ export async function executeCsvImportPlan(
 
     runtimes.push(runtime);
 
+    const supplierProductConfig = plan.supplierProducts.config;
+
     const parsed = parseCsv(plan.supplierProducts.source);
 
-    for (const parsedRow of parsed.rows) {
-      const normalized = normalizeCsvSupplierProductRow(
+    const normalizedRows = parsed.rows.map((parsedRow) => ({
+      rowNumber: parsedRow.rowNumber,
+      normalized: normalizeCsvSupplierProductRow(
         parsedRow.row,
-        plan.supplierProducts.config,
+        supplierProductConfig,
+      ),
+    }));
+
+    const duplicateDecisions = analyzeSupplierProductDuplicates(normalizedRows);
+
+    for (const { rowNumber, normalized } of normalizedRows) {
+      const duplicate = supplierProductDuplicateTerminal(
+        rowNumber,
+        normalized,
+        duplicateDecisions,
       );
+
+      if (duplicate !== null) {
+        addExecutionTask(tasks, rows, runtime, async (accounting) =>
+          executeCsvPreclassifiedRow(accounting, rowNumber, duplicate),
+        );
+
+        continue;
+      }
 
       addExecutionTask(tasks, rows, runtime, (accounting) =>
         executeCsvSupplierProductRow(
           accounting,
-          parsedRow.rowNumber,
+          rowNumber,
           normalized,
           (accepted) =>
             orchestrateCsvSupplierProduct(plan.context, accepted, persistence),
@@ -428,22 +770,39 @@ export async function executeCsvImportPlan(
 
     runtimes.push(runtime);
 
+    const orderItemConfig = plan.orderItems.config;
+
     const parsed = parseCsv(plan.orderItems.source);
 
-    for (const parsedRow of parsed.rows) {
-      const normalized = normalizeCsvOrderItemRow(
+    const normalizedRows = parsed.rows.map((parsedRow) => ({
+      rowNumber: parsedRow.rowNumber,
+      normalized: normalizeCsvOrderItemRow(
         parsedRow.row,
-        plan.orderItems.config,
+        orderItemConfig,
         parsedRow.rowNumber,
+      ),
+    }));
+
+    const duplicateDecisions = analyzeResourceDuplicates(normalizedRows);
+
+    for (const { rowNumber, normalized } of normalizedRows) {
+      const duplicate = resourceDuplicateTerminal(
+        rowNumber,
+        normalized,
+        duplicateDecisions,
       );
 
+      if (duplicate !== null) {
+        addExecutionTask(tasks, rows, runtime, async (accounting) =>
+          executeCsvPreclassifiedRow(accounting, rowNumber, duplicate),
+        );
+
+        continue;
+      }
+
       addExecutionTask(tasks, rows, runtime, (accounting) =>
-        executeCsvResourceRow(
-          accounting,
-          parsedRow.rowNumber,
-          normalized,
-          (accepted) =>
-            orchestrateCsvOrderItem(plan.context, accepted, persistence),
+        executeCsvResourceRow(accounting, rowNumber, normalized, (accepted) =>
+          orchestrateCsvOrderItem(plan.context, accepted, persistence),
         ),
       );
     }
@@ -454,26 +813,39 @@ export async function executeCsvImportPlan(
 
     runtimes.push(runtime);
 
+    const purchaseOrderItemConfig = plan.purchaseOrderItems.config;
+
     const parsed = parseCsv(plan.purchaseOrderItems.source);
 
-    for (const parsedRow of parsed.rows) {
-      const normalized = normalizeCsvPurchaseOrderItemRow(
+    const normalizedRows = parsed.rows.map((parsedRow) => ({
+      rowNumber: parsedRow.rowNumber,
+      normalized: normalizeCsvPurchaseOrderItemRow(
         parsedRow.row,
-        plan.purchaseOrderItems.config,
+        purchaseOrderItemConfig,
         parsedRow.rowNumber,
+      ),
+    }));
+
+    const duplicateDecisions = analyzeResourceDuplicates(normalizedRows);
+
+    for (const { rowNumber, normalized } of normalizedRows) {
+      const duplicate = resourceDuplicateTerminal(
+        rowNumber,
+        normalized,
+        duplicateDecisions,
       );
 
+      if (duplicate !== null) {
+        addExecutionTask(tasks, rows, runtime, async (accounting) =>
+          executeCsvPreclassifiedRow(accounting, rowNumber, duplicate),
+        );
+
+        continue;
+      }
+
       addExecutionTask(tasks, rows, runtime, (accounting) =>
-        executeCsvResourceRow(
-          accounting,
-          parsedRow.rowNumber,
-          normalized,
-          (accepted) =>
-            orchestrateCsvPurchaseOrderItem(
-              plan.context,
-              accepted,
-              persistence,
-            ),
+        executeCsvResourceRow(accounting, rowNumber, normalized, (accepted) =>
+          orchestrateCsvPurchaseOrderItem(plan.context, accepted, persistence),
         ),
       );
     }
