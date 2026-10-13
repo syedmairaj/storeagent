@@ -2930,7 +2930,10 @@ Current-state vs history replay behavior:
 - same plan + new idempotencyKey:
   - this is a new operational import
   - current-state resources reconcile/skip by ProviderBinding identity
-  - append-only inventory observations append again according to resource history semantics
+  - CSV inventory persistence executes, but exact existing observation identity with equal nullable quantities is skipped rather than appended
+  - contradictory quantities for the same CSV observation identity quarantine as `HISTORY_CONFLICT`
+  - `NULL` and `0` remain distinct
+  - a different observed timestamp remains a genuinely new append-only observation
 
 Live end-to-end proof:
 

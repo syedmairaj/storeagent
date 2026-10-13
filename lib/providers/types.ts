@@ -208,6 +208,7 @@ export interface ProviderBindingReplayResult {
 export type ProviderReconciliationReasonCode =
   | "NORMALIZATION_QUARANTINED"
   | "DUPLICATE_CONFLICT"
+  | "HISTORY_CONFLICT"
   | "BINDING_CONFLICT"
   | "IDENTITY_AMBIGUOUS"
   | "RELATIONSHIP_UNRESOLVED"

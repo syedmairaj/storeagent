@@ -8,6 +8,7 @@ import {
 
 import {
   CsvPersistenceConflictError,
+  CsvPersistenceHistoryConflictError,
 } from "./persistence-errors";
 
 import {
@@ -68,6 +69,17 @@ function bindingConflictFailure():
   };
 }
 
+function historyConflictFailure():
+  CsvResourceOrchestrationResult {
+  return {
+    disposition:
+      "quarantined",
+    reasonCode:
+      "HISTORY_CONFLICT",
+    issues: [],
+  };
+}
+
 function operationalFailure(
   error: unknown,
 ): CsvResourceOrchestrationResult {
@@ -110,6 +122,13 @@ async function safely(
 
       return bindingConflictFailure();
 
+    }
+
+    if (
+      error instanceof
+      CsvPersistenceHistoryConflictError
+    ) {
+      return historyConflictFailure();
     }
 
     if (

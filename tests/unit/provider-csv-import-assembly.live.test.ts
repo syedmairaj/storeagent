@@ -825,17 +825,17 @@ describeLive("CSV import assembly live Supabase E2E", () => {
     });
   });
 
-  it("reconciles current-state resources while inventory remains append-only before SyncRun replay protection", async () => {
+  it("reconciles current-state resources while exact inventory history replay is skipped", async () => {
     const result = await executeCsvImportPlan(plan(), persistence);
 
     expect(result.counts).toEqual({
       discovered: 9,
 
-      imported: 1,
+      imported: 0,
 
       updated: 0,
 
-      skipped: 8,
+      skipped: 9,
 
       quarantined: 0,
 
@@ -943,6 +943,6 @@ describeLive("CSV import assembly live Supabase E2E", () => {
 
     expect(snapshotCountError).toBeNull();
 
-    expect(snapshotCount).toBe(2);
+    expect(snapshotCount).toBe(1);
   });
 });

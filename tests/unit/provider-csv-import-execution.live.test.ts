@@ -414,11 +414,11 @@ describeLive("CSV operational import replay live Supabase E2E", () => {
     expect(result.counts).toEqual({
       discovered: 3,
 
-      imported: 1,
+      imported: 0,
 
       updated: 0,
 
-      skipped: 2,
+      skipped: 3,
 
       quarantined: 0,
 
@@ -427,7 +427,7 @@ describeLive("CSV operational import replay live Supabase E2E", () => {
 
     expect(result.execution).not.toBeNull();
 
-    expect(await inventorySnapshotCount()).toBe(2);
+    expect(await inventorySnapshotCount()).toBe(1);
 
     const {
       count: productCount,
@@ -506,11 +506,11 @@ describeLive("CSV operational import replay live Supabase E2E", () => {
 
       discovered_count: 3,
 
-      imported_count: 1,
+      imported_count: 0,
 
       updated_count: 0,
 
-      skipped_count: 2,
+      skipped_count: 3,
 
       quarantined_count: 0,
 

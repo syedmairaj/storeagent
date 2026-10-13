@@ -172,19 +172,21 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 1. Inventory always appends immutable history.
+-- 1. Inventory persisted-history replay is deterministic.
 -- ---------------------------------------------------------------------------
 
 do $$
 declare
-  variant_id uuid;
+  v_variant_id uuid;
   first_id uuid;
-  second_id uuid;
+  replay_id uuid;
   d text;
   snapshot_count integer;
+  caught boolean := false;
+  caught_state text;
 begin
   select pb.canonical_entity_id
-  into variant_id
+  into v_variant_id
   from public.provider_bindings pb
   where
     pb.organization_id =
@@ -204,7 +206,7 @@ begin
     '11000000-0000-0000-0000-000000000001',
     '21000000-0000-0000-0000-000000000001',
     '31000000-0000-0000-0000-000000000001',
-    variant_id,
+    v_variant_id,
     '22000000-0000-0000-0000-000000000001',
     '2026-10-11T10:00:00Z',
     10,
@@ -222,13 +224,13 @@ begin
     canonical_entity_id,
     disposition
   into
-    second_id,
+    replay_id,
     d
   from public.csv_append_inventory_snapshot(
     '11000000-0000-0000-0000-000000000001',
     '21000000-0000-0000-0000-000000000001',
     '31000000-0000-0000-0000-000000000001',
-    variant_id,
+    v_variant_id,
     '22000000-0000-0000-0000-000000000001',
     '2026-10-11T10:00:00Z',
     10,
@@ -237,14 +239,14 @@ begin
     null
   );
 
-  if d <> 'imported' then
+  if d <> 'skipped' then
     raise exception
-      'second accepted inventory observation was not appended';
+      'exact inventory history replay was not skipped';
   end if;
 
-  if first_id = second_id then
+  if first_id <> replay_id then
     raise exception
-      'inventory append reused historical row identity';
+      'exact inventory history replay did not return existing row';
   end if;
 
   select count(*)
@@ -252,16 +254,132 @@ begin
   from public.inventory_snapshots s
   where
     s.organization_id =
-      '11000000-0000-0000-0000-000000000001';
+      '11000000-0000-0000-0000-000000000001'
+    and s.store_id =
+      '21000000-0000-0000-0000-000000000001'
+    and s.variant_id = v_variant_id
+    and s.location_id =
+      '22000000-0000-0000-0000-000000000001'
+    and s.observed_at =
+      '2026-10-11T10:00:00Z'
+    and s.source = 'csv';
 
-  if snapshot_count <> 2 then
+  if snapshot_count <> 1 then
     raise exception
-      'expected two immutable inventory observations, got %',
-      snapshot_count;
+      'exact inventory replay created duplicate history';
+  end if;
+
+  begin
+    perform *
+    from public.csv_append_inventory_snapshot(
+      '11000000-0000-0000-0000-000000000001',
+      '21000000-0000-0000-0000-000000000001',
+      '31000000-0000-0000-0000-000000000001',
+      v_variant_id,
+      '22000000-0000-0000-0000-000000000001',
+      '2026-10-11T10:00:00Z',
+      11,
+      8,
+      2,
+      null
+    );
+
+  exception
+    when others then
+      get stacked diagnostics
+        caught_state = returned_sqlstate;
+
+      if caught_state = 'SA002' then
+        caught := true;
+      else
+        raise;
+      end if;
+  end;
+
+  if not caught then
+    raise exception
+      'contradictory inventory history was unexpectedly accepted';
+  end if;
+
+  select count(*)
+  into snapshot_count
+  from public.inventory_snapshots s
+  where
+    s.organization_id =
+      '11000000-0000-0000-0000-000000000001'
+    and s.store_id =
+      '21000000-0000-0000-0000-000000000001'
+    and s.variant_id = v_variant_id
+    and s.location_id =
+      '22000000-0000-0000-0000-000000000001'
+    and s.observed_at =
+      '2026-10-11T10:00:00Z'
+    and s.source = 'csv';
+
+  if snapshot_count <> 1 then
+    raise exception
+      'history conflict changed immutable snapshot count';
+  end if;
+
+  caught := false;
+  caught_state := null;
+
+  begin
+    perform *
+    from public.csv_append_inventory_snapshot(
+      '11000000-0000-0000-0000-000000000001',
+      '21000000-0000-0000-0000-000000000001',
+      '31000000-0000-0000-0000-000000000001',
+      v_variant_id,
+      '22000000-0000-0000-0000-000000000001',
+      '2026-10-11T10:00:00Z',
+      10,
+      8,
+      2,
+      0
+    );
+
+  exception
+    when others then
+      get stacked diagnostics
+        caught_state = returned_sqlstate;
+
+      if caught_state = 'SA002' then
+        caught := true;
+      else
+        raise;
+      end if;
+  end;
+
+  if not caught then
+    raise exception
+      'NULL-versus-zero inventory history contradiction was unexpectedly accepted';
+  end if;
+
+  select count(*)
+  into snapshot_count
+  from public.inventory_snapshots s
+  where
+    s.organization_id =
+      '11000000-0000-0000-0000-000000000001'
+    and s.store_id =
+      '21000000-0000-0000-0000-000000000001'
+    and s.variant_id = v_variant_id
+    and s.location_id =
+      '22000000-0000-0000-0000-000000000001'
+    and s.observed_at =
+      '2026-10-11T10:00:00Z'
+    and s.source = 'csv';
+
+  if snapshot_count <> 1 then
+    raise exception
+      'NULL-versus-zero conflict changed immutable snapshot count';
   end if;
 end;
+
 $$;
 
+-- ---------------------------------------------------------------------------
 -- ---------------------------------------------------------------------------
 -- 2. Inventory remains immutable.
 -- ---------------------------------------------------------------------------

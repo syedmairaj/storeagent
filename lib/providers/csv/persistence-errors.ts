@@ -15,3 +15,18 @@ export class CsvPersistenceConflictError extends Error {
     this.rpcName = rpcName;
   }
 }
+
+export const CSV_HISTORY_CONFLICT_SQLSTATE = "SA002";
+
+export class CsvPersistenceHistoryConflictError extends Error {
+  readonly reasonCode = "HISTORY_CONFLICT" as const;
+
+  readonly rpcName: string;
+
+  constructor(rpcName: string) {
+    super("CSV immutable history conflicts with an existing observation.");
+
+    this.name = "CsvPersistenceHistoryConflictError";
+    this.rpcName = rpcName;
+  }
+}

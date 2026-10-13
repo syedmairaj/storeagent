@@ -3,8 +3,10 @@ import "server-only";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import {
+  CSV_HISTORY_CONFLICT_SQLSTATE,
   CSV_RECONCILIATION_CONFLICT_SQLSTATE,
   CsvPersistenceConflictError,
+  CsvPersistenceHistoryConflictError,
 } from "@/lib/providers/csv/persistence-errors";
 
 import type {
@@ -95,6 +97,10 @@ async function callRpc(
   if (error) {
     if (error.code === CSV_RECONCILIATION_CONFLICT_SQLSTATE) {
       throw new CsvPersistenceConflictError(rpcName);
+    }
+
+    if (error.code === CSV_HISTORY_CONFLICT_SQLSTATE) {
+      throw new CsvPersistenceHistoryConflictError(rpcName);
     }
 
     throw new Error(

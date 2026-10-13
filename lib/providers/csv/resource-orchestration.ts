@@ -169,6 +169,12 @@ export interface CsvBindingConflictFailure {
   issues: readonly ProviderNormalizationIssue[];
 }
 
+export interface CsvHistoryConflictFailure {
+  disposition: "quarantined";
+  reasonCode: "HISTORY_CONFLICT";
+  issues: readonly ProviderNormalizationIssue[];
+}
+
 export interface CsvOperationalFailure {
   disposition: "failed";
   errorCode: string;
@@ -178,4 +184,5 @@ export type CsvResourceOrchestrationResult =
   | CsvPersistedResource
   | CsvRelationshipFailure
   | CsvBindingConflictFailure
+  | CsvHistoryConflictFailure
   | CsvOperationalFailure;

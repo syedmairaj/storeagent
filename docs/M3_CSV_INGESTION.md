@@ -241,7 +241,7 @@ Examples:
 
 Historical evidence is append-oriented where frozen by M2.
 
-Inventory observations append new snapshots.
+Genuinely new inventory observations append new snapshots. An exact replay of an existing CSV observation is skipped, while contradictory quantities for the same observation identity are quarantined.
 
 Historical records must not be silently reassigned to another tenant or store.
 
@@ -632,7 +632,7 @@ For that new import:
 
 - current-state resources reconcile by ProviderBinding identity
 - equivalent current-state resources may be skipped
-- append-only inventory observations append according to historical resource semantics
+- CSV inventory observations append only when their canonical observation identity is genuinely new; exact replay skips and contradiction quarantines
 
 A file-level SyncRun key therefore does not replace resource identity.
 
@@ -673,28 +673,57 @@ Skipped rows do not by themselves produce completed_with_errors.
 
 ### Immutable history protection
 
-Inventory snapshots remain append-only historical evidence and do not receive their own ProviderBinding.
+Inventory snapshots remain append-only historical evidence and do not receive
+their own ProviderBinding.
 
-M3.9D-E protects exact operational replay as follows:
+Operational SyncRun idempotency and persisted inventory-observation identity
+are separate concerns.
 
 Same plan + same idempotency key:
 
 - first call executes
 - inventory snapshot appends once
-- second call replays prior SyncRun
+- second call replays the prior SyncRun
 - row persistence does not execute
 - inventory snapshot count does not increase
 
 Same plan + new idempotency key:
 
-- new SyncRun is acquired
-- current-state entities reconcile
-- inventory snapshot appends again
+- a new SyncRun is acquired
+- row persistence executes normally
+- current-state resources reconcile by provider identity
+- inventory history is evaluated independently
 
-This preserves both requirements:
+For CSV inventory history, observation identity is:
 
-- no duplicate work for the same operational import
-- legitimate append-only evidence for a new operational import
+- organization
+- store
+- canonical variant
+- canonical location
+- observed timestamp
+- source = `csv`
+
+For that identity:
+
+- no existing snapshot -> append and return `imported`
+- existing snapshot with all four nullable quantities exactly equal -> return
+  `skipped` with the existing snapshot ID
+- existing snapshot with any quantity different -> quarantine as
+  `HISTORY_CONFLICT`
+- `NULL` and `0` are different values
+- contradictory history never rewrites or deletes the original snapshot
+- a different observed timestamp is a genuinely new observation and may append
+
+The database enforces the CSV observation identity atomically so concurrent
+exact replay cannot create duplicate history.
+
+This preserves all required boundaries:
+
+- operational replay does not duplicate work
+- a new SyncRun does not automatically imply new historical evidence
+- exact historical replay does not duplicate immutable snapshots
+- contradictory historical evidence fails closed
+- genuinely new observations remain append-only
 
 ### Security boundary
 
