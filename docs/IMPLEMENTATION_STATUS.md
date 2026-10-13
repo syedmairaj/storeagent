@@ -1917,8 +1917,8 @@ M3 — CSV ingestion
 - [x] M3.6 Supplier + purchase-order CSV ingestion
 - [x] M3.7 Idempotency + provider-binding reconciliation
 - [x] M3.8 Quarantine + partial-failure accounting
-- [ ] M3.9 End-to-end CSV import orchestration
-- [ ] M3.10 M3 adversarial/final gate\n
+- [x] M3.9 End-to-end CSV import orchestration
+- [x] M3.10 M3 adversarial/final gate\n
 
 ### M3.1 completion
 
@@ -3004,3 +3004,53 @@ Full closure verification:
 Next implementation after D-E closure:
 
 M3.9D-F — conflict typing + duplicate/history/concurrency hardening
+
+### M3.10 completion
+
+Status: PASS
+
+M3 CSV ingestion is closed.
+
+Final closure verification:
+
+- M3.10A read-only repository/migration audit PASS
+- M3.10B complete SQL live/adversarial matrix PASS
+- M3.10B real Supabase live matrix PASS
+  - 7 live test files
+  - 14 live tests
+- M3.10C architecture-freeze audit PASS
+- no deterministic CSV dependency on AI, billing, UI, or commerce-provider SDKs
+- tenant authority remains trusted-context/database enforced
+- canonical UUID identity remains separate from provider identity
+- row number, filename, and upload time remain non-identity diagnostic provenance
+- current-state reconciliation remains separate from immutable inventory history
+- SyncRun idempotency remains whole-import identity
+- exact same-import duplicates skip deterministically
+- contradictory same-import duplicates quarantine as DUPLICATE_CONFLICT
+- immutable relationship contradictions map through SA001 / BINDING_CONFLICT
+- contradictory inventory-history replay maps through SA002 / HISTORY_CONFLICT
+- absent ProviderBinding races are serialized at the PostgreSQL identity boundary
+- concurrent same-identity callers converge on one canonical winner
+- cross-integration provider identities remain independent
+- no application retry framework was introduced to solve database identity races
+
+M3.9 hardening closed as:
+
+- D-F1 — typed reconciliation conflicts
+- D-F2 — deterministic same-import duplicate handling
+- D-F3 — contradictory inventory-history protection
+- D-F4 — absent-binding concurrency hardening
+
+Frozen M3 ingestion model:
+
+CSV source
+-> deterministic parsing
+-> deterministic normalization
+-> trusted tenant context
+-> dependency-ordered orchestration
+-> deterministic persistence/reconciliation
+-> terminal row accounting
+-> durable SyncRun completion
+
+M3 does not own forecasting, inventory decisions, AI explanation,
+billing, UI workflow, Shopify synchronization, or supplier sourcing.

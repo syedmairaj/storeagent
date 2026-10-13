@@ -738,14 +738,74 @@ M3.9D-E does not broaden:
 
 CSV data never establishes tenant authority.
 
-### Remaining M3.9 hardening
+### M3.9 hardening closure
 
-M3.9D-E does not close all M3.9 hardening work.
+M3.9 hardening is complete.
 
-Remaining work includes M3.9D-F:
+Final hardening ownership:
 
-- typed reconciliation conflict classification
-- duplicate-row hardening
-- contradictory source-history handling
-- concurrency hardening beyond SyncRun acquisition
-- final resource/history adversarial coverage
+- D-F1 — stable typed reconciliation conflicts
+  - SA001
+  - BINDING_CONFLICT
+  - immutable canonical relationships fail closed
+
+- D-F2 — deterministic same-import duplicate handling
+  - exact duplicates skip
+  - contradictory duplicate groups quarantine as DUPLICATE_CONFLICT
+
+- D-F3 — CSV inventory-history contradiction protection
+  - CSV observation identity is database-enforced
+  - exact replay skips
+  - contradictory replay raises SA002
+  - orchestration maps SA002 to HISTORY_CONFLICT
+  - NULL remains distinct from zero
+
+- D-F4 — absent ProviderBinding concurrency hardening
+  - PostgreSQL transaction-scoped identity serialization
+  - seven ProviderBinding-owned reconciliation lanes covered
+  - concurrent same identity converges on one canonical winner
+  - no duplicate ProviderBinding
+  - no orphan losing canonical row
+  - immutable-parent contradiction remains SA001 / BINDING_CONFLICT
+  - identical external IDs in different integrations remain independent
+  - location keeps its existing explicit concurrent-create behavior
+  - inventory history keeps its separate D-F3 concurrency semantics
+
+No generic application retry, distributed lock, queue workaround, or
+UI/API-specific concurrency mechanism is part of the M3 identity model.
+
+---
+
+## M3.10 final gate
+
+Status: PASS.
+
+Final verification includes:
+
+- repository and migration ownership audit
+- complete SQL live/adversarial matrix
+- real Supabase persistence and orchestration matrix
+- SyncRun replay/idempotency verification
+- typed conflict verification
+- inventory-history replay/conflict verification
+- end-to-end import execution and assembly verification
+- absent-binding concurrent-create verification
+- cross-integration namespace independence verification
+- architecture-freeze audit
+
+Frozen M3 architecture:
+
+1. CSV never establishes tenant authority.
+2. CSV never supplies canonical UUID ownership.
+3. Provider identity is stable commercial identity, never row number,
+   filename, or upload timestamp.
+4. Blank/unknown remains distinct from numeric zero.
+5. Current-state canonical resources reconcile.
+6. Inventory observations remain immutable history.
+7. Every operational import belongs to one explicit SyncRun.
+8. Rows terminate as imported, updated, skipped, quarantined, or failed.
+9. Database identity/concurrency invariants are enforced in PostgreSQL.
+10. AI, forecasting, decisions, billing, UI, and provider-specific SDK
+    behavior remain downstream or outside M3.
+
+M3 CSV ingestion is closed.
