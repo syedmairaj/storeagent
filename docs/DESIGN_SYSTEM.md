@@ -33,7 +33,7 @@ The product should be:
 14. Desktop is the primary buying/operations workspace.
 15. Mobile should remain excellent for alerts, review and decisions.
 
-Viewport responsiveness is a global merchant-UI invariant for future UI milestones. M5 adds no merchant UI and no responsive implementation.
+StoreAgent merchant-facing UI must be responsive from mobile through ultra-wide displays with no unintended horizontal leakage. This is a cross-cutting UI invariant. M5 has no merchant-facing UI and must not implement responsive or UI code.
 
 ## Interaction principles
 

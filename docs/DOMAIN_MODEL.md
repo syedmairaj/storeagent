@@ -243,7 +243,7 @@ Recomputable derived snapshot for one organization, store, location, variant, me
 
 The same algorithm version may be replaced when canonical facts change. A new algorithm version is a distinct row. Initial M5 has no null-location or store rollup.
 
-Formulas, order-status demand, returns, and reason codes are in `INVENTORY_FORMULAS.md`.
+The persisted table is `public.sku_daily_metrics`. Nullable metric columns have no zero default. Formulas, order-status demand, returns, and reason codes are in `INVENTORY_FORMULAS.md`. Schema closure is in `IMPLEMENTATION_STATUS.md`.
 
 ### ForecastRun
 

@@ -638,7 +638,7 @@ An empty trusted set of incoming lines represents known zero incoming quantity.
 
 ## M5.1 frozen derived-metric contract
 
-M5 calculates deterministic derived metrics. M6 owns forecast horizons, stockout censoring, and lost-sales estimation. M7 owns REORDER, REDUCE, PROMOTE, WATCH, recommended order quantity, and confidence. M5 does not persist risk labels or supplier order constraints.
+M5 calculates deterministic derived metrics. M6 owns forecast horizons, stockout censoring, and lost-sales estimation. M7 owns REORDER, REDUCE, PROMOTE, WATCH, recommended order quantity, and confidence. M5 does not persist risk labels, revenue, or supplier order constraints. Persisted storage is recorded in `IMPLEMENTATION_STATUS.md`.
 
 ### Grain and row lifetime
 
@@ -728,7 +728,7 @@ Denominator 0 yields null with `SELL_THROUGH_DENOMINATOR_ZERO`. A known zero num
 
 `daysOfStock = availableQuantity / dailyDemand` using `days-of-stock-v1`. Null available quantity, null demand, or zero demand yields null. Zero available quantity with positive demand yields 0.
 
-`safetyStock`, `reorderPoint`, and `targetStock` are numeric thresholds only. They use `safety-stock-v1`, `reorder-point-v1`, and `target-stock-v1`. Their `dailyDemand` is observed `salesVelocity30d`. That input is not a forecast. Missing lead time, safety-stock days, or review period yields null. If `salesVelocity30d` is null, all three thresholds are null. Known zero velocity stays 0 and is distinct from unknown demand. `daysOfStock` uses the same observed `salesVelocity30d`; zero demand still yields null with `ZERO_DEMAND`. M5 does not calculate recommended order quantity, supplier MOQ, pack size, or an action.
+`safetyStock`, `reorderPoint`, and `targetStock` are numeric thresholds only. They use `safety-stock-v1`, `reorder-point-v1`, and `target-stock-v1`. Their `dailyDemand` is observed `salesVelocity30d`. That input is not a forecast. Missing lead time, safety-stock days, or review period yields null. If `salesVelocity30d` is null, safety stock, reorder point, target stock, and days of stock are null. Known zero velocity stays 0 and is distinct from unknown demand. `daysOfStock` uses the same observed `salesVelocity30d`; zero demand still yields null with `ZERO_DEMAND`. M5 does not calculate recommended order quantity, supplier MOQ, pack size, or an action.
 
 ### Incoming inventory
 

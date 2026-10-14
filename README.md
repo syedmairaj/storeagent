@@ -9,10 +9,12 @@ Data determines reality.
 Deterministic forecasting and inventory logic calculate decisions.
 AI explains, prioritizes, and communicates those decisions.
 
-Merchants approve actions until automation earns their trust.
+Merchants approve actions until automation earns trust.
 
-## Current milestone
+## Current status
 
-M0 — Architecture Lock
+Canonical milestone state is `docs/IMPLEMENTATION_STATUS.md`.
 
-Do not begin product implementation until M0 architecture gates are complete.
+NEXT IMPLEMENTATION = M5.3 SALES AGGREGATES
+
+M5.3 must not start until explicitly requested.

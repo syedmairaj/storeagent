@@ -1,12 +1,59 @@
 # StoreAgent Implementation Status
 
-## Active closure
+## Active handoff
 
-M4 — durable DataQualityIssue — CLOSED.
+Project thesis, also recorded in `README.md`:
 
-Next milestone: M5 — derived SKU metrics.
+Data determines reality. Deterministic forecasting and inventory logic calculate decisions. AI explains, prioritizes, and communicates those decisions. Merchants approve actions until automation earns trust.
 
-M6 owns forecasting. M7 owns inventory decisions.
+### Roadmap ownership
+
+M4 — Data Quality Foundation — CLOSED
+
+M5 — derived SKU metrics — IN PROGRESS
+
+- M5.1 contract — CLOSED
+- M5.2 schema + RLS — CLOSED
+- M5.3 sales aggregates — NEXT
+- M5.4 inventory metrics
+- M5.5 persistence
+- M5.6 orchestration
+- M5.7 adversarial verification
+- M5.8 final architecture/documentation gate
+
+M6 — Forecasting — NOT STARTED. M6 owns forecasting.
+
+M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
+
+NEXT IMPLEMENTATION = M5.3 SALES AGGREGATES
+
+M5.3 must not start until explicitly requested.
+
+### Owners
+
+M5.1 formula contract: `docs/INVENTORY_FORMULAS.md`, section “M5.1 frozen derived-metric contract”. Domain summary: `docs/DOMAIN_INVARIANTS.md` section 13. Entity: `docs/DOMAIN_MODEL.md` `SkuDailyMetric`.
+
+M5.2 schema closure is the record below. Mutation authority for the table is `docs/SERVICE_ROLE_BOUNDARY.md`. Merchant UI responsiveness is `docs/DESIGN_SYSTEM.md`. M5 has no merchant-facing UI.
+
+M5 must not own forecasts, forecast horizons, stockout or lost-sales estimates, REORDER / REDUCE / PROMOTE / WATCH, decision confidence, recommended order quantity, supplier choice, MOQ, pack adjustment, AI, billing, Shopify-specific logic, or merchant UI.
+
+### M5.2 schema
+
+Migration: `supabase/migrations/20261014100000_m5_2_sku_daily_metrics.sql`
+
+Table: `public.sku_daily_metrics`
+
+Natural key: `organization_id`, `store_id`, `location_id`, `variant_id`, `metric_date`, `algorithm_version`
+
+Security: RLS enabled; authenticated member SELECT only; anon has no access; no browser INSERT, UPDATE, or DELETE; no persistence RPC. Trusted persistence belongs to M5.5.
+
+Schema behavior: nullable metrics have no zero defaults; the persisted reason-code vocabulary is the exact 16 lowercase codes from the M5.1 contract; `STOCK_COVERAGE_UNKNOWN` is not persisted; `inventory_position` is null unless both components are known; sell-through is bounded 0..1; a null sell-through may have a null reason or the denominator-zero reason; the 30-day dependency constraints are enforced; the row is recomputable, with `updated_at` and no immutability trigger.
+
+Verification: local `db reset` passed; `db lint` passed; schema test 5/5 passed; local and remote migration history are aligned through `20261014100000`; that migration is already applied remotely.
+
+### Operations
+
+Use `npx supabase` for project commands. The global Supabase CLI is 2.90.0 and the project CLI resolved by `npx` is 2.120.0. The older global CLI cannot parse the current config keys `orioledb_version` and `local_smtp`. Do not change `supabase/config.toml` to accommodate the old CLI.
 
 The sections below are the historical milestone log.
 
@@ -3106,3 +3153,21 @@ M4.7 live coverage in `tests/unit/data-quality-adversarial.live.test.ts`:
 - lifecycle chronology
 - mixed persistence and lifecycle concurrency
 - identity immutability
+
+### M5.1 completion
+
+Status: CLOSED
+
+The frozen derived-metric contract remains in `docs/INVENTORY_FORMULAS.md`. This record does not restate that contract.
+
+### M5.2 completion
+
+Status: CLOSED
+
+`public.sku_daily_metrics` exists in `supabase/migrations/20261014100000_m5_2_sku_daily_metrics.sql`.
+
+Authenticated members may SELECT. Anon has no access. Browser mutation and a persistence RPC are absent. Trusted persistence remains M5.5.
+
+Local reset, lint, and the schema test passed. Local and remote migration history include `20261014100000`.
+
+Next implementation: M5.3 sales aggregates. Do not start it until explicitly requested.

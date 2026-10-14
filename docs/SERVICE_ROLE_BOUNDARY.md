@@ -268,6 +268,12 @@ Trusted server code loads authorized data first.
 
 ---
 
+## 17. Derived SKU metric reads
+
+`public.sku_daily_metrics` allows authenticated member SELECT. Anon has no access. Browser INSERT, UPDATE, and DELETE are revoked. There is no persistence RPC yet. Trusted metric persistence belongs to M5.5. The closed schema is in `IMPLEMENTATION_STATUS.md`.
+
+---
+
 ## M0.3.5 gate
 
 Before service-role architecture is frozen:
