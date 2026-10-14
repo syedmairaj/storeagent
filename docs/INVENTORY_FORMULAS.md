@@ -634,3 +634,147 @@ If any relevant PO line is ambiguous or inconsistent, aggregate incoming state b
 StoreAgent must not subtract a partial known incoming total when other inbound inventory for the same calculation scope is ambiguous.
 
 An empty trusted set of incoming lines represents known zero incoming quantity.
+
+
+## M5.1 frozen derived-metric contract
+
+M5 calculates deterministic derived metrics. M6 owns forecast horizons, stockout censoring, and lost-sales estimation. M7 owns REORDER, REDUCE, PROMOTE, WATCH, recommended order quantity, and confidence. M5 does not persist risk labels or supplier order constraints.
+
+### Grain and row lifetime
+
+Initial persisted grain:
+
+organization + store + location + variant + metric_date + algorithm_version
+
+Location is required. M5 does not persist a null-location row or a store rollup.
+
+`metric_date` is the store-local business date. Source timestamps remain UTC. The server timezone is not a commercial day boundary.
+
+A row is a recomputable cache, not canonical truth. Recalculation of the same algorithm version may replace that row when canonical facts change. A new algorithm version inserts a distinct row and does not overwrite the older version.
+
+Order items and returns with a null location do not enter this grain. M5 does not allocate them across locations.
+
+### Order demand
+
+Order items have quantity and no status of their own. Demand uses the parent order status.
+
+| Order status | Sold units | Cancelled units | Neither |
+|---|---|---|---|
+| completed | yes | no | no |
+| refunded | yes | no | no |
+| partially_refunded | yes | no | no |
+| cancelled | no | yes | no |
+| pending | no | no | yes |
+| open | no | no | yes |
+| unknown | no | no | yes |
+
+Sold units for a location, variant, and metric date are the sum of item quantities whose order status contributes sold, whose item location and variant match, and whose `ordered_at` falls on that store-local date.
+
+Cancelled order quantities are excluded from sold units. They are not subtracted again. The sales-velocity input `cancelledUnits` is therefore 0 for this aggregation. No status is in both the sold set and the cancelled set.
+
+`pending`, `open`, and `unknown` contribute neither. `unknown` must not be treated as completed demand.
+
+### Returns and refunds
+
+`returned_quantity` is physical units. `refunded_amount` and the order statuses `refunded` and `partially_refunded` are financial facts. A refund does not mean inventory returned.
+
+Physical `returned_quantity` reduces units only with usable location attribution: the return location must match the metric location. Returned units for a location, variant, and metric date are the sum of those non-null quantities whose variant matches and whose `occurred_at` falls on that store-local date. Financial refund status alone does not reduce demand.
+
+A null `returned_quantity` subtracts nothing and is not coerced to zero.
+
+Net units for a day are `max(0, sold units - returned units)`. The floor prevents a negative demand result. It does not create a second cancellation subtraction.
+
+### Eligible days
+
+Lookback windows end on `metric_date` and include that date. M5 does not remove stockout days and does not estimate lost sales.
+
+A store-local date inside the window is eligible only when demand for that location and variant is known:
+
+- at least one sold-status order item or non-null returned quantity falls on that date, or
+- a snapshot on that date has a non-null `available_quantity`, including a known zero
+
+A date with neither a demand fact nor a known available quantity is not eligible. It is unknown, not zero. A known available quantity of zero with no sales is eligible known-zero demand. Excluding that day is stockout censoring and belongs to M6.
+
+`eligibleDays` is the count of eligible dates in the window. Zero eligible dates makes the velocity null with `NO_ELIGIBLE_DAYS`.
+
+Each velocity window also preserves `eligibleDays` and `coverageRatio = eligibleDays / windowDays` as deterministic metric metadata. That coverage is not a confidence score.
+
+### Velocity
+
+Windows are 7, 14, 30, and 90 store-local dates.
+
+```
+net demand = max(0, sold units - returned units)
+velocity = net demand / eligibleDays
+```
+
+Cancelled units are already absent from sold units.
+
+No eligible days yields null, not zero. Eligible days with net demand 0 yield 0.
+
+### Sell-through
+
+Ending available quantity is `available_quantity` from the latest snapshot for that organization, store, location, and variant whose `observed_at` falls on the metric date and whose `available_quantity` is non-null. Latest means greatest `observed_at`, then greatest snapshot id. If no such snapshot exists, ending available quantity is null. M5 does not copy an earlier day's quantity forward and does not substitute zero.
+
+```
+unitsAvailableForSale = net units sold + ending available quantity
+```
+
+when ending available quantity is non-null. Otherwise `unitsAvailableForSale` is null and sell-through is null.
+
+Denominator 0 yields null with `SELL_THROUGH_DENOMINATOR_ZERO`. A known zero numerator over a positive denominator yields 0. The ratio is a decimal from 0 to 1. When net units sold exceed `unitsAvailableForSale`, no ratio is stored and sell-through is null.
+
+### Days of stock and planning thresholds
+
+`daysOfStock = availableQuantity / dailyDemand` using `days-of-stock-v1`. Null available quantity, null demand, or zero demand yields null. Zero available quantity with positive demand yields 0.
+
+`safetyStock`, `reorderPoint`, and `targetStock` are numeric thresholds only. They use `safety-stock-v1`, `reorder-point-v1`, and `target-stock-v1`. Their `dailyDemand` is observed `salesVelocity30d`. That input is not a forecast. Missing lead time, safety-stock days, or review period yields null. If `salesVelocity30d` is null, all three thresholds are null. Known zero velocity stays 0 and is distinct from unknown demand. `daysOfStock` uses the same observed `salesVelocity30d`; zero demand still yields null with `ZERO_DEMAND`. M5 does not calculate recommended order quantity, supplier MOQ, pack size, or an action.
+
+### Incoming inventory
+
+Valid incoming quantity uses the existing purchase-order treatment:
+
+- draft: 0
+- submitted: full ordered quantity
+- confirmed: full ordered quantity
+- partially_received: ordered minus received, and received quantity must be known
+- received: 0
+- cancelled: 0
+- unknown: incoming state unknown
+
+Received quantity greater than ordered quantity does not become negative incoming. That line is untrustworthy. If any contributing line in the scope is untrustworthy, the aggregate incoming quantity is null. M5 does not sum only the trusted subset. An empty trusted set is known zero.
+
+### Demand trend
+
+`demand-trend-v1` compares two non-negative daily-demand rates. The stable band is -10% through +10%. Both rates at 0 are stable. Prior 0 with positive recent demand is rising, and the change ratio stays undefined. A null input yields null trend.
+
+The recent window is the 7 store-local dates ending on `metric_date`. The prior window is the immediately preceding 7 store-local dates. The windows do not overlap. Each rate uses the velocity rule above. Either window with no eligible day yields null trend with `TREND_INPUT_UNKNOWN`. The ±10% band is unchanged.
+
+### Negative inventory
+
+Persisted inventory snapshots reject negative `on_hand_quantity`, `available_quantity`, `committed_quantity`, and `incoming_quantity`. The checks allow null or a value greater than or equal to 0. Order-item quantity and `returned_quantity` are likewise null-or-non-negative.
+
+An unresolved negative observation therefore cannot be a trusted snapshot input. If a metric input is negative before that rejection, M5 excludes it from the trusted metric and returns null. It is not coerced to zero. Inventory inputs use `INVENTORY_UNKNOWN`.
+
+### Reason codes
+
+M5 uses these existing codes and no confidence score:
+
+- `NO_ELIGIBLE_DAYS`
+- `DEMAND_UNKNOWN`
+- `ZERO_DEMAND`
+- `INVENTORY_UNKNOWN`
+- `SAFETY_STOCK_DAYS_UNKNOWN`
+- `SAFETY_STOCK_UNKNOWN`
+- `LEAD_TIME_UNKNOWN`
+- `REVIEW_PERIOD_UNKNOWN`
+- `TARGET_STOCK_UNKNOWN`
+- `INCOMING_STATE_UNKNOWN`
+- `SELL_THROUGH_DENOMINATOR_ZERO`
+- `INVENTORY_AGE_UNKNOWN`
+- `TREND_INPUT_UNKNOWN`
+- `PURCHASE_ORDER_STATUS_UNKNOWN`
+- `RECEIVED_QUANTITY_UNKNOWN`
+- `RECEIVED_EXCEEDS_ORDERED`
+
+`STOCK_COVERAGE_UNKNOWN` remains on the metric type for the existing stockout-risk helper. M5 does not persist that helper's low, medium, or high label. Eligible-day count and coverage ratio are not confidence.

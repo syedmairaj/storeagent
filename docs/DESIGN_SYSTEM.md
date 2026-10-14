@@ -33,6 +33,8 @@ The product should be:
 14. Desktop is the primary buying/operations workspace.
 15. Mobile should remain excellent for alerts, review and decisions.
 
+Viewport responsiveness is a global merchant-UI invariant for future UI milestones. M5 adds no merchant UI and no responsive implementation.
+
 ## Interaction principles
 
 - Important actions should normally be reachable within three clicks.

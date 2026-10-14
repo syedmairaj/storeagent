@@ -504,7 +504,12 @@ export interface SkuDailyMetric {
   id: UUID;
   organizationId: UUID;
   storeId: UUID;
-  locationId: UUID | null;
+
+  /**
+   * Initial M5 grain requires a location.
+   * Null-location and store rollups are outside that grain.
+   */
+  locationId: UUID;
   variantId: UUID;
 
   metricDate: ISODate;

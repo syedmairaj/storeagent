@@ -30,24 +30,38 @@ export interface MetricResult<T> {
 export interface SalesVelocityInput {
   /**
    * Gross sold units during the selected window.
+   * Cancelled orders are already excluded.
    */
   soldUnits: UnitQuantity;
 
   /**
-   * Units cancelled during the selected window.
+   * M5 aggregation passes 0.
+   * Cancelled quantity is not subtracted a second time.
    */
   cancelledUnits: UnitQuantity;
 
   /**
-   * Returned units to subtract from demand according to the
-   * configured V1 return treatment.
+   * Physical returned units with a usable location match.
+   * Financial refund status does not supply this quantity.
    */
   returnedUnits: UnitQuantity;
 
   /**
-   * Number of valid demand-observation days.
+   * Eligible store-local dates in the window.
+   * This count is metric metadata, not a confidence score.
    */
   eligibleDays: number;
+}
+
+/**
+ * Deterministic window metadata preserved with a velocity.
+ * coverageRatio is eligibleDays / windowDays.
+ * It is not a confidence score.
+ */
+export interface SalesVelocityWindowMetadata {
+  windowDays: 7 | 14 | 30 | 90;
+  eligibleDays: number;
+  coverageRatio: number;
 }
 
 export interface DaysOfStockInput {
@@ -56,17 +70,32 @@ export interface DaysOfStockInput {
 }
 
 export interface SafetyStockInput {
+  /**
+   * Observed salesVelocity30d. Not a forecast.
+   * Null demand makes the threshold null.
+   * Known zero stays 0.
+   */
   dailyDemand: number | null;
   safetyStockDays: number | null;
 }
 
 export interface ReorderPointInput {
+  /**
+   * Observed salesVelocity30d. Not a forecast.
+   * Null demand makes the threshold null.
+   * Known zero stays 0.
+   */
   dailyDemand: number | null;
   leadTimeDays: number | null;
   safetyStockUnits: number | null;
 }
 
 export interface TargetStockInput {
+  /**
+   * Observed salesVelocity30d. Not a forecast.
+   * Null demand makes the threshold null.
+   * Known zero stays 0.
+   */
   dailyDemand: number | null;
   leadTimeDays: number | null;
   reviewPeriodDays: number | null;

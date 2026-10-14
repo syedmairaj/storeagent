@@ -227,6 +227,14 @@ A metric record may not become authoritative source truth.
 
 Changing an algorithm must produce a new version or recalculated artifact with explicit version metadata.
 
+M5 owns deterministic derived metrics only. M6 owns forecasting, including stockout censoring and lost-sales estimation. M7 owns inventory actions and decision confidence.
+
+The initial M5 grain is organization, store, location, variant, metric date, and algorithm version. Location is required. A null location is not a valid initial M5 row. The same algorithm version is a recomputable cache. A different algorithm version is a different row.
+
+Cancelled orders are excluded from sold units. M5 passes `cancelledUnits = 0` into the velocity formula and does not subtract cancelled quantity again. Physical `returned_quantity` reduces units only when the return has a usable location attribution. Financial refund status alone does not reduce demand. Eligible-day count and coverage are deterministic metric metadata, not a confidence score. Observed `salesVelocity30d` feeds safety stock, reorder point, and target stock. Null 30-day velocity makes those thresholds null. Known zero demand stays 0. One untrustworthy incoming purchase-order line makes aggregate incoming quantity null. M5 does not sum only the trusted lines.
+
+The M5.1 formula contract is in `INVENTORY_FORMULAS.md`.
+
 ---
 
 ## 14. Forecast runs

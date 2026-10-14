@@ -239,19 +239,11 @@ Important for preventing StoreAgent from recommending inventory already on order
 
 ### SkuDailyMetric
 
-Derived daily inventory and demand features.
+Recomputable derived snapshot for one organization, store, location, variant, metric date, and algorithm version. It is not canonical commercial truth.
 
-Examples:
+The same algorithm version may be replaced when canonical facts change. A new algorithm version is a distinct row. Initial M5 has no null-location or store rollup.
 
-- sales velocity
-- net units sold
-- inventory position
-- returns
-- sell-through
-- inventory age
-- demand trend
-
-Derived values must be reproducible from authoritative data and algorithm version.
+Formulas, order-status demand, returns, and reason codes are in `INVENTORY_FORMULAS.md`.
 
 ### ForecastRun
 
