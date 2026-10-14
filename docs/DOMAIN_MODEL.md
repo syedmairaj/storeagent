@@ -342,19 +342,28 @@ Merchant edits must be captured explicitly instead of modifying original recomme
 
 ### DataQualityIssue
 
-Canonical data trust problem.
+Durable data-trust record. Lifecycle, qualification, and tenant-write rules are owned by `DOMAIN_INVARIANTS.md` section 21.
 
-Examples:
+Severity:
 
-- missing cost
-- unknown lead time
-- negative inventory
-- duplicate SKU
-- insufficient sales history
-- suspicious outlier
-- unresolved provider record
+- critical
+- high
+- medium
+- low
+- info
 
-Data-quality issues must be visible to the merchant when they materially reduce recommendation quality.
+Status:
+
+- open
+- resolved
+- ignored
+- superseded
+
+An open issue is identified by its organization plus a deterministic `issue_key`. The organization id is not part of the key. Message, remediation hint, source context, and timestamps are not identity. A provider parent id is evidence, not identity.
+
+Store, location, and variant links are optional and must belong to that organization.
+
+M4 does not treat missing cost, unknown lead time, duplicate SKU, insufficient history, or outliers as durable issue detection.
 
 ## Integrations and synchronization
 

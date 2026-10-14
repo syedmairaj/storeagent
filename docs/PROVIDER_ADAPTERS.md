@@ -927,6 +927,8 @@ A durable issue may be appropriate when the problem:
 
 Transient malformed rows may remain sync-local quarantine evidence.
 
+The durable qualification set is frozen in `DOMAIN_INVARIANTS.md` section 21. Ordinary quarantine stays non-durable unless that section qualifies it.
+
 ### SyncRun ownership
 
 Existing SyncRun fields remain authoritative for synchronization outcome accounting:

@@ -228,7 +228,21 @@ Do not:
 
 ---
 
-## 14. Bulk operations
+## 14. Data-quality issue mutation
+
+`persist_data_quality_issue` and `transition_data_quality_issue` are the M4 write paths.
+
+Execute is granted to `service_role` and revoked from `public`, `anon`, and `authenticated`.
+
+Browser roles have no insert, update, or delete on `data_quality_issues`. Authenticated members have SELECT only.
+
+Every call requires a trusted organization id. Organization is never derived from `source_context`, provider ids, or the issue payload.
+
+Lifecycle and persistence rules are in `DOMAIN_INVARIANTS.md` section 21.
+
+---
+
+## 15. Bulk operations
 
 Cross-organization bulk operations are exceptional.
 
@@ -244,7 +258,7 @@ V1 should avoid them unless operationally necessary.
 
 ---
 
-## 15. AI
+## 16. AI
 
 AI never receives service-role credentials.
 

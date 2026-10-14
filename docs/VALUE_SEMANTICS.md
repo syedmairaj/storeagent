@@ -253,6 +253,8 @@ Negative canonical inventory is considered a data-quality problem unless a provi
 
 A negative observed inventory value may be retained for audit/debugging, but must trigger a data-quality issue and may be excluded from trustworthy calculations.
 
+The durable issue code for that observation is `NEGATIVE_INVENTORY`. Qualification and lifecycle rules are in `DOMAIN_INVARIANTS.md` section 21.
+
 Calculated reorder quantities must never be negative.
 
 ---

@@ -352,6 +352,71 @@ Affected records may be:
 
 The behavior must be explicit.
 
+M4 owns durable `DataQualityIssue` records only.
+
+M5 owns derived SKU metrics.
+
+M6 owns forecasting.
+
+M7 owns inventory decisions.
+
+M4 does not own AI, merchant UI, billing, Shopify synchronization, or supplier sourcing.
+
+The entity vocabularies live in `DOMAIN_MODEL.md`. Mutation authority lives in `SERVICE_ROLE_BOUNDARY.md`. Negative-inventory value semantics live in `VALUE_SEMANTICS.md`.
+
+Identity:
+
+- `issue_key` is deterministic
+- organization id is outside the `issue_key` tuple
+- one OPEN row exists per `(organization_id, issue_key)`
+- message, remediation hint, source context, and timestamps are not identity
+- provider `externalParentId` is source-context evidence only
+
+Persistence through `persist_data_quality_issue`:
+
+- service-role execution only
+- trusted organization, store, location, and variant ownership is checked
+- `source_context` cannot establish tenancy
+- the same OPEN issue reconciles atomically
+- `detected_at` stays immutable
+- `last_detected_at` never moves backward
+- `occurrence_count` increments by one
+- severity never downgrades
+- a later detection after RESOLVED creates a new OPEN row
+- IGNORED history fails closed with SA003
+- SUPERSEDED history fails closed with SA004
+
+Lifecycle through `transition_data_quality_issue`:
+
+- only OPEN may resolve, ignore, or supersede
+- RESOLVED, IGNORED, and SUPERSEDED are terminal
+- the issue must belong to the trusted organization, or the call fails with SA006
+- any other lifecycle transition fails with SA005
+- `occurredAt` earlier than `detected_at` fails with SA007
+- `occurredAt` equal to `detected_at` is allowed
+- commercial timestamps are explicit arguments
+- the row update assigns only `status` and `resolved_at`
+
+SA001 and SA002 remain CSV reconciliation codes. They are not lifecycle codes.
+
+Durable qualification codes are:
+
+- BINDING_CONFLICT
+- IDENTITY_AMBIGUOUS
+- RELATIONSHIP_UNRESOLVED
+- AMBIGUOUS_INVENTORY_SEMANTICS
+- NEGATIVE_INVENTORY
+
+Ordinary transient quarantine stays non-durable. That includes DUPLICATE_CONFLICT, HISTORY_CONFLICT, and PROVIDER_INCONSISTENCY unless a durable code above is present.
+
+Security:
+
+- authenticated members have one SELECT policy
+- anon cannot read `data_quality_issues`
+- browser mutation is forbidden
+
+Adversarial proof is `tests/unit/data-quality-adversarial.live.test.ts`. The coverage summary is in `IMPLEMENTATION_STATUS.md`.
+
 ---
 
 ## 22. Provider bindings

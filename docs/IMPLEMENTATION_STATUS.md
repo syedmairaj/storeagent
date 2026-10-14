@@ -1,5 +1,15 @@
 # StoreAgent Implementation Status
 
+## Active closure
+
+M4 — durable DataQualityIssue — CLOSED.
+
+Next milestone: M5 — derived SKU metrics.
+
+M6 owns forecasting. M7 owns inventory decisions.
+
+The sections below are the historical milestone log.
+
 ## Current milestone
 
 M0 — Architecture Lock
@@ -3054,3 +3064,45 @@ CSV source
 
 M3 does not own forecasting, inventory decisions, AI explanation,
 billing, UI workflow, Shopify synchronization, or supplier sourcing.
+
+### M4 completion
+
+Status: CLOSED
+
+M4 owns durable data-quality issues only. Derived SKU metrics remain M5. Forecasting remains M6. Inventory decisions remain M7. AI, merchant UI, billing, Shopify synchronization, and supplier sourcing remain outside M4.
+
+Frozen contract:
+
+- severity is critical, high, medium, low, or info
+- status is open, resolved, ignored, or superseded
+- `issue_key` is deterministic and excludes organization id
+- one OPEN row exists per organization and issue key
+- message, context, and timestamps are not identity
+- provider `externalParentId` is evidence only
+- persistence and lifecycle execute as `service_role` only
+- browser mutation is forbidden
+- anon cannot read issues
+- authenticated members have one SELECT policy
+- `source_context` cannot establish tenancy
+- open reconciliation preserves `detected_at`, moves `last_detected_at` only forward, increments `occurrence_count`, and never downgrades severity
+- resolved recurrence creates a new OPEN row
+- ignored history is SA003
+- superseded history is SA004
+- only OPEN may resolve, ignore, or supersede
+- terminal statuses stay terminal
+- wrong organization is SA006
+- an illegal transition is SA005
+- `occurredAt` before `detected_at` is SA007
+- lifecycle updates assign only status and `resolved_at`
+- durable qualification is BINDING_CONFLICT, IDENTITY_AMBIGUOUS, RELATIONSHIP_UNRESOLVED, AMBIGUOUS_INVENTORY_SEMANTICS, and NEGATIVE_INVENTORY
+- ordinary transient quarantine stays non-durable
+
+M4.7 live coverage in `tests/unit/data-quality-adversarial.live.test.ts`:
+
+- cross-tenant reads and persistence
+- forged identity
+- payload and source-context abuse
+- provider subject abuse
+- lifecycle chronology
+- mixed persistence and lifecycle concurrency
+- identity immutability
