@@ -17,7 +17,7 @@ M5 — derived SKU metrics — IN PROGRESS
 - M5.3 contract — CLOSED
 - M5.3 sales-aggregate implementation — CLOSED
 - M5.4 inventory metrics — CLOSED
-- M5.5 persistence/recomputation
+- M5.5 persistence/recomputation — LOCAL IMPLEMENTATION COMPLETE; hosted deployment pending
 - M5.6 orchestration
 - M5.7 adversarial verification
 - M5.8 final architecture/documentation gate
@@ -26,9 +26,9 @@ M6 — Forecasting — NOT STARTED. M6 owns forecasting.
 
 M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
 
-NEXT IMPLEMENTATION = M5.5 PERSISTENCE/RECOMPUTATION
+NEXT IMPLEMENTATION = M5.5 HOSTED DEPLOYMENT PENDING
 
-M5.4 inventory metrics are closed. The clarification remains in `docs/INVENTORY_FORMULAS.md`, section “M5.4 frozen inventory-metric clarifications”. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists. M5.5 must not start until explicitly requested.
+M5.4 inventory metrics are closed. The clarification remains in `docs/INVENTORY_FORMULAS.md`, section “M5.4 frozen inventory-metric clarifications”. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists. M5.5 local implementation is complete. Hosted deployment of the three M5.5 migrations is pending. M5.5 is not closed. M5.6 must not start until explicitly requested.
 
 ### Owners
 
@@ -46,7 +46,7 @@ Table: `public.sku_daily_metrics`
 
 Natural key: `organization_id`, `store_id`, `location_id`, `variant_id`, `metric_date`, `algorithm_version`
 
-Security: RLS enabled; authenticated member SELECT only; anon has no access; no browser INSERT, UPDATE, or DELETE; no persistence RPC. Trusted persistence belongs to M5.5.
+Security: RLS enabled; authenticated member SELECT only; anon has no access; no browser INSERT, UPDATE, or DELETE. Service-role persistence is the local M5.5 implementation recorded below. Hosted deployment of that implementation is pending.
 
 Schema behavior: nullable metrics have no zero defaults; the persisted reason-code vocabulary is the exact 16 lowercase codes from the M5.1 contract; `STOCK_COVERAGE_UNKNOWN` is not persisted; `inventory_position` is null unless both components are known; sell-through is bounded 0..1; a null sell-through may have a null reason or the denominator-zero reason; the 30-day dependency constraints are enforced; the row is recomputable, with `updated_at` and no immutability trigger.
 
@@ -3222,3 +3222,37 @@ Final verification:
 - git diff --check PASS
 
 M5.5 persistence/recomputation must not start until explicitly requested.
+
+### M5.5 completion
+
+Status: LOCAL IMPLEMENTATION COMPLETE. Hosted deployment pending. Not CLOSED.
+
+Migrations, applied to local Supabase only:
+
+- `supabase/migrations/20261015110000_m5_5_sku_daily_metric_recompute.sql`
+- `supabase/migrations/20261015120000_m5_5_coverage_identity.sql`
+- `supabase/migrations/20261015130000_m5_5_source_snapshot_consistency.sql`
+
+Implementation:
+
+- `lib/metrics/sku-daily-metric-record.ts`
+- `lib/persistence/recompute-sku-daily-metric.ts`
+- `tests/unit/m5-sku-daily-metric-record.test.ts`
+- `tests/unit/m5-persistence-recompute.test.ts`
+- `tests/unit/m5-persistence-architecture.test.ts`
+- `tests/unit/m5-persistence.live.test.ts`
+
+`sku_daily_metric_source_snapshot` and `commit_sku_daily_metric` are `security definer`, with an empty `search_path`. Execution is revoked from `public`, `anon`, and `authenticated`, and granted to `service_role`. Authenticated members remain SELECT-only on `public.sku_daily_metrics`. Pure aggregation and mapping stay in `lib/metrics/`. Supabase orchestration is server-only in `lib/persistence/recompute-sku-daily-metric.ts`. The algorithm version is `m5-derived-metrics-v1`.
+
+The source token and the four payloads — orders, order items, returns, and snapshots — come from one PostgreSQL statement. Commit takes `SHARE` locks, re-reads the token, and raises `SA008` on mismatch. The commit lock wait is bounded by a 2-second `lock_timeout`. A lock timeout is not retried as `SA008`. Incoming quantity, inventory position, and inventory age remain unknown.
+
+Final verification:
+
+- Vitest: 1857 passed, 39 skipped, 0 failed
+- Focused M5.5: 34 passed, including 7 live tests
+- typecheck PASS
+- lint PASS
+- build PASS
+- git diff --check PASS
+
+Hosted Supabase has not received `20261015110000`, `20261015120000`, or `20261015130000`. M5.6 must not start until explicitly requested.

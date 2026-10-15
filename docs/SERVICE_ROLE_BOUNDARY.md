@@ -270,7 +270,7 @@ Trusted server code loads authorized data first.
 
 ## 17. Derived SKU metric reads
 
-`public.sku_daily_metrics` allows authenticated member SELECT. Anon has no access. Browser INSERT, UPDATE, and DELETE are revoked. There is no persistence RPC yet. Trusted metric persistence belongs to M5.5. The closed schema is in `IMPLEMENTATION_STATUS.md`.
+`public.sku_daily_metrics` allows authenticated member SELECT. Anon has no access. Browser INSERT, UPDATE, and DELETE are revoked. Local M5.5 adds `sku_daily_metric_source_snapshot` and `commit_sku_daily_metric` for `service_role` only. Both are `security definer` with an empty `search_path`. The source token and the four payloads come from one statement. Commit revalidates that token under source-table `SHARE` locks, with a 2-second `lock_timeout`, and raises `SA008` on mismatch. Orchestration is server-only in `lib/persistence/recompute-sku-daily-metric.ts`. Hosted deployment of these functions is pending. The record is in `IMPLEMENTATION_STATUS.md`.
 
 ---
 
