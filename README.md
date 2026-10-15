@@ -15,6 +15,6 @@ Merchants approve actions until automation earns trust.
 
 Canonical milestone state is `docs/IMPLEMENTATION_STATUS.md`.
 
-NEXT IMPLEMENTATION = M5.4 INVENTORY METRICS
+NEXT IMPLEMENTATION = M5.5 PERSISTENCE/RECOMPUTATION
 
-M5.3 sales aggregates are closed. M5.4 must not start until explicitly requested.
+M5.4 inventory metrics are closed. M5.5 must not start until explicitly requested.

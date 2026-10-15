@@ -828,3 +828,13 @@ A null-location order item or return does not make a located grain eligible. A r
 An invalid or unrecognized timezone fails closed for that store's aggregation. The failure is an explicit aggregation error, the same class as an invalid metric input that throws rather than returning a metric result. No business date is calculated for that store.
 
 That failure must not be stored or interpreted as known-zero demand, as `NO_ELIGIBLE_DAYS`, or as a new persisted M5 reason code. The M5.2 reason-code vocabulary stays unchanged. Downstream code must not treat a missing velocity from this failure as zero demand. M5.3 does not fall back to UTC, the organization timezone, or the server timezone.
+
+## M5.4 frozen inventory-metric clarifications
+
+M5.1 and M5.2 stay unchanged. This section does not add a reason code or a column.
+
+Incoming purchase-order quantity requires trustworthy status, remaining quantity, and destination location as of `metric_date`. Current purchase-order status and header timestamps are not that history. Missing historical evidence is null with `INCOMING_STATE_UNKNOWN`, not zero. A null destination location is not assigned a location.
+
+Inventory age requires trusted receipt history. Snapshots, product creation dates, and purchase-order timestamps are not substitutes. Without that receipt evidence, inventory age is `unavailable`, days are null, and the reason is `INVENTORY_AGE_UNKNOWN`.
+
+A null `salesVelocity30d` makes days of stock null with `DEMAND_UNKNOWN`. A known zero `salesVelocity30d` makes days of stock null with `ZERO_DEMAND`. When net units sold exceed units available for sale, sell-through is null with a null reason. `calculateSellThrough` is not called for that case and is not changed.

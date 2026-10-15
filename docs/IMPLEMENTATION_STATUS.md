@@ -16,8 +16,8 @@ M5 — derived SKU metrics — IN PROGRESS
 - M5.2 schema + RLS — CLOSED
 - M5.3 contract — CLOSED
 - M5.3 sales-aggregate implementation — CLOSED
-- M5.4 inventory metrics
-- M5.5 persistence
+- M5.4 inventory metrics — CLOSED
+- M5.5 persistence/recomputation
 - M5.6 orchestration
 - M5.7 adversarial verification
 - M5.8 final architecture/documentation gate
@@ -26,13 +26,13 @@ M6 — Forecasting — NOT STARTED. M6 owns forecasting.
 
 M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
 
-NEXT IMPLEMENTATION = M5.4 INVENTORY METRICS
+NEXT IMPLEMENTATION = M5.5 PERSISTENCE/RECOMPUTATION
 
-M5.3 sales aggregates are closed. The contract remains in `docs/INVENTORY_FORMULAS.md`, section “M5.3 frozen sales-aggregate clarifications”. M5.4 must not start until explicitly requested.
+M5.4 inventory metrics are closed. The clarification remains in `docs/INVENTORY_FORMULAS.md`, section “M5.4 frozen inventory-metric clarifications”. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists. M5.5 must not start until explicitly requested.
 
 ### Owners
 
-M5.1 formula contract: `docs/INVENTORY_FORMULAS.md`, section “M5.1 frozen derived-metric contract”. Domain summary: `docs/DOMAIN_INVARIANTS.md` section 13. Entity: `docs/DOMAIN_MODEL.md` `SkuDailyMetric`. M5.3 aggregation clarifications: `docs/INVENTORY_FORMULAS.md`, section “M5.3 frozen sales-aggregate clarifications”.
+M5.1 formula contract: `docs/INVENTORY_FORMULAS.md`, section “M5.1 frozen derived-metric contract”. Domain summary: `docs/DOMAIN_INVARIANTS.md` section 13. Entity: `docs/DOMAIN_MODEL.md` `SkuDailyMetric`. M5.3 aggregation clarifications: `docs/INVENTORY_FORMULAS.md`, section “M5.3 frozen sales-aggregate clarifications”. M5.4 inventory clarifications: `docs/INVENTORY_FORMULAS.md`, section “M5.4 frozen inventory-metric clarifications”.
 
 M5.2 schema closure is the record below. Mutation authority for the table is `docs/SERVICE_ROLE_BOUNDARY.md`. Merchant UI responsiveness is `docs/DESIGN_SYSTEM.md`. M5 has no merchant-facing UI.
 
@@ -3198,3 +3198,27 @@ Final verification:
 - existing local Supabase persistence test PASS
 
 M5.4 inventory metrics must not start until explicitly requested.
+
+### M5.4 completion
+
+Status: CLOSED
+
+Clarification: `docs/INVENTORY_FORMULAS.md`, section “M5.4 frozen inventory-metric clarifications”.
+
+Implementation:
+
+- `lib/metrics/inventory-aggregates.ts`
+- `tests/unit/m5-inventory-aggregates.test.ts`
+- `tests/unit/m5-inventory-aggregates-architecture.test.ts`
+
+Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
+
+Final verification:
+
+- Vitest: 1846 passed, 32 skipped, 0 failed
+- typecheck PASS
+- lint PASS
+- build PASS
+- git diff --check PASS
+
+M5.5 persistence/recomputation must not start until explicitly requested.
