@@ -15,6 +15,6 @@ Merchants approve actions until automation earns trust.
 
 Canonical milestone state is `docs/IMPLEMENTATION_STATUS.md`.
 
-NEXT IMPLEMENTATION = M5.5 HOSTED DEPLOYMENT PENDING
+NEXT IMPLEMENTATION = M5.6 ORCHESTRATION
 
-M5.5 local implementation is complete. Hosted deployment is pending. M5.5 is not closed. M5.6 must not start until explicitly requested.
+M5.5 persistence and recomputation are closed: implemented, tested, committed at `6dc4ed2`, and hosted migrations deployed. Verification did not recompute hosted merchant data. M5.6 is not started and must not start until explicitly requested.

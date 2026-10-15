@@ -17,8 +17,8 @@ M5 — derived SKU metrics — IN PROGRESS
 - M5.3 contract — CLOSED
 - M5.3 sales-aggregate implementation — CLOSED
 - M5.4 inventory metrics — CLOSED
-- M5.5 persistence/recomputation — LOCAL IMPLEMENTATION COMPLETE; hosted deployment pending
-- M5.6 orchestration
+- M5.5 persistence/recomputation — CLOSED
+- M5.6 orchestration — NOT STARTED
 - M5.7 adversarial verification
 - M5.8 final architecture/documentation gate
 
@@ -26,9 +26,9 @@ M6 — Forecasting — NOT STARTED. M6 owns forecasting.
 
 M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
 
-NEXT IMPLEMENTATION = M5.5 HOSTED DEPLOYMENT PENDING
+NEXT IMPLEMENTATION = M5.6 ORCHESTRATION
 
-M5.4 inventory metrics are closed. The clarification remains in `docs/INVENTORY_FORMULAS.md`, section “M5.4 frozen inventory-metric clarifications”. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists. M5.5 local implementation is complete. Hosted deployment of the three M5.5 migrations is pending. M5.5 is not closed. M5.6 must not start until explicitly requested.
+M5.5 persistence and recomputation are closed. Implementation, tests, and hosted migrations are recorded in the M5.5 completion section below. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists. M5.6 must not start until explicitly requested.
 
 ### Owners
 
@@ -46,7 +46,7 @@ Table: `public.sku_daily_metrics`
 
 Natural key: `organization_id`, `store_id`, `location_id`, `variant_id`, `metric_date`, `algorithm_version`
 
-Security: RLS enabled; authenticated member SELECT only; anon has no access; no browser INSERT, UPDATE, or DELETE. Service-role persistence is the local M5.5 implementation recorded below. Hosted deployment of that implementation is pending.
+Security: RLS enabled; authenticated member SELECT only; anon has no access; no browser INSERT, UPDATE, or DELETE. Service-role persistence is the closed M5.5 implementation recorded below. Hosted deployment of that implementation is complete.
 
 Schema behavior: nullable metrics have no zero defaults; the persisted reason-code vocabulary is the exact 16 lowercase codes from the M5.1 contract; `STOCK_COVERAGE_UNKNOWN` is not persisted; `inventory_position` is null unless both components are known; sell-through is bounded 0..1; a null sell-through may have a null reason or the denominator-zero reason; the 30-day dependency constraints are enforced; the row is recomputable, with `updated_at` and no immutability trigger.
 
@@ -3225,9 +3225,11 @@ M5.5 persistence/recomputation must not start until explicitly requested.
 
 ### M5.5 completion
 
-Status: LOCAL IMPLEMENTATION COMPLETE. Hosted deployment pending. Not CLOSED.
+Status: CLOSED — IMPLEMENTED, TESTED, COMMITTED, AND HOSTED MIGRATIONS DEPLOYED.
 
-Migrations, applied to local Supabase only:
+Commit: `6dc4ed249ddc32e278452e8b608c007c0567c01b` (`6dc4ed2`).
+
+Migrations, present in both local and remote migration history:
 
 - `supabase/migrations/20261015110000_m5_5_sku_daily_metric_recompute.sql`
 - `supabase/migrations/20261015120000_m5_5_coverage_identity.sql`
@@ -3255,4 +3257,6 @@ Final verification:
 - build PASS
 - git diff --check PASS
 
-Hosted Supabase has not received `20261015110000`, `20261015120000`, or `20261015130000`. M5.6 must not start until explicitly requested.
+Hosted deployment evidence: `20261015110000`, `20261015120000`, and `20261015130000` are in local and remote migration history. Both RPCs are `security definer` with `search_path` empty. `service_role` has `EXECUTE`. `authenticated` and `anon` do not. Verification did not recompute hosted merchant data.
+
+M5.6 orchestration is NOT STARTED and must not start until explicitly requested.
