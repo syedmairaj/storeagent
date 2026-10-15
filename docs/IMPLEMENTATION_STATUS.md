@@ -14,7 +14,8 @@ M5 — derived SKU metrics — IN PROGRESS
 
 - M5.1 contract — CLOSED
 - M5.2 schema + RLS — CLOSED
-- M5.3 sales aggregates — NEXT
+- M5.3 contract — CLOSED
+- M5.3 sales-aggregate implementation — CLOSED
 - M5.4 inventory metrics
 - M5.5 persistence
 - M5.6 orchestration
@@ -25,13 +26,13 @@ M6 — Forecasting — NOT STARTED. M6 owns forecasting.
 
 M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
 
-NEXT IMPLEMENTATION = M5.3 SALES AGGREGATES
+NEXT IMPLEMENTATION = M5.4 INVENTORY METRICS
 
-M5.3 must not start until explicitly requested.
+M5.3 sales aggregates are closed. The contract remains in `docs/INVENTORY_FORMULAS.md`, section “M5.3 frozen sales-aggregate clarifications”. M5.4 must not start until explicitly requested.
 
 ### Owners
 
-M5.1 formula contract: `docs/INVENTORY_FORMULAS.md`, section “M5.1 frozen derived-metric contract”. Domain summary: `docs/DOMAIN_INVARIANTS.md` section 13. Entity: `docs/DOMAIN_MODEL.md` `SkuDailyMetric`.
+M5.1 formula contract: `docs/INVENTORY_FORMULAS.md`, section “M5.1 frozen derived-metric contract”. Domain summary: `docs/DOMAIN_INVARIANTS.md` section 13. Entity: `docs/DOMAIN_MODEL.md` `SkuDailyMetric`. M5.3 aggregation clarifications: `docs/INVENTORY_FORMULAS.md`, section “M5.3 frozen sales-aggregate clarifications”.
 
 M5.2 schema closure is the record below. Mutation authority for the table is `docs/SERVICE_ROLE_BOUNDARY.md`. Merchant UI responsiveness is `docs/DESIGN_SYSTEM.md`. M5 has no merchant-facing UI.
 
@@ -3170,4 +3171,30 @@ Authenticated members may SELECT. Anon has no access. Browser mutation and a per
 
 Local reset, lint, and the schema test passed. Local and remote migration history include `20261014100000`.
 
-Next implementation: M5.3 sales aggregates. Do not start it until explicitly requested.
+The M5.3 contract and completion sections below are the current M5.3 record.
+
+### M5.3 contract completion
+
+Status: CLOSED
+
+The approved window-floor, return-attribution, eligible-day, and store-timezone clarifications are in `docs/INVENTORY_FORMULAS.md`, section “M5.3 frozen sales-aggregate clarifications”. M5.1 and M5.2 were not restated.
+
+### M5.3 completion
+
+Status: CLOSED
+
+Implementation:
+
+- `lib/metrics/sales-aggregates.ts`
+- `tests/unit/m5-sales-aggregates.test.ts`
+- `tests/unit/m5-sales-aggregates-architecture.test.ts`
+
+Final verification:
+
+- Vitest: 1833 passed, 32 skipped, 0 failed
+- typecheck PASS
+- lint PASS
+- build PASS
+- existing local Supabase persistence test PASS
+
+M5.4 inventory metrics must not start until explicitly requested.

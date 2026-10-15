@@ -233,7 +233,7 @@ The initial M5 grain is organization, store, location, variant, metric date, and
 
 Cancelled orders are excluded from sold units. M5 passes `cancelledUnits = 0` into the velocity formula and does not subtract cancelled quantity again. Physical `returned_quantity` reduces units only when the return has a usable location attribution. Financial refund status alone does not reduce demand. Eligible-day count and coverage are deterministic metric metadata, not a confidence score. Observed `salesVelocity30d` is the planning daily demand for safety stock, reorder point, and target stock. Null 30-day velocity makes safety stock, reorder point, target stock, and days of stock null. Known zero 30-day velocity stays 0 and makes days of stock null with `ZERO_DEMAND`. One untrustworthy incoming purchase-order line makes aggregate incoming quantity null. M5 does not sum only the trusted lines. M5 does not persist revenue.
 
-The M5.1 formula contract is in `INVENTORY_FORMULAS.md`. M5.1 is closed. M5.2 persists that cache as `public.sku_daily_metrics`. Schema and RLS closure are in `IMPLEMENTATION_STATUS.md`.
+The M5.1 formula contract is in `INVENTORY_FORMULAS.md`. M5.1 is closed. M5.2 persists that cache as `public.sku_daily_metrics`. Schema and RLS closure are in `IMPLEMENTATION_STATUS.md`. Approved M5.3 sales-aggregate clarifications are the “M5.3 frozen sales-aggregate clarifications” section of `INVENTORY_FORMULAS.md`.
 
 ---
 

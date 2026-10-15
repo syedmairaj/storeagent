@@ -693,6 +693,8 @@ A store-local date inside the window is eligible only when demand for that locat
 - at least one sold-status order item or non-null returned quantity falls on that date, or
 - a snapshot on that date has a non-null `available_quantity`, including a known zero
 
+The approved M5.3 clarification below requires that evidence to match the metric organization, store, location, and variant. That section governs this attribution.
+
 A date with neither a demand fact nor a known available quantity is not eligible. It is unknown, not zero. A known available quantity of zero with no sales is eligible known-zero demand. Excluding that day is stockout censoring and belongs to M6.
 
 `eligibleDays` is the count of eligible dates in the window. Zero eligible dates makes the velocity null with `NO_ELIGIBLE_DAYS`.
@@ -778,3 +780,51 @@ M5 uses these existing codes and no confidence score:
 - `RECEIVED_EXCEEDS_ORDERED`
 
 `STOCK_COVERAGE_UNKNOWN` remains on the metric type for the existing stockout-risk helper. M5 does not persist that helper's low, medium, or high label. Eligible-day count and coverage ratio are not confidence.
+
+## M5.3 frozen sales-aggregate clarifications
+
+M5.1 and M5.2 stay closed. This section records the approved aggregation rules. It does not restate the M5.1 formula contract and does not change `public.sku_daily_metrics`. Sales-aggregate code is not part of this freeze.
+
+`calculateSalesVelocity()` stays unchanged. M5.3 calls it. It does not replace it.
+
+### Window demand
+
+For each 7, 14, 30, and 90 day window:
+
+- `soldUnits` is the sum of qualifying daily `units_sold`
+- `returnedUnits` is the sum of trusted daily `returned_units`
+- `cancelledUnits` is 0
+
+The window floor is applied once, inside `calculateSalesVelocity()`, to aggregate sold units minus returned units. Window demand is not the sum of daily `net_units_sold`.
+
+Daily `net_units_sold` remains `max(0, daily units_sold - daily returned_units)`. Those daily nets are not necessarily additive to the window net demand used for velocity. A day with no sales and a return floors to 0, so later sales in the window are not reduced by that return when daily nets are summed. The window floor still subtracts the window's returned units from the window's sold units once.
+
+### Return attribution
+
+A return with null `location_id` is excluded from location-scoped aggregation. M5.3 does not copy a linked order item's location onto that return.
+
+A trusted return uses its own explicit location, inside the same organization, store, and variant boundary as the metric grain. A sale item and a return may name different locations. The return stays on its own location. It is not moved to the sale location, and it is not discarded only because those locations differ.
+
+Only a non-null physical `returned_quantity` is physical-return evidence. Financial refund status and refund amount do not imply returned units. The return's store-local business date comes from `return_refunds.occurred_at`.
+
+The canonical evidence is the `return_refunds` row: organization, store, variant, `location_id`, `returned_quantity`, and `occurred_at`. Aggregation reads that row. It does not create an attribution table, a second return ledger, or another M5 persistence path. Later numeric persistence remains M5.5.
+
+### Eligible days
+
+A store-local date is eligible for one metric grain only when evidence for that date is attributed to the same organization, store, location, and variant:
+
+- a sold-status order item at that grain, or
+- a non-null physical `returned_quantity` whose return location is that grain, or
+- a snapshot at that grain with non-null `available_quantity`, including a known zero
+
+A null-location order item or return does not make a located grain eligible. A return at a different location does not make this location eligible.
+
+### Store timezone
+
+`stores.timezone` is the authoritative store-local timezone for `ordered_at` and `occurred_at`. M5.3 validates it as a recognized IANA timezone before calculating a business date.
+
+`UTC` is a valid IANA timezone. A provisioned default of `UTC` is not an invalid-timezone failure. Whether that default is the merchant's real timezone is data readiness, not this validation.
+
+An invalid or unrecognized timezone fails closed for that store's aggregation. The failure is an explicit aggregation error, the same class as an invalid metric input that throws rather than returning a metric result. No business date is calculated for that store.
+
+That failure must not be stored or interpreted as known-zero demand, as `NO_ELIGIBLE_DAYS`, or as a new persisted M5 reason code. The M5.2 reason-code vocabulary stays unchanged. Downstream code must not treat a missing velocity from this failure as zero demand. M5.3 does not fall back to UTC, the organization timezone, or the server timezone.
