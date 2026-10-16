@@ -16,6 +16,7 @@ import {
   type SalesAggregateOrderItem,
 } from "@/lib/metrics/sales-aggregates";
 import { toPersistedSkuDailyMetric } from "@/lib/metrics/sku-daily-metric-record";
+import { holdOrdersLiveLock } from "../support/orders-live-lock";
 
 const execFileAsync = promisify(execFile);
 const LIVE = process.env.RUN_SUPABASE_LIVE === "1";
@@ -163,7 +164,10 @@ function metricFrom(source: SourceSnapshot) {
 }
 
 describeLive("M5.5 sku daily metric persistence", () => {
+  let releaseOrdersLock: (() => Promise<void>) | undefined;
+
   beforeAll(async () => {
+    releaseOrdersLock = await holdOrdersLiveLock();
     await psql(`
       alter table public.inventory_snapshots
         disable trigger inventory_snapshots_prevent_delete;
@@ -178,6 +182,8 @@ describeLive("M5.5 sku daily metric persistence", () => {
       delete from public.order_items
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
       delete from public.orders
+      where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
+      delete from public.sku_daily_metric_source_events
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
       delete from public.product_variants
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
@@ -222,10 +228,11 @@ describeLive("M5.5 sku daily metric persistence", () => {
         (${quote(VARIANT)}::uuid, ${quote(ORG)}::uuid, ${quote(STORE)}::uuid, ${quote(PRODUCT)}::uuid, 'SKU-A', 'active'),
         (${quote(VARIANT_B)}::uuid, ${quote(ORG_B)}::uuid, ${quote(STORE_B)}::uuid, ${quote(PRODUCT_B)}::uuid, 'SKU-B', 'active');
     `);
-  });
+  }, 180000);
 
   afterAll(async () => {
-    await psql(`
+    try {
+      await psql(`
       delete from public.sku_daily_metrics
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
       alter table public.inventory_snapshots
@@ -240,6 +247,8 @@ describeLive("M5.5 sku daily metric persistence", () => {
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
       delete from public.orders
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
+      delete from public.sku_daily_metric_source_events
+      where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
       delete from public.product_variants
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
       delete from public.products
@@ -251,7 +260,10 @@ describeLive("M5.5 sku daily metric persistence", () => {
       delete from public.organizations
       where id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
     `);
-  });
+    } finally {
+      await releaseOrdersLock?.();
+    }
+  }, 180000);
 
   it("checks service-role-only execution", async () => {
     const snapshotSignature =
