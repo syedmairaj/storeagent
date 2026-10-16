@@ -281,8 +281,16 @@ describeLive("M5.6A metric source event capture", () => {
     `);
     expect(metrics).toBe("0");
     expect(await psql(`
-      select to_regclass('public.sku_daily_metric_recompute_requests') is null
-    `)).toBe("t");
+      select count(*)::text
+      from public.sku_daily_metric_source_events
+      where organization_id = ${quote(ORG)}::uuid
+        and consumed_at is not null
+    `)).toBe("0");
+    expect(await psql(`
+      select count(*)::text
+      from public.sku_daily_metric_recompute_requests
+      where organization_id = ${quote(ORG)}::uuid
+    `)).toBe("0");
   });
 
   it("ignores no-op updates, null locations, and purchase-order tables", async () => {
