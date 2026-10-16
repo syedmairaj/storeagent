@@ -2000,3 +2000,15 @@ The worker subsystem owns:
 - telemetry correlation
 
 Domain modules remain the owners of commercial calculation and canonical records.
+
+---
+
+## M5.6 metric recompute requests
+
+M5.6A and M5.6B add durable source events and generation-aware recompute requests. They do not add a worker process, a second queue, or a scheduler.
+
+`public.sku_daily_metric_recompute_requests` reuses the M0.8 status, attempt, and lease vocabulary in `workers/types.ts`. The job type for a later claim is the existing `metrics_aggregation` value. There is still no `worker_jobs` table. `public.sync_runs` remains the CSV run record.
+
+`consume_sku_daily_metric_source_events` writes requests only when a trusted caller invokes it. A request row does not mean the metric was recalculated. M5.6C must claim and execute those rows through the frozen M5.5 persistence function and must stop at the metrics stage. Pipeline readiness for forecast, decision, and AI explanation is unchanged and is not permission for M5.6C to run those stages. M5.6D daily rollover does not exist yet.
+
+The operating handoff is `docs/M5_6_HANDOFF.md`.

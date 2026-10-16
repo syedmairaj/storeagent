@@ -18,7 +18,11 @@ M5 — derived SKU metrics — IN PROGRESS
 - M5.3 sales-aggregate implementation — CLOSED
 - M5.4 inventory metrics — CLOSED
 - M5.5 persistence/recomputation — CLOSED
-- M5.6 orchestration — NOT STARTED
+- M5.6 orchestration — IN PROGRESS
+- M5.6A source-event capture — CLOSED
+- M5.6B recompute-request generation — CLOSED
+- M5.6C worker orchestration — NOT STARTED
+- M5.6D daily rollover — NOT STARTED
 - M5.7 adversarial verification
 - M5.8 final architecture/documentation gate
 
@@ -26,9 +30,9 @@ M6 — Forecasting — NOT STARTED. M6 owns forecasting.
 
 M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
 
-NEXT IMPLEMENTATION = M5.6 ORCHESTRATION
+NEXT IMPLEMENTATION = M5.6C WORKER ORCHESTRATION
 
-M5.5 persistence and recomputation are closed. Implementation, tests, and hosted migrations are recorded in the M5.5 completion section below. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists. M5.6 must not start until explicitly requested.
+M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. Their hosted migrations are deployed. Nothing in those milestones claims or runs a recompute worker, consumes hosted events, or recalculates hosted metrics. The session handoff is `docs/M5_6_HANDOFF.md`. M5.6C must not start until explicitly requested. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
 
 ### Owners
 
@@ -3259,4 +3263,28 @@ Final verification:
 
 Hosted deployment evidence: `20261015110000`, `20261015120000`, and `20261015130000` are in local and remote migration history. Both RPCs are `security definer` with `search_path` empty. `service_role` has `EXECUTE`. `authenticated` and `anon` do not. Verification did not recompute hosted merchant data.
 
-M5.6 orchestration is NOT STARTED and must not start until explicitly requested.
+### M5.6A completion
+
+Status: CLOSED — IMPLEMENTED, TESTED, COMMITTED, AND HOSTED MIGRATION DEPLOYED.
+
+Commit: `b549fe0b78173acc9a5e75e115866a135fbbcf65` (`b549fe0`).
+
+Migration, present in both local and remote migration history:
+
+- `supabase/migrations/20261015140000_m5_6a_metric_source_events.sql`
+
+Table: `public.sku_daily_metric_source_events`. Statement triggers on orders, order items, return refunds, and inventory-snapshot insert append one unconsumed event per affected organization, store, location, variant, and store-local source date. Purchase orders are not captured. Snapshot update and delete remain blocked by the existing immutability triggers. The capture migration does not consume events or write recompute requests.
+
+### M5.6B completion
+
+Status: CLOSED — IMPLEMENTED, TESTED, COMMITTED, AND HOSTED MIGRATION DEPLOYED.
+
+Commit: `118d9b511070d3f690d1852478230cb61b6d2527` (`118d9b5`).
+
+Migration, present in both local and remote migration history:
+
+- `supabase/migrations/20261016100000_m5_6b_metric_recompute_requests.sql`
+
+Table: `public.sku_daily_metric_recompute_requests`. Function: `public.consume_sku_daily_metric_source_events(integer, uuid)`, `security definer`, empty `search_path`, `EXECUTE` granted to `service_role` only. Consumption locks unconsumed events and writes generation-aware requests in the caller’s transaction. It does not run by itself, and a request row does not mean the metric is current.
+
+M5.6C worker orchestration and M5.6D daily rollover are NOT STARTED. M5.6 is not fully closed. M5.6C must not start until explicitly requested. The operating contract is `docs/M5_6_HANDOFF.md`.

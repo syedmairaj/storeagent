@@ -270,7 +270,11 @@ Trusted server code loads authorized data first.
 
 ## 17. Derived SKU metric reads
 
-`public.sku_daily_metrics` allows authenticated member SELECT. Anon has no access. Browser INSERT, UPDATE, and DELETE are revoked. Local M5.5 adds `sku_daily_metric_source_snapshot` and `commit_sku_daily_metric` for `service_role` only. Both are `security definer` with an empty `search_path`. The source token and the four payloads come from one statement. Commit revalidates that token under source-table `SHARE` locks, with a 2-second `lock_timeout`, and raises `SA008` on mismatch. Orchestration is server-only in `lib/persistence/recompute-sku-daily-metric.ts`. Hosted deployment is complete: both functions remain `security definer` with an empty `search_path`, `service_role` has `EXECUTE`, and `authenticated` and `anon` do not. The closeout is in `IMPLEMENTATION_STATUS.md`.
+`public.sku_daily_metrics` allows authenticated member SELECT. Anon has no access. Browser INSERT, UPDATE, and DELETE are revoked. Local M5.5 adds `sku_daily_metric_source_snapshot` and `commit_sku_daily_metric` for `service_role` only. Both are `security definer` with an empty `search_path`. The source token and the four payloads come from one statement. Commit revalidates that token under source-table `SHARE` locks, with a 2-second `lock_timeout`, and raises `SA008` on mismatch. Orchestration is server-only in `lib/persistence/recompute-sku-daily-metric.ts`. Hosted deployment is complete: both functions remain `security definer` with an empty `search_path`, `service_role` has `EXECUTE`, and `authenticated` and `anon` do not. The M5.5 closeout is in `IMPLEMENTATION_STATUS.md`.
+
+M5.6A adds `public.sku_daily_metric_source_events`. Row level security is enabled and there are no merchant policies. `service_role` has `SELECT` only. Capture functions are `security definer` with an empty `search_path` and `EXECUTE` granted to `service_role` only. They run as statement triggers and are not a merchant write path.
+
+M5.6B adds `public.sku_daily_metric_recompute_requests` and `public.consume_sku_daily_metric_source_events(integer, uuid)`. The table has row level security, no merchant policies, and `SELECT` for `service_role` only. The function is `security definer` with an empty `search_path`. `EXECUTE` is granted to `service_role` only. Calling it is explicit. Deploying the function does not consume hosted events or recalculate hosted metrics. No worker claims these requests yet. The handoff is `docs/M5_6_HANDOFF.md`.
 
 ---
 
