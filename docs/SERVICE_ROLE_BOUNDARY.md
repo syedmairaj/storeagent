@@ -278,6 +278,8 @@ M5.6B adds `public.sku_daily_metric_recompute_requests` and `public.consume_sku_
 
 M5.6C (closed locally; hosted migration not deployed; worker disabled) adds six `security definer` functions with an empty `search_path`: recover, claim, start, complete, fail, and queue stats for metric recompute requests. `EXECUTE` is revoked from `public`, `anon`, and `authenticated` and granted to `service_role` only. `service_role` still has no INSERT, UPDATE, or DELETE on the request table; every transition goes through these functions and matches the full stored primary key. Claim and consumption are cross-organization infrastructure dispatch under section 15. Each executed item takes its tenant scope from its own request row, never from a caller. Orchestration is server-only in `lib/persistence/metric-recompute-queue.ts`. The internal trigger is disabled by default and returns counts only.
 
+M5.6D (implemented locally; not closed; hosted migration not deployed; rollover trigger disabled) adds `sku_daily_metric_rollover_runs`, `sku_daily_metric_rollover_enqueues`, `enqueue_sku_daily_metric_daily_rollover`, and `sku_daily_metric_rollover_stats`. Tables enable RLS, revoke all from `public`/`anon`/`authenticated`/`service_role`, and grant `SELECT` to `service_role` only. RPCs are `security definer` with an empty `search_path` and `EXECUTE` for `service_role` only. Rollover dispatch may span organizations under section 15; tenant scope for each enrolled grain comes from durable store/commerce rows, never from an HTTP body. Orchestration is server-only in `lib/persistence/metric-rollover.ts`.
+
 ---
 
 ## M0.3.5 gate

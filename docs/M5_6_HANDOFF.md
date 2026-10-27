@@ -18,6 +18,7 @@ Hosted Supabase migration history matches local history up to M5.6B:
 - `20261015140000` — M5.6A, deployed
 - `20261016100000` — M5.6B, deployed
 - `20261018100000` — M5.6C, **local only, not deployed**
+- `20261020100000` — M5.6D, **local only, not deployed**
 
 No hosted events have been consumed and no hosted metrics have been recalculated by any M5.6 work.
 
@@ -29,9 +30,9 @@ No hosted events have been consumed and no hosted metrics have been recalculated
 | M5.6A source-event capture | Closed; hosted migration deployed |
 | M5.6B recompute-request generation | Closed; hosted migration deployed |
 | M5.6C worker orchestration | **Closed** — local implementation and native local Supabase verification (see section 11). Hosted migration not deployed. Worker disabled. No scheduler. |
-| M5.6D daily rollover | Not started; design corrected for resumable per-store-day progress (see section 10) |
+| M5.6D daily rollover | **Implemented locally; native verification recorded in section 10. Not closed.** Hosted migration not deployed. Rollover trigger disabled. No scheduler. |
 
-Deployment and enablement of M5.6C remain separate, explicitly approved steps. Closing M5.6C does not authorize hosted migration apply, worker enablement, scheduling, hosted event consumption, or hosted metric recomputation.
+Deployment and enablement of M5.6C and M5.6D remain separate, explicitly approved steps. Implementation does not authorize hosted migration apply, worker/rollover enablement, scheduling, hosted event consumption, or hosted metric recomputation.
 
 ## 3. M5.6A source-event architecture
 
@@ -211,25 +212,58 @@ Algorithm version remains `m5-derived-metrics-v1`. Coverage identity, SA008, and
 - The claim scans at most 500 candidates per call. A very large backlog on four active grains can reduce throughput for a tick; it does not block progress.
 - A crash loop can exhaust attempts and mark a request `failed` even though its metric committed; the next consumed event reopens it.
 
-## 10. M5.6D (not started — design corrected)
+## 10. M5.6D daily rollover (implemented locally; not closed)
 
-A daily rollover that enqueues only `metric_date` equal to a store-local business day, and only for an active grain. A grain is active when at least one order item, return, or snapshot has a store-local date in that day through the preceding 89 days. Inactive historical grains do not get a today row.
+Migration: `supabase/migrations/20261020100000_m5_6d_metric_daily_rollover.sql` (local only).
 
-Rollover is not a substitute for consumption and must not recalculate metrics by itself. It feeds the existing `sku_daily_metric_recompute_requests` table and reuses the M5.6C claim path. Do not add a second work queue.
+A daily rollover that enqueues only `metric_date` equal to a store-local business day, and only for an active grain. A grain is active when at least one order item, return, or snapshot has a store-local date in that day through the preceding 89 days and a source timestamp `<= eligible_cutoff_at`. Inactive historical grains do not get a today row.
 
-### Corrected progress model (replaces naive per-store-day completion watermark)
+Rollover is not a substitute for consumption and must not recalculate metrics by itself. It feeds the existing `sku_daily_metric_recompute_requests` table and reuses the M5.6C claim path. There is no second work queue.
 
-A store-day must not be marked complete until every grain eligible at run open has been durably enrolled and enqueued. Bounded batches therefore require a **resumable per-store-day run**:
+### Objects
 
-- One durable run row per `(organization_id, store_id, metric_date, algorithm_version)` with status `in_progress` | `completed` | `failed`.
-- Freeze `eligible_cutoff_at` and `metric_date` when the run opens. Eligibility for that run is the stable set of grains with commercial evidence whose store-local date lies in `[metric_date - 89, metric_date]` and whose source timestamp is `<= eligible_cutoff_at`.
-- Walk grains in stable order `(location_id, variant_id)` with a durable cursor. Each tick enqueues at most `p_limit` grains.
-- An enrollment ledger (not a work queue) records which grains this run already enqueued. Only a successful enrollment insert may bump `dirty_generation`. Resume and concurrent callers cannot double-bump.
-- Mark the run `completed` only when a batch returns fewer than `p_limit` eligible grains after the cursor (end of stable set). Crash recovery resumes the same run from the cursor.
-- If wall-clock / `p_as_of` crosses midnight while a run is `in_progress`, finish that frozen `metric_date` before opening a run for the new store-local day.
-- Grains that become active after `eligible_cutoff_at` are out of scope for that run. M5.6B expansion already inserts store-local today when today lies in `[D, D + 89]` for a consumed source event, so later source changes fill the same-day gap without rollover re-scanning.
+| Object | Role |
+|---|---|
+| `sku_daily_metric_rollover_runs` | Resumable per-store-day progress (`in_progress` / `completed` / `failed`) |
+| `sku_daily_metric_rollover_enqueues` | Enrollment ledger; one dirty bump per grain/day |
+| `enqueue_sku_daily_metric_daily_rollover(limit, max_stores, organization_id, as_of)` | Bounded fair enqueue RPC |
+| `sku_daily_metric_rollover_stats()` | Counts only |
 
-Out of scope for M5.6D unless a later milestone opens it: CSV reconciliation changes, purchase-order incoming quantity, inventory position, inventory age, forecasting, decisions, AI, billing, connectors, merchant UI, and store timezone correction.
+Both tables enable RLS, revoke all from `public`/`anon`/`authenticated`/`service_role`, then grant `SELECT` to `service_role` only. RPCs are `security definer` with `search_path = ''`, `EXECUTE` for `service_role` only. Advisory lock `5606004`.
+
+TypeScript: `lib/persistence/metric-rollover.ts`. Trigger: `POST /api/internal/metric-rollover`, disabled unless `METRIC_ROLLOVER_WORKER_ENABLED=1`, secret ≥ 32 chars, counts only. No scheduler.
+
+### Progress, batching and late-event recovery
+
+- Freeze `eligible_cutoff_at` and `metric_date` at run open.
+- Walk `(location_id, variant_id)` with a durable cursor. Lookahead of `batch + 1` decides completion so exact multiples do not false-complete.
+- Enrollment insert `ON CONFLICT DO NOTHING` gates `dirty_generation += 1` in the same transaction as cursor advancement.
+- Drain `in_progress` runs before opening new store-days. Fairness: action class first, then least-recent `last_progress_at`, shared grain budget across up to `p_max_stores`.
+- Midnight during backlog preserves the frozen older `metric_date` until completed.
+- Late / backdated commerce after the cursor is **not** re-scanned by rollover. M5.6A capture inserts source events; M5.6B expansion includes store-local **clock** today when today ∈ `[D, D+89]`. Rollover `p_as_of` does not change consume’s today.
+
+### Invalid timezone correction and recovery
+
+- An unrecognized `stores.timezone` fails closed: run status `failed`, `fail_reason = invalid_iana_timezone`, zero enrollments and zero request dirty bumps. The failure key uses `(as_of AT TIME ZONE 'UTC')::date` only because the store zone cannot be applied.
+- After the store timezone becomes a recognized IANA name, the next `enqueue_sku_daily_metric_daily_rollover` call recovers automatically:
+  - If the corrected store-local `metric_date` equals the failed row’s date, that failed run is reopened as `in_progress` (cutoff refreshed, cursor cleared). No manual table writes.
+  - If the corrected local date differs from the UTC-derived failure key, a new run opens for the corrected date and the old failed row remains as historical evidence.
+- Only `invalid_iana_timezone` failures are reopened. Other `failed` reasons stay terminal. `completed` and healthy `in_progress` runs are unchanged.
+- Enrollment uniqueness still prevents duplicate dirty-generation bumps under concurrent recovery.
+- Store timezone *correction* (choosing the merchant’s real zone) remains a data-readiness concern outside M5.6D product scope; this recovery only unblocks rollover after a previously invalid value becomes valid.
+
+### Native verification (local PG17)
+
+| Gate | Result |
+|---|---|
+| M5.6D unit + architecture | pass (includes TZ recovery architecture assertions) |
+| M5.6D live acceptance matrix | pass (includes invalid-TZ fail-closed, same-day recovery, UTC≠local recovery, concurrent recovery, unrelated-failure non-reopen) |
+| M5.5–M5.6C + M5.6D combined | pass after TZ1 correction |
+| typecheck, lint, `git diff --check`, `npm run build` | pass |
+
+Hosted M5.6D migration **not deployed**. Rollover trigger **disabled**. No scheduler. No hosted event consumption or metric recomputation. M5.6D is **not closed**.
+
+Out of scope unless a later milestone opens it: CSV reconciliation changes, purchase-order incoming quantity, inventory position, inventory age, forecasting, decisions, AI, billing, connectors, merchant UI, and store timezone correction as a merchant data product.
 
 ## 11. Verification evidence (M5.6C)
 
@@ -264,16 +298,17 @@ The M5.6C live suite refuses to run if claimable or active requests exist outsid
 
 ## 12. Next steps for Cursor
 
-1. Confirm branch `main` at `5cc0e6f` (or later docs-only closeout commits).
-2. Do not deploy the M5.6C migration, enable the worker, configure a scheduler, consume hosted events, or recompute hosted metrics without separate explicit approval.
-3. When M5.6C enablement is approved, follow this order:
-   1. Apply the migration to hosted.
+1. Confirm branch `main` at `7b6187e` (M5.6C docs closeout) plus uncommitted M5.6D implementation, or later commits once M5.6D is reviewed.
+2. Do not deploy M5.6C or M5.6D migrations, enable workers/rollover, configure a scheduler, consume hosted events, or recompute hosted metrics without separate explicit approval.
+3. Review M5.6D implementation (section 10). Do not mark M5.6D closed without explicit approval after review.
+4. When M5.6C enablement is approved, follow this order:
+   1. Apply the M5.6C migration to hosted.
    2. Read `sku_daily_metric_recompute_queue_stats` (read-only) to size the backlog.
    3. Set a secret of at least 32 characters.
    4. Set `METRIC_RECOMPUTE_WORKER_ENABLED=1`.
    5. Trigger manually and inspect the counts.
    6. Only then add a scheduler.
-4. Start M5.6D only on explicit request, using the corrected design in section 10 (resumable per-store-day progress; no naive completion watermark before full enrollment).
-5. Never stage `docs/StoreAgent_Roadmap_2026.docx`, `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx`, `docs/StoreAgent_Roadmap_2026_Connectivity_Update.docx`, or `docs/archive/`.
+5. M5.6D hosted enablement is a separate approval after M5.6C enablement policy is clear.
+6. Never stage `docs/StoreAgent_Roadmap_2026.docx`, `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx`, `docs/StoreAgent_Roadmap_2026_Connectivity_Update.docx`, or `docs/archive/`.
 
-Live order tests share advisory lock `561606` (`tests/support/orders-live-lock.ts`). Run the M5.5, M5.6A, M5.6B, and M5.6C live files in one Vitest command.
+Live order tests share advisory lock `561606` (`tests/support/orders-live-lock.ts`). Run the M5.5, M5.6A, M5.6B, M5.6C, and M5.6D live files in one Vitest command when verifying the full chain.

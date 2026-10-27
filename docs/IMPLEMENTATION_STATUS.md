@@ -22,7 +22,7 @@ M5 — derived SKU metrics — IN PROGRESS
 - M5.6A source-event capture — CLOSED
 - M5.6B recompute-request generation — CLOSED
 - M5.6C worker orchestration — CLOSED (local implementation and native local Supabase verification). HOSTED MIGRATION NOT DEPLOYED. WORKER DISABLED. NO SCHEDULER.
-- M5.6D daily rollover — NOT STARTED (design corrected for resumable per-store-day progress; see `docs/M5_6_HANDOFF.md` section 10)
+- M5.6D daily rollover — IMPLEMENTED LOCALLY; NATIVE VERIFICATION RECORDED; NOT CLOSED. HOSTED MIGRATION NOT DEPLOYED. ROLLOVER TRIGGER DISABLED. NO SCHEDULER.
 - M5.7 adversarial verification
 - M5.8 final architecture/documentation gate
 
@@ -30,9 +30,9 @@ M6 — Forecasting — NOT STARTED. M6 owns forecasting.
 
 M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
 
-NEXT STEP = M5.6D DAILY ROLLOVER (EXPLICIT APPROVAL REQUIRED BEFORE IMPLEMENTATION)
+NEXT STEP = M5.6D REVIEW (DO NOT MARK CLOSED WITHOUT EXPLICIT APPROVAL)
 
-M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. Their hosted migrations are deployed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. The hosted M5.6C migration is not deployed, the worker remains disabled, and no scheduler is configured. No hosted events have been consumed and no hosted metrics have been recalculated. The session handoff is `docs/M5_6_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
+M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. Their hosted migrations are deployed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. M5.6D daily rollover is implemented and verified on native local Supabase PostgreSQL 17 but is not closed. Hosted M5.6C and M5.6D migrations are not deployed; recompute and rollover triggers remain disabled; no scheduler is configured. No hosted events have been consumed and no hosted metrics have been recalculated. The session handoff is `docs/M5_6_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
 
 ### Owners
 
@@ -3330,4 +3330,35 @@ Earlier PostgreSQL 16 role-shim evidence (40 unit / 36 live) is historical and s
 
 Final review before commit found one defect in the migration, and it is fixed. Expired-claim recovery now resets `attempt_count` when `dirty_generation` changed while the row was claimed. Without the fix, a newer generation could inherit an older generation's attempts. A live test covers this case and fails against the unfixed SQL.
 
-M5.6D daily rollover remains NOT STARTED. The corrected resumable design is in `docs/M5_6_HANDOFF.md` section 10.
+### M5.6D local implementation
+
+Status: IMPLEMENTED LOCALLY AND VERIFIED ON NATIVE LOCAL SUPABASE POSTGRESQL 17. HOSTED MIGRATION NOT DEPLOYED. ROLLOVER TRIGGER DISABLED. NO SCHEDULER. NOT CLOSED.
+
+Migration, local only:
+
+- `supabase/migrations/20261020100000_m5_6d_metric_daily_rollover.sql`
+
+Adds `sku_daily_metric_rollover_runs`, `sku_daily_metric_rollover_enqueues`, `enqueue_sku_daily_metric_daily_rollover`, and `sku_daily_metric_rollover_stats`. Tables are RLS-enabled with `service_role` SELECT only. RPCs are `security definer` with empty `search_path` and `EXECUTE` for `service_role` only.
+
+Implementation:
+
+- `lib/persistence/metric-rollover.ts`
+- `app/api/internal/metric-rollover/route.ts`
+- `.env.example` (`METRIC_ROLLOVER_WORKER_ENABLED`, `METRIC_ROLLOVER_WORKER_SECRET`)
+
+Tests:
+
+- `tests/unit/m5-6d-metric-rollover.test.ts`
+- `tests/unit/m5-6d-metric-rollover-architecture.test.ts`
+- `tests/unit/m5-6d-metric-rollover.live.test.ts`
+
+Native verification evidence:
+
+| Gate | Result |
+|---|---|
+| M5.6D unit + architecture | pass (includes invalid-timezone recovery assertions) |
+| M5.6D live acceptance matrix | pass (includes TZ fail-closed, same-day recovery, UTC≠local recovery, concurrent recovery) |
+| M5.5–M5.6C + M5.6D combined | pass after TZ1 correction |
+| typecheck, lint, `git diff --check`, `npm run build` | pass |
+
+Invalid `stores.timezone` fails closed with zero enqueues. After the timezone becomes a recognized IANA name, the next rollover enqueue recovers `invalid_iana_timezone` failures automatically (same corrected local date reopens; differing UTC-derived keys leave the failed row and open the corrected date). Unrelated failed reasons are not reopened. Details: `docs/M5_6_HANDOFF.md` section 10. M5.6D must not be labelled closed until explicitly reviewed and approved.

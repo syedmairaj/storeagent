@@ -2009,13 +2009,17 @@ M5.6A and M5.6B add durable source events and generation-aware recompute request
 
 `public.sku_daily_metric_recompute_requests` reuses the M0.8 status, attempt, and lease vocabulary in `workers/types.ts`. The job type for a later claim is the existing `metrics_aggregation` value. There is still no `worker_jobs` table. `public.sync_runs` remains the CSV run record.
 
-`consume_sku_daily_metric_source_events` writes requests only when a trusted caller invokes it. A request row does not mean the metric was recalculated. M5.6C must claim and execute those rows through the frozen M5.5 persistence function and must stop at the metrics stage. Pipeline readiness for forecast, decision, and AI explanation is unchanged and is not permission for M5.6C to run those stages. M5.6D daily rollover does not exist yet.
+`consume_sku_daily_metric_source_events` writes requests only when a trusted caller invokes it. A request row does not mean the metric was recalculated. M5.6C must claim and execute those rows through the frozen M5.5 persistence function and must stop at the metrics stage. Pipeline readiness for forecast, decision, and AI explanation is unchanged and is not permission for M5.6C to run those stages. M5.6D daily rollover enqueues store-local today requests into the same request table; it does not recalculate metrics and is not a second work queue.
 
 The operating handoff is `docs/M5_6_HANDOFF.md`.
 
 ### M5.6C worker orchestration (closed locally; not deployed)
 
 M5.6C adds a durable claim path for `sku_daily_metric_recompute_requests`. It is closed for local implementation and native local Supabase PostgreSQL 17 verification. The hosted migration is not deployed, the worker is not enabled, and no scheduler is configured. Contracts and operating handoff are in `docs/M5_6_HANDOFF.md`.
+
+### M5.6D daily rollover (implemented locally; not closed; not deployed)
+
+M5.6D adds resumable per-store-day rollover runs, an enrollment ledger, and `enqueue_sku_daily_metric_daily_rollover`. It freezes eligibility at run open, walks a durable grain cursor with lookahead completion, and bumps `dirty_generation` only on new enrollments. Late commerce after the cursor is recovered through existing M5.6A capture and M5.6B consumption (clock-local today expansion). The internal trigger is disabled by default. The hosted migration is not deployed. Details are in `docs/M5_6_HANDOFF.md` section 10.
 
 One tick, in `workers/aggregate-metrics.ts`, runs in this order:
 
