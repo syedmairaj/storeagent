@@ -235,6 +235,8 @@ Cancelled orders are excluded from sold units. M5 passes `cancelledUnits = 0` in
 
 The M5.1 formula contract is in `INVENTORY_FORMULAS.md`. M5.1 is closed. M5.2 persists that cache as `public.sku_daily_metrics`. Schema and RLS closure are in `IMPLEMENTATION_STATUS.md`. Approved M5.3 sales-aggregate clarifications are the “M5.3 frozen sales-aggregate clarifications” section of `INVENTORY_FORMULAS.md`.
 
+Metric freshness is eventual. A recompute request marked `succeeded` means the stored metric matched canonical source data at its commit and covered every source event consumed up to its applied generation. It does not mean the metric stays current. A later source change re-dirties the request only when its source event is consumed. Recalculation always runs the frozen M5.5 path for the same algorithm version, and never through the worker layer's own arithmetic. M5.6 orchestration contracts are in `docs/M5_6_HANDOFF.md`.
+
 ---
 
 ## 14. Forecast runs

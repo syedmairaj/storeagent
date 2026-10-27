@@ -2012,3 +2012,25 @@ M5.6A and M5.6B add durable source events and generation-aware recompute request
 `consume_sku_daily_metric_source_events` writes requests only when a trusted caller invokes it. A request row does not mean the metric was recalculated. M5.6C must claim and execute those rows through the frozen M5.5 persistence function and must stop at the metrics stage. Pipeline readiness for forecast, decision, and AI explanation is unchanged and is not permission for M5.6C to run those stages. M5.6D daily rollover does not exist yet.
 
 The operating handoff is `docs/M5_6_HANDOFF.md`.
+
+### M5.6C worker orchestration (local only)
+
+M5.6C adds a durable claim path for `sku_daily_metric_recompute_requests`. It is implemented and verified on a local PostgreSQL role shim only. Native local Supabase verification is pending. The hosted migration is not deployed, and the worker is not enabled. Contracts and next steps are in `docs/M5_6_HANDOFF.md`.
+
+One tick, in `workers/aggregate-metrics.ts`, runs in this order:
+
+1. Bounded M5.6B consumption.
+2. Expired-lease recovery.
+3. Claim.
+4. For each claim: start, then the frozen M5.5 `recomputeSkuDailyMetric`, then complete or fail.
+
+The tick stops at persisted metrics.
+
+- **Claim.** Claim and recovery share transaction advisory lock `5606003`. The claim allows at most 4 unexpired active leases globally and at most one per organization, store, location, and variant grain. It uses `FOR UPDATE SKIP LOCKED`, generates the claim token in PostgreSQL, and copies `claimed_generation` from `dirty_generation` under the row lock.
+- **Fencing.** Start, complete, and fail match the full primary key, owner, token, and status, and require `lease_expires_at > clock_timestamp()`. An expired lease is fenced even before recovery runs.
+- **Generation.** Each generation is a logical job for retry purposes, and the idempotency key includes the generation. A changed `dirty_generation` returns the row to `queued` with `attempt_count` 0 and `applied_generation` unchanged. This check comes before retry exhaustion, in fail and in recovery alike.
+- **Recovery.** An expired `claimed` row returns to `queued` without counting an attempt. Its attempts reset to 0 if the generation changed while it was claimed. An expired `running` row becomes `retry_wait` with backoff, or `failed` (`retry_exhausted`) when attempts are exhausted and the generation is unchanged.
+- **Retry.** Retry follows `workers/retry.ts`: 5 attempts, 30-second base, 30-minute cap. Unknown failures are terminal. SA008 retries stay inside the frozen M5.5 call and do not count as queue attempts.
+- **Freshness.** Completion requeues when the generation changed or a relevant source event (`source_date` from `metric_date - 89` through `metric_date`) is visible and unconsumed. `succeeded` means the metric matched the source as of its commit and covered every event consumed up to `applied_generation`. It does not mean the metric stays current. Events that commit after the completion check reopen the request when they are consumed later. No `event_id` cursor is used.
+- **Runtime.** The lease is 120 seconds, the per-item deadline 40 seconds, and the tick budget 45 seconds. The deadline aborts only the HTTP wait. A database statement may still finish, which is safe because the M5.5 commit revalidates the source token. Request state is decided by the lease, not by process timers.
+- **Trigger.** `POST /api/internal/metric-recompute` is disabled unless `METRIC_RECOMPUTE_WORKER_ENABLED=1`. It requires a bearer secret of at least 32 characters (`METRIC_RECOMPUTE_WORKER_SECRET`), compared in constant time, and returns counts only. No scheduler is configured.
