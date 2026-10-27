@@ -21,8 +21,8 @@ M5 — derived SKU metrics — IN PROGRESS
 - M5.6 orchestration — IN PROGRESS
 - M5.6A source-event capture — CLOSED
 - M5.6B recompute-request generation — CLOSED
-- M5.6C worker orchestration — IMPLEMENTED; VERIFIED ON A LOCAL POSTGRESQL ROLE SHIM ONLY; NATIVE SUPABASE VERIFICATION PENDING; HOSTED MIGRATION NOT DEPLOYED; WORKER NOT ENABLED; NOT CLOSED
-- M5.6D daily rollover — NOT STARTED
+- M5.6C worker orchestration — CLOSED (local implementation and native local Supabase verification). HOSTED MIGRATION NOT DEPLOYED. WORKER DISABLED. NO SCHEDULER.
+- M5.6D daily rollover — NOT STARTED (design corrected for resumable per-store-day progress; see `docs/M5_6_HANDOFF.md` section 10)
 - M5.7 adversarial verification
 - M5.8 final architecture/documentation gate
 
@@ -30,9 +30,9 @@ M6 — Forecasting — NOT STARTED. M6 owns forecasting.
 
 M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
 
-NEXT STEP = M5.6C NATIVE LOCAL SUPABASE VERIFICATION AND REVIEW
+NEXT STEP = M5.6D DAILY ROLLOVER (EXPLICIT APPROVAL REQUIRED BEFORE IMPLEMENTATION)
 
-M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. Their hosted migrations are deployed. M5.6C worker orchestration is implemented and verified on a local PostgreSQL role shim only. Native local Supabase verification is pending, its hosted migration is not deployed, and the worker is disabled. No hosted events have been consumed and no hosted metrics have been recalculated. The session handoff is `docs/M5_6_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
+M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. Their hosted migrations are deployed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. The hosted M5.6C migration is not deployed, the worker remains disabled, and no scheduler is configured. No hosted events have been consumed and no hosted metrics have been recalculated. The session handoff is `docs/M5_6_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
 
 ### Owners
 
@@ -3289,11 +3289,13 @@ Table: `public.sku_daily_metric_recompute_requests`. Function: `public.consume_s
 
 M5.6D daily rollover is NOT STARTED. M5.6 is not fully closed. The operating contract is `docs/M5_6_HANDOFF.md`.
 
-### M5.6C local implementation
+### M5.6C completion
 
-Status: IMPLEMENTED. VERIFIED ON A LOCAL POSTGRESQL 16 ROLE SHIM ONLY. NATIVE LOCAL SUPABASE VERIFICATION PENDING. HOSTED MIGRATION NOT DEPLOYED. WORKER NOT ENABLED. NOT CLOSED.
+Status: CLOSED — LOCAL IMPLEMENTATION AND NATIVE LOCAL SUPABASE VERIFICATION. HOSTED MIGRATION NOT DEPLOYED. WORKER DISABLED. NO SCHEDULER. NO HOSTED EVENT CONSUMPTION. NO HOSTED METRIC RECOMPUTATION.
 
-Migration, local only:
+Commit: `5cc0e6fd21f87a8975c1cec91aa76e6b6c85d4b8` (`5cc0e6f`).
+
+Migration, present locally, **not** in hosted migration history:
 
 - `supabase/migrations/20261018100000_m5_6c_metric_recompute_worker.sql`
 
@@ -3313,18 +3315,19 @@ Tests:
 - `tests/unit/m5-6c-failure-classification.test.ts`
 - `tests/unit/m5-6c-recompute-worker.live.test.ts`
 
-Verification evidence:
+Native verification evidence (authoritative closeout):
 
 | Gate | Result |
 |---|---|
 | M5.6C unit tests | 40 passed |
-| M5.5 + M5.6A + M5.6B + M5.6C live, one command, PostgreSQL 16 role shim | 36 passed |
-| Full suite, non-live | 1899 passed; 1 pre-existing env-dependent live file fails |
-| Full suite, live on shim | 1944 passed; 4 files fail identically on untouched `8c2af57`, because they need the native Supabase HTTP API or auth schema |
+| M5.5 + M5.6A + M5.6B + M5.6C live, one command, native Supabase PostgreSQL 17.11 | 36 passed |
 | typecheck, lint, `git diff --check` | pass |
-| `npm run build` (Turbopack) | not verified; Google Fonts unreachable from the build environment |
-| `next build --webpack` with mocked fonts | pass |
+| `npm run build` (Turbopack) | pass |
 
-The PostgreSQL 16 role shim is not equivalent to native Supabase (PostgreSQL 17, PostgREST, auth). Native verification steps are in `docs/M5_6_HANDOFF.md` section 12.
+Local verification applied migration `20261018100000` to the native local database. Hosted Supabase was not modified. Closing M5.6C does not authorize hosted deploy, worker enablement, scheduling, hosted event consumption, or hosted metric recomputation.
 
-Final review found one defect in the uncommitted migration, and it is fixed. Expired-claim recovery now resets `attempt_count` when `dirty_generation` changed while the row was claimed. Without the fix, a newer generation could inherit an older generation's attempts. A live test covers this case and fails against the unfixed SQL.
+Earlier PostgreSQL 16 role-shim evidence (40 unit / 36 live) is historical and superseded by the native closeout for milestone closure.
+
+Final review before commit found one defect in the migration, and it is fixed. Expired-claim recovery now resets `attempt_count` when `dirty_generation` changed while the row was claimed. Without the fix, a newer generation could inherit an older generation's attempts. A live test covers this case and fails against the unfixed SQL.
+
+M5.6D daily rollover remains NOT STARTED. The corrected resumable design is in `docs/M5_6_HANDOFF.md` section 10.

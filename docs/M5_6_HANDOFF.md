@@ -6,6 +6,7 @@ Resume from this file. Canonical milestone state remains `docs/IMPLEMENTATION_ST
 
 - Repository: StoreAgent.si
 - Branch: `main`
+- M5.6C commit: `5cc0e6fd21f87a8975c1cec91aa76e6b6c85d4b8` (`5cc0e6f`)
 - Last commit before M5.6C: `8c2af57fdda45a4dad67548ba4fad1f664b2d687` (`docs: sync M5.6A-B closeout and M5.6C handoff`)
 - M5.6B commit: `118d9b511070d3f690d1852478230cb61b6d2527` (`118d9b5`)
 - M5.6A commit: `b549fe0b78173acc9a5e75e115866a135fbbcf65` (`b549fe0`)
@@ -27,10 +28,10 @@ No hosted events have been consumed and no hosted metrics have been recalculated
 | M0 – M5.5 | Closed |
 | M5.6A source-event capture | Closed; hosted migration deployed |
 | M5.6B recompute-request generation | Closed; hosted migration deployed |
-| M5.6C worker orchestration | Implemented; verified locally on a PostgreSQL role shim only (see section 11); hosted migration not deployed; worker not enabled; not closed |
-| M5.6D daily rollover | Not started |
+| M5.6C worker orchestration | **Closed** — local implementation and native local Supabase verification (see section 11). Hosted migration not deployed. Worker disabled. No scheduler. |
+| M5.6D daily rollover | Not started; design corrected for resumable per-store-day progress (see section 10) |
 
-M5.6C must not be labelled closed until it passes native local Supabase verification and is reviewed. Deployment and enablement are separate, explicitly approved steps.
+Deployment and enablement of M5.6C remain separate, explicitly approved steps. Closing M5.6C does not authorize hosted migration apply, worker enablement, scheduling, hosted event consumption, or hosted metric recomputation.
 
 ## 3. M5.6A source-event architecture
 
@@ -210,60 +211,69 @@ Algorithm version remains `m5-derived-metrics-v1`. Coverage identity, SA008, and
 - The claim scans at most 500 candidates per call. A very large backlog on four active grains can reduce throughput for a tick; it does not block progress.
 - A crash loop can exhaust attempts and mark a request `failed` even though its metric committed; the next consumed event reopens it.
 
-## 10. M5.6D (not started)
+## 10. M5.6D (not started — design corrected)
 
-A daily rollover that enqueues only `metric_date` equal to store-local today, and only for an active grain. A grain is active when at least one order item, return, or snapshot has a store-local date in today through the preceding 89 days. Inactive historical grains do not get a today row.
+A daily rollover that enqueues only `metric_date` equal to a store-local business day, and only for an active grain. A grain is active when at least one order item, return, or snapshot has a store-local date in that day through the preceding 89 days. Inactive historical grains do not get a today row.
 
-Rollover is not a substitute for consumption and must not recalculate metrics by itself. It should feed the existing request table and reuse the M5.6C claim path. Do not add a second queue.
+Rollover is not a substitute for consumption and must not recalculate metrics by itself. It feeds the existing `sku_daily_metric_recompute_requests` table and reuses the M5.6C claim path. Do not add a second work queue.
+
+### Corrected progress model (replaces naive per-store-day completion watermark)
+
+A store-day must not be marked complete until every grain eligible at run open has been durably enrolled and enqueued. Bounded batches therefore require a **resumable per-store-day run**:
+
+- One durable run row per `(organization_id, store_id, metric_date, algorithm_version)` with status `in_progress` | `completed` | `failed`.
+- Freeze `eligible_cutoff_at` and `metric_date` when the run opens. Eligibility for that run is the stable set of grains with commercial evidence whose store-local date lies in `[metric_date - 89, metric_date]` and whose source timestamp is `<= eligible_cutoff_at`.
+- Walk grains in stable order `(location_id, variant_id)` with a durable cursor. Each tick enqueues at most `p_limit` grains.
+- An enrollment ledger (not a work queue) records which grains this run already enqueued. Only a successful enrollment insert may bump `dirty_generation`. Resume and concurrent callers cannot double-bump.
+- Mark the run `completed` only when a batch returns fewer than `p_limit` eligible grains after the cursor (end of stable set). Crash recovery resumes the same run from the cursor.
+- If wall-clock / `p_as_of` crosses midnight while a run is `in_progress`, finish that frozen `metric_date` before opening a run for the new store-local day.
+- Grains that become active after `eligible_cutoff_at` are out of scope for that run. M5.6B expansion already inserts store-local today when today lies in `[D, D + 89]` for a consumed source event, so later source changes fill the same-day gap without rollover re-scanning.
 
 Out of scope for M5.6D unless a later milestone opens it: CSV reconciliation changes, purchase-order incoming quantity, inventory position, inventory age, forecasting, decisions, AI, billing, connectors, merchant UI, and store timezone correction.
 
 ## 11. Verification evidence (M5.6C)
 
-Local Supabase (PostgreSQL 17, PostgREST, auth) was **not** reachable from the environment that implemented M5.6C. Live tests ran against **PostgreSQL 16 with Supabase role shims**: `anon`, `authenticated`, `service_role` with BYPASSRLS, a minimal `auth` schema, and Supabase-style default privileges. This is not equivalent to native Supabase verification.
+M5.6C is **closed** for local implementation and verification.
+
+### Native local Supabase (authoritative closeout)
+
+Native local stack: Supabase PostgreSQL **17.11**, PostgREST, auth. Database port `55322`, API `http://127.0.0.1:55321`. Migration `20261018100000` was applied to this local database for verification (additive; no `db reset` required once M5.6B was present). Hosted Supabase was not modified.
 
 | Gate | Result |
 |---|---|
 | M5.6C unit tests (3 files) | 40 passed |
-| M5.5 + M5.6A + M5.6B + M5.6C live, one command, shim | 36 passed |
-| M5 and worker non-live suites | 335 passed |
-| Full suite, non-live | 1899 passed; 1 file fails: `provider-csv-supabase-persistence.live.test.ts`, which needs Supabase env keys |
-| Full suite, live on shim | 1944 passed; 4 files fail identically on untouched `8c2af57`, because they need the native Supabase HTTP API or auth schema |
+| M5.5 + M5.6A + M5.6B + M5.6C live, one Vitest command, native PG17 | 36 passed |
 | `npx tsc --noEmit` | pass |
 | `npx eslint .` | pass |
 | `git diff --check` | pass |
-| `npm run build` (Turbopack) | **not verified**: the environment cannot reach Google Fonts (`next/font` Inter) |
-| `next build --webpack` with mocked Google Fonts | pass; Next.js type check pass; `/api/internal/metric-recompute` is a dynamic route |
+| `npm run build` (Turbopack) | pass; `/api/internal/metric-recompute` is a dynamic route |
+
+Still true and unchanged by closeout:
+
+- Hosted M5.6C migration **not deployed**
+- Worker **disabled** (`METRIC_RECOMPUTE_WORKER_ENABLED` not `1`)
+- No scheduler / no `vercel.json`
+- No hosted event consumption
+- No hosted metric recomputation
+
+### Earlier shim evidence (historical)
+
+Before native verification, an implementing environment ran the same suites against PostgreSQL 16 with Supabase role shims (40 unit, 36 live, typecheck/lint, webpack build with mocked fonts). That shim evidence is superseded by the native closeout above for milestone closure.
 
 The M5.6C live suite refuses to run if claimable or active requests exist outside its own test tenants, because claims are global.
 
 ## 12. Next steps for Cursor
 
-1. Confirm branch `main`. If M5.6C has been committed, start from that commit; otherwise from `8c2af57` plus the uncommitted M5.6C files listed in section 8.
-2. Start the native local stack (`supabase start`, database port 55322), then reset it with `supabase db reset`. The database must contain migration `20261018100000`.
-3. Run native verification:
-
-   ```bash
-   npx vitest run tests/unit/m5-6c-recompute-worker.test.ts tests/unit/m5-6c-recompute-worker-architecture.test.ts tests/unit/m5-6c-failure-classification.test.ts
-   RUN_SUPABASE_LIVE=1 npx vitest run \
-     tests/unit/m5-6a-source-events.live.test.ts \
-     tests/unit/m5-6b-recompute-requests.live.test.ts \
-     tests/unit/m5-persistence.live.test.ts \
-     tests/unit/m5-6c-recompute-worker.live.test.ts
-   RUN_SUPABASE_LIVE=1 npm test
-   npx tsc --noEmit && npm run lint && npm run build && git diff --check
-   ```
-
-4. Record the native results in `docs/IMPLEMENTATION_STATUS.md` and this file. Only then consider marking M5.6C closed.
-5. Do not deploy the M5.6C migration, enable the worker, configure a scheduler, consume hosted events, or recompute hosted metrics without separate explicit approval.
-6. When enablement is approved, follow this order:
-   1. Apply the migration.
+1. Confirm branch `main` at `5cc0e6f` (or later docs-only closeout commits).
+2. Do not deploy the M5.6C migration, enable the worker, configure a scheduler, consume hosted events, or recompute hosted metrics without separate explicit approval.
+3. When M5.6C enablement is approved, follow this order:
+   1. Apply the migration to hosted.
    2. Read `sku_daily_metric_recompute_queue_stats` (read-only) to size the backlog.
    3. Set a secret of at least 32 characters.
    4. Set `METRIC_RECOMPUTE_WORKER_ENABLED=1`.
    5. Trigger manually and inspect the counts.
    6. Only then add a scheduler.
-7. Start M5.6D only on explicit request, using section 10.
-8. Never stage `docs/StoreAgent_Roadmap_2026.docx`, `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx`, `docs/StoreAgent_Roadmap_2026_Connectivity_Update.docx`, or `docs/archive/`.
+4. Start M5.6D only on explicit request, using the corrected design in section 10 (resumable per-store-day progress; no naive completion watermark before full enrollment).
+5. Never stage `docs/StoreAgent_Roadmap_2026.docx`, `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx`, `docs/StoreAgent_Roadmap_2026_Connectivity_Update.docx`, or `docs/archive/`.
 
 Live order tests share advisory lock `561606` (`tests/support/orders-live-lock.ts`). Run the M5.5, M5.6A, M5.6B, and M5.6C live files in one Vitest command.

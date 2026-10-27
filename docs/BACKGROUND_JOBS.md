@@ -2013,9 +2013,9 @@ M5.6A and M5.6B add durable source events and generation-aware recompute request
 
 The operating handoff is `docs/M5_6_HANDOFF.md`.
 
-### M5.6C worker orchestration (local only)
+### M5.6C worker orchestration (closed locally; not deployed)
 
-M5.6C adds a durable claim path for `sku_daily_metric_recompute_requests`. It is implemented and verified on a local PostgreSQL role shim only. Native local Supabase verification is pending. The hosted migration is not deployed, and the worker is not enabled. Contracts and next steps are in `docs/M5_6_HANDOFF.md`.
+M5.6C adds a durable claim path for `sku_daily_metric_recompute_requests`. It is closed for local implementation and native local Supabase PostgreSQL 17 verification. The hosted migration is not deployed, the worker is not enabled, and no scheduler is configured. Contracts and operating handoff are in `docs/M5_6_HANDOFF.md`.
 
 One tick, in `workers/aggregate-metrics.ts`, runs in this order:
 
