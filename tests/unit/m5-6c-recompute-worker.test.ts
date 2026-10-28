@@ -223,6 +223,21 @@ describe("M5.6C migration contract", () => {
       .toBeLessThan(recover.indexOf("then 'fail'"));
   });
 
+  it("M5.7 Phase 2 migration resets attempts on deferred completion", () => {
+    const phase2 = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        "supabase/migrations/20261028210000_m5_7_deferred_completion_attempt_reset.sql",
+      ),
+      "utf8",
+    );
+    const deferredStart = phase2.indexOf("consumed_at is null");
+    const deferredEnd = phase2.indexOf("return 'deferred'", deferredStart);
+    const deferredBranch = phase2.slice(deferredStart, deferredEnd);
+
+    expect(deferredBranch).toContain("attempt_count = 0");
+  });
+
   it("keeps the retryable set aligned with workers/retry.ts", () => {
     const fail = functionBody("fail_sku_daily_metric_recompute");
     const retryable = fail.slice(
@@ -422,6 +437,31 @@ describe("M5.6C tick orchestration", () => {
     });
 
     expect(result.queueErrors).toBe(1);
+    expect(result.succeeded).toBe(0);
+  });
+
+  it("M5.7 F1 T3: consume failure still claims and defers without terminal failure", async () => {
+    const { queue, calls } = fakeQueue({ completion: "deferred" });
+    queue.consume = vi.fn(async () => {
+      calls.push("consume");
+      throw new Error("consume deadlock");
+    });
+
+    const result = await runMetricRecomputeTick({
+      queue,
+      execute: async () => ({ ok: true }),
+      ownerId: "metric-recompute:test",
+      now: clock(),
+      emit: () => undefined,
+    });
+
+    expect(calls[0]).toBe("consume");
+    expect(calls).toContain("recover");
+    expect(calls).toContain("claim");
+    expect(calls).toContain("complete");
+    expect(result.queueErrors).toBe(1);
+    expect(result.deferred).toBe(1);
+    expect(result.failed).toBe(0);
     expect(result.succeeded).toBe(0);
   });
 });

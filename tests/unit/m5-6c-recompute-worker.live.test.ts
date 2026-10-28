@@ -271,10 +271,13 @@ async function insertEvent(row: Grain, sourceDate: string): Promise<void> {
   `);
 }
 
-async function consume(organizationId = ORG): Promise<number> {
+async function consume(
+  organizationId = ORG,
+  limit = 100,
+): Promise<number> {
   return Number(
     await svc(
-      `select public.consume_sku_daily_metric_source_events(100, ${quote(organizationId)}::uuid)`,
+      `select public.consume_sku_daily_metric_source_events(${limit}, ${quote(organizationId)}::uuid)`,
     ),
   );
 }
@@ -797,12 +800,132 @@ describeLive("M5.6C recompute worker", () => {
     // Inclusive lower edge of the M5.6B expansion window.
     await insertEvent(row, await day(-5 - 89));
     expect(await complete(claimed, "worker-a", claimed.lease_claim_token)).toBe("deferred");
-    expect(await state(row)).toBe("queued:1:1:0:1::true");
+    // M5.7 Phase 2: deferred resets attempt_count so freshness waits
+    // do not consume the failure budget.
+    expect(await state(row)).toBe("queued:1:1:0:0::true");
 
     await consume();
     const again = await claimOne("worker-a");
     await start(again, "worker-a");
     expect(await complete(again, "worker-a", again.lease_claim_token)).toBe("succeeded");
+  });
+
+  it("M5.7 F1 T1: repeated deferrals do not cause false retry_exhausted", async () => {
+    const metricDate = await day(-5);
+    const row = grain(0, metricDate);
+    await insertRequest(row);
+    await insertEvent(row, metricDate);
+
+    for (let round = 1; round <= 5; round += 1) {
+      const claimed = await claimOne(`defer-${round}`);
+      const started = await start(claimed, `defer-${round}`);
+      expect(started[0].attempt_count).toBe(1);
+      expect(
+        await complete(claimed, `defer-${round}`, claimed.lease_claim_token),
+      ).toBe("deferred");
+      expect(await state(row)).toBe("queued:1:1:0:0::true");
+    }
+
+    const afterDefers = await claimOne("after-defers");
+    await start(afterDefers, "after-defers");
+    expect(
+      await fail(
+        afterDefers,
+        "after-defers",
+        afterDefers.lease_claim_token,
+        "timeout",
+      ),
+    ).toBe("retry_scheduled");
+    expect(await state(row)).toBe("retry_wait:1:1:0:1::true");
+  });
+
+  it("M5.7 F1 T2: partial event consumption defers then succeeds", async () => {
+    const metricDate = await day(-5);
+    const row = grain(1, metricDate);
+    await insertEvent(row, metricDate);
+    await insertEvent(row, await day(-5 - 10));
+
+    expect(await consume(ORG, 1)).toBe(1);
+    expect(
+      await psql(`
+        select pg_catalog.count(*)::text
+        from public.sku_daily_metric_source_events
+        where organization_id = ${quote(ORG)}::uuid
+          and variant_id = ${quote(VARIANTS[1])}::uuid
+          and consumed_at is null
+      `),
+    ).toBe("1");
+
+    const claimed = await claimOne("partial-a");
+    expect(claimed.variant_id).toBe(VARIANTS[1]);
+    await start(claimed, "partial-a");
+    expect(
+      await complete(claimed, "partial-a", claimed.lease_claim_token),
+    ).toBe("deferred");
+    expect(await state(row)).toBe("queued:1:1:0:0::true");
+
+    expect(await consume(ORG, 10)).toBe(1);
+    const again = await claimOne("partial-b");
+    await start(again, "partial-b");
+    expect(
+      await complete(again, "partial-b", again.lease_claim_token),
+    ).toBe("succeeded");
+    expect(await state(row)).toBe("succeeded:1:1:1:1::true");
+  });
+
+  it("M5.7 F1 T3: skipped consumption leaves events and avoids false failure", async () => {
+    // Models a tick where consume fails/aborts before claim: events stay
+    // unconsumed, claim still runs, complete defers, and a later real
+    // transient failure still gets a retry instead of false exhaustion.
+    const metricDate = await day(-3);
+    const row = grain(2, metricDate);
+    await insertRequest(row);
+    await insertEvent(row, metricDate);
+
+    expect(
+      await psql(`
+        select pg_catalog.count(*)::text
+        from public.sku_daily_metric_source_events
+        where organization_id = ${quote(ORG)}::uuid
+          and variant_id = ${quote(VARIANTS[2])}::uuid
+          and consumed_at is null
+      `),
+    ).toBe("1");
+
+    for (let round = 1; round <= 5; round += 1) {
+      const claimed = await claimOne(`skip-consume-${round}`);
+      await start(claimed, `skip-consume-${round}`);
+      expect(
+        await complete(
+          claimed,
+          `skip-consume-${round}`,
+          claimed.lease_claim_token,
+        ),
+      ).toBe("deferred");
+    }
+
+    expect(
+      await psql(`
+        select pg_catalog.count(*)::text
+        from public.sku_daily_metric_source_events
+        where organization_id = ${quote(ORG)}::uuid
+          and variant_id = ${quote(VARIANTS[2])}::uuid
+          and consumed_at is null
+      `),
+    ).toBe("1");
+    expect(await state(row)).toBe("queued:1:1:0:0::true");
+
+    const claimed = await claimOne("skip-consume-fail");
+    await start(claimed, "skip-consume-fail");
+    expect(
+      await fail(
+        claimed,
+        "skip-consume-fail",
+        claimed.lease_claim_token,
+        "transient_dependency",
+      ),
+    ).toBe("retry_scheduled");
+    expect(await state(row)).toBe("retry_wait:1:1:0:1::true");
   });
 
   it("ignores source events outside the grain or window", async () => {
