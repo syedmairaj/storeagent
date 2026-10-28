@@ -21,18 +21,20 @@ M5 — derived SKU metrics — IN PROGRESS
 - M5.6 orchestration — IN PROGRESS
 - M5.6A source-event capture — CLOSED
 - M5.6B recompute-request generation — CLOSED
-- M5.6C worker orchestration — CLOSED (local implementation and native local Supabase verification). HOSTED MIGRATION NOT DEPLOYED. WORKER DISABLED. NO SCHEDULER.
-- M5.6D daily rollover — IMPLEMENTED LOCALLY; NATIVE VERIFICATION RECORDED; NOT CLOSED. HOSTED MIGRATION NOT DEPLOYED. ROLLOVER TRIGGER DISABLED. NO SCHEDULER.
-- M5.7 adversarial verification
+- M5.6C worker orchestration — CLOSED locally; HOSTED SCHEMA DEPLOYED; HOSTED ONE-SHOT RECOMPUTE PATH VERIFIED via M5.6E.4 Stage 3 (HTTP workers still DISABLED; no scheduler).
+- M5.6D daily rollover — IMPLEMENTED and locally verified; **NOT CLOSED**. HOSTED SCHEMA DEPLOYED; HOSTED ORG-SCOPED ROLLOVER PATH EXERCISED IN E.4 CANARY Stage 4 (does **not** close M5.6D). ROLLOVER HTTP TRIGGER DISABLED. NO SCHEDULER.
+- M5.6E.3 org-scoped claim/recover — IMPLEMENTED; HOSTED SCHEMA DEPLOYED (`20261028100000`); HOSTED ORG-SCOPED CONSUME/CLAIM USED IN CANARY. WORKERS DISABLED.
+- M5.6E.4 hosted canary — **CLOSED** (hosted canary verification only: Stages 0–4). Metrics 0/0/7; Stage 4 rollover ×2 verified; final canary queue `queued` dirty=2 intentional (no further E.4 recompute); fingerprint `59d7d64dbcc254544f04cdb81ccff699`; workers OFF. See `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md` §0 / §8.
+- M5.7 adversarial verification — **NEXT**
 - M5.8 final architecture/documentation gate
 
 M6 — Forecasting — NOT STARTED. M6 owns forecasting.
 
 M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
 
-NEXT STEP = M5.6D REVIEW (DO NOT MARK CLOSED WITHOUT EXPLICIT APPROVAL)
+NEXT STEP = M5.7 ADVERSARIAL VERIFICATION. DO NOT ENABLE WORKERS / CRON / HTTP METRIC ROUTES WITHOUT EXPLICIT APPROVAL. DO NOT MARK M5.6D CLOSED WITHOUT EXPLICIT APPROVAL. DO NOT CLAIM/RECOMPUTE THE E.4 CANARY GRAIN LEFT `queued` AT `dirty_generation=2` AS PART OF E.4 CLOSEOUT.
 
-M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. Their hosted migrations are deployed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. M5.6D daily rollover is implemented and verified on native local Supabase PostgreSQL 17 but is not closed. Hosted M5.6C and M5.6D migrations are not deployed; recompute and rollover triggers remain disabled; no scheduler is configured. No hosted events have been consumed and no hosted metrics have been recalculated. The session handoff is `docs/M5_6_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
+M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. M5.6D daily rollover is implemented and verified on native local Supabase PostgreSQL 17 but is **not** closed. **Hosted schema:** M5.6A–D and M5.6E.3 (`20261028100000`) migrations are deployed (operator-verified). **Hosted canary runtime:** M5.6E.4 closed — org-scoped consume/claim, one-shot recompute, and frozen-as_of rollover ×2 verified on the canary org; foreign fingerprint unchanged. **Production worker enablement** remains separate and unauthorized. No scheduler. Canary runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`. Isolation decision: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. Handoff: `docs/M5_6_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
 
 ### Owners
 
@@ -3291,13 +3293,11 @@ M5.6D daily rollover is NOT STARTED. M5.6 is not fully closed. The operating con
 
 ### M5.6C completion
 
-Status: CLOSED — LOCAL IMPLEMENTATION AND NATIVE LOCAL SUPABASE VERIFICATION. HOSTED MIGRATION NOT DEPLOYED. WORKER DISABLED. NO SCHEDULER. NO HOSTED EVENT CONSUMPTION. NO HOSTED METRIC RECOMPUTATION.
+Status: CLOSED — LOCAL IMPLEMENTATION AND NATIVE LOCAL SUPABASE VERIFICATION. **HOSTED SCHEMA DEPLOYED.** HTTP WORKER DISABLED. NO SCHEDULER. Hosted **one-shot** canary recompute verified under M5.6E.4 Stage 3 (not via HTTP worker).
 
 Commit: `5cc0e6fd21f87a8975c1cec91aa76e6b6c85d4b8` (`5cc0e6f`).
 
-Migration, present locally, **not** in hosted migration history:
-
-- `supabase/migrations/20261018100000_m5_6c_metric_recompute_worker.sql`
+Migration: `supabase/migrations/20261018100000_m5_6c_metric_recompute_worker.sql` (hosted schema deployed; HTTP worker runtime still disabled).
 
 It adds nullable queue columns (`available_at`, `last_error_class`, `last_error_code`, `last_error_message`, `failed_reason`), constrained values, partial indexes, and six `security definer` functions with an empty `search_path`, executable by `service_role` only: `recover_expired_sku_daily_metric_recompute_leases`, `claim_sku_daily_metric_recompute_requests`, `start_sku_daily_metric_recompute`, `complete_sku_daily_metric_recompute`, `fail_sku_daily_metric_recompute`, and `sku_daily_metric_recompute_queue_stats`. `service_role` keeps SELECT only on the request table.
 
@@ -3324,7 +3324,7 @@ Native verification evidence (authoritative closeout):
 | typecheck, lint, `git diff --check` | pass |
 | `npm run build` (Turbopack) | pass |
 
-Local verification applied migration `20261018100000` to the native local database. Hosted Supabase was not modified. Closing M5.6C does not authorize hosted deploy, worker enablement, scheduling, hosted event consumption, or hosted metric recomputation.
+Local verification applied migration `20261018100000` to the native local database. Hosted schema for M5.6C was later deployed under separate approval. Closing M5.6C and deploying its schema do not authorize HTTP worker enablement or scheduling. Isolation-safe hosted canary (M5.6E.4) later verified one-shot recompute and org-scoped rollover on the canary org; production HTTP worker enablement remains a separate approval (`docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`).
 
 Earlier PostgreSQL 16 role-shim evidence (40 unit / 36 live) is historical and superseded by the native closeout for milestone closure.
 
@@ -3332,11 +3332,9 @@ Final review before commit found one defect in the migration, and it is fixed. E
 
 ### M5.6D local implementation
 
-Status: IMPLEMENTED LOCALLY AND VERIFIED ON NATIVE LOCAL SUPABASE POSTGRESQL 17. HOSTED MIGRATION NOT DEPLOYED. ROLLOVER TRIGGER DISABLED. NO SCHEDULER. NOT CLOSED.
+Status: IMPLEMENTED LOCALLY AND VERIFIED ON NATIVE LOCAL SUPABASE POSTGRESQL 17. **HOSTED SCHEMA DEPLOYED.** Org-scoped rollover exercised in M5.6E.4 canary Stage 4 — **does not close M5.6D**. ROLLOVER HTTP TRIGGER DISABLED. NO SCHEDULER. **NOT CLOSED.**
 
-Migration, local only:
-
-- `supabase/migrations/20261020100000_m5_6d_metric_daily_rollover.sql`
+Migration: `supabase/migrations/20261020100000_m5_6d_metric_daily_rollover.sql` (hosted schema deployed; runtime unverified).
 
 Adds `sku_daily_metric_rollover_runs`, `sku_daily_metric_rollover_enqueues`, `enqueue_sku_daily_metric_daily_rollover`, and `sku_daily_metric_rollover_stats`. Tables are RLS-enabled with `service_role` SELECT only. RPCs are `security definer` with empty `search_path` and `EXECUTE` for `service_role` only.
 

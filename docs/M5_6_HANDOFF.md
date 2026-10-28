@@ -12,15 +12,16 @@ Resume from this file. Canonical milestone state remains `docs/IMPLEMENTATION_ST
 - M5.6A commit: `b549fe0b78173acc9a5e75e115866a135fbbcf65` (`b549fe0`)
 - M5.5 persistence commit: `6dc4ed249ddc32e278452e8b608c007c0567c01b` (`6dc4ed2`)
 
-Hosted Supabase migration history matches local history up to M5.6B:
+Hosted Supabase migration history (schema):
 
 - `20261015110000`, `20261015120000`, `20261015130000` — M5.5, deployed
 - `20261015140000` — M5.6A, deployed
 - `20261016100000` — M5.6B, deployed
-- `20261018100000` — M5.6C, **local only, not deployed**
-- `20261020100000` — M5.6D, **local only, not deployed**
+- `20261018100000` — M5.6C, **hosted schema deployed**; hosted **one-shot recompute** verified via E.4 Stage 3; HTTP worker still disabled
+- `20261020100000` — M5.6D, **hosted schema deployed**; hosted **org-scoped rollover** exercised in E.4 Stage 4 (M5.6D milestone still **not** closed); HTTP rollover trigger still disabled
+- `20261028100000` — M5.6E.3 org-scoped claim/recover, **hosted schema deployed**; org-scoped consume/claim exercised in canary
 
-No hosted events have been consumed and no hosted metrics have been recalculated by any M5.6 work.
+**Hosted canary verification ≠ production worker enablement.** Workers remain disabled; no scheduler. M5.6E.4 **CLOSED** (Stages 0–4; metrics 0/0/7; Stage 4 ×2; fingerprint `59d7d64dbcc254544f04cdb81ccff699`; final queue `queued` dirty=2 intentional). Isolation: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. Runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`.
 
 ## 2. Milestone state
 
@@ -29,10 +30,13 @@ No hosted events have been consumed and no hosted metrics have been recalculated
 | M0 – M5.5 | Closed |
 | M5.6A source-event capture | Closed; hosted migration deployed |
 | M5.6B recompute-request generation | Closed; hosted migration deployed |
-| M5.6C worker orchestration | **Closed** — local implementation and native local Supabase verification (see section 11). Hosted migration not deployed. Worker disabled. No scheduler. |
-| M5.6D daily rollover | **Implemented locally; native verification recorded in section 10. Not closed.** Hosted migration not deployed. Rollover trigger disabled. No scheduler. |
+| M5.6C worker orchestration | **Closed** locally (see section 11). **Hosted schema deployed.** Hosted one-shot recompute verified (E.4 Stage 3). HTTP worker disabled. No scheduler. |
+| M5.6D daily rollover | **Implemented locally; native verification in section 10. Not closed.** **Hosted schema deployed.** Org-scoped rollover path used in E.4 Stage 4 — does **not** close M5.6D. Rollover HTTP trigger disabled. No scheduler. |
+| M5.6E.3 org-scoped claim/recover | **Hosted schema deployed** (`20261028100000`). Org-scoped consume/claim used in canary. Workers off. See `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. |
+| M5.6E.4 hosted canary | **CLOSED** (hosted canary verification only). See runbook §0 / §8. |
+| M5.7 adversarial verification | **NEXT** |
 
-Deployment and enablement of M5.6C and M5.6D remain separate, explicitly approved steps. Implementation does not authorize hosted migration apply, worker/rollover enablement, scheduling, hosted event consumption, or hosted metric recomputation.
+Worker/rollover HTTP enablement and scheduling remain separate, explicitly approved steps. Do not claim/recompute the E.4 canary grain left `queued` at dirty=2 for closeout. Canonical next: **M5.7**.
 
 ## 3. M5.6A source-event architecture
 
@@ -261,7 +265,7 @@ TypeScript: `lib/persistence/metric-rollover.ts`. Trigger: `POST /api/internal/m
 | M5.5–M5.6C + M5.6D combined | pass after TZ1 correction |
 | typecheck, lint, `git diff --check`, `npm run build` | pass |
 
-Hosted M5.6D migration **not deployed**. Rollover trigger **disabled**. No scheduler. No hosted event consumption or metric recomputation. M5.6D is **not closed**.
+Hosted M5.6D **schema deployed**; E.4 Stage 4 exercised org-scoped rollover on the canary only. Rollover HTTP trigger **disabled**. No scheduler. M5.6D is **not closed**.
 
 Out of scope unless a later milestone opens it: CSV reconciliation changes, purchase-order incoming quantity, inventory position, inventory age, forecasting, decisions, AI, billing, connectors, merchant UI, and store timezone correction as a merchant data product.
 
@@ -282,13 +286,13 @@ Native local stack: Supabase PostgreSQL **17.11**, PostgREST, auth. Database por
 | `git diff --check` | pass |
 | `npm run build` (Turbopack) | pass; `/api/internal/metric-recompute` is a dynamic route |
 
-Still true and unchanged by closeout:
+Still true after closeout, hosted schema deploy, and E.4 Stage 3:
 
-- Hosted M5.6C migration **not deployed**
-- Worker **disabled** (`METRIC_RECOMPUTE_WORKER_ENABLED` not `1`)
+- Hosted M5.6C **schema deployed**; HTTP worker **disabled** (`METRIC_RECOMPUTE_WORKER_ENABLED` not `1`)
 - No scheduler / no `vercel.json`
-- No hosted event consumption
-- No hosted metric recomputation
+- Hosted one-shot canary recompute verified (E.4 Stage 3); do not treat as worker enablement
+- Hosted org-scoped rollover verified on canary (E.4 Stage 4); do not treat as M5.6D close or HTTP rollover enablement
+- M5.6E.4 **CLOSED** (canary only); next = M5.7
 
 ### Earlier shim evidence (historical)
 
@@ -298,17 +302,17 @@ The M5.6C live suite refuses to run if claimable or active requests exist outsid
 
 ## 12. Next steps for Cursor
 
-1. Confirm branch `main` at `7b6187e` (M5.6C docs closeout) plus uncommitted M5.6D implementation, or later commits once M5.6D is reviewed.
-2. Do not deploy M5.6C or M5.6D migrations, enable workers/rollover, configure a scheduler, consume hosted events, or recompute hosted metrics without separate explicit approval.
+1. Confirm branch `main` at `4d219c8` (includes M5.6C/D). Hosted A–D schema is deployed; runtime is not verified.
+2. Do not enable workers/rollover, configure a scheduler, consume hosted events, or recompute hosted metrics without separate explicit approval. Follow `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md` (Option C) before an isolation-proven hosted canary.
 3. Review M5.6D implementation (section 10). Do not mark M5.6D closed without explicit approval after review.
-4. When M5.6C enablement is approved, follow this order:
-   1. Apply the M5.6C migration to hosted.
+4. When M5.6C **runtime** enablement is approved (after isolation-safe canary):
+   1. Confirm Option C (or equivalent org isolation) is deployed if required by the canary plan.
    2. Read `sku_daily_metric_recompute_queue_stats` (read-only) to size the backlog.
    3. Set a secret of at least 32 characters.
    4. Set `METRIC_RECOMPUTE_WORKER_ENABLED=1`.
    5. Trigger manually and inspect the counts.
    6. Only then add a scheduler.
-5. M5.6D hosted enablement is a separate approval after M5.6C enablement policy is clear.
+5. M5.6D hosted **runtime** enablement is a separate approval after M5.6C enablement policy is clear.
 6. Never stage `docs/StoreAgent_Roadmap_2026.docx`, `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx`, `docs/StoreAgent_Roadmap_2026_Connectivity_Update.docx`, or `docs/archive/`.
 
 Live order tests share advisory lock `561606` (`tests/support/orders-live-lock.ts`). Run the M5.5, M5.6A, M5.6B, M5.6C, and M5.6D live files in one Vitest command when verifying the full chain.
