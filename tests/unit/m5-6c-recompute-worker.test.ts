@@ -624,6 +624,63 @@ describe("M5.6C RPC client and executor", () => {
     );
     await expect(queue.complete(CLAIM)).rejects.not.toThrow(/tenant/);
   });
+
+  it("passes optional organization scope to claim and recover RPCs", async () => {
+    const calls: Array<{ fn: string; args: Record<string, unknown> }> = [];
+    const client: MetricRecomputeRpcClient = {
+      rpc(fn, args = {}) {
+        calls.push({ fn, args });
+        const data =
+          fn === "recover_expired_sku_daily_metric_recompute_leases"
+            ? [{ requeued: 0, retry_scheduled: 0, failed: 0 }]
+            : [];
+
+        return {
+          then(onFulfilled, onRejected) {
+            return Promise.resolve({ data, error: null, status: 200 }).then(
+              onFulfilled,
+              onRejected,
+            );
+          },
+        };
+      },
+    };
+    const queue = createMetricRecomputeQueue(client);
+
+    await queue.claim({
+      ownerId: CLAIM.ownerId,
+      limit: 1,
+      leaseSeconds: 120,
+      maxActive: 4,
+      organizationId: CLAIM.organizationId,
+    });
+    await queue.recover(
+      { maxAttempts: 5, baseDelaySeconds: 30, maxDelaySeconds: 1800 },
+      CLAIM.organizationId,
+    );
+    await queue.claim({
+      ownerId: CLAIM.ownerId,
+      limit: 1,
+      leaseSeconds: 120,
+      maxActive: 4,
+    });
+    await queue.recover({
+      maxAttempts: 5,
+      baseDelaySeconds: 30,
+      maxDelaySeconds: 1800,
+    });
+
+    expect(calls[0]).toMatchObject({
+      fn: "claim_sku_daily_metric_recompute_requests",
+      args: { p_organization_id: CLAIM.organizationId },
+    });
+    expect(calls[1]).toMatchObject({
+      fn: "recover_expired_sku_daily_metric_recompute_leases",
+      args: { p_organization_id: CLAIM.organizationId },
+    });
+    expect(calls[2].args.p_organization_id).toBeNull();
+    expect(calls[3].args.p_organization_id).toBeNull();
+  });
 });
 
 describe("M5.6C trigger configuration", () => {

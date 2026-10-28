@@ -86,12 +86,18 @@ export interface MetricRecomputeQueue {
   consume(limit: number): Promise<number>;
   recover(
     retry: MetricRecomputeRetrySettings,
+    organizationId?: string | null,
   ): Promise<MetricRecomputeRecovery>;
   claim(input: {
     ownerId: string;
     limit: number;
     leaseSeconds: number;
     maxActive: number;
+    /**
+     * Optional organization scope (M5.6E.3). Null/omitted keeps the
+     * historical global claim path used by production workers.
+     */
+    organizationId?: string | null;
   }): Promise<ClaimedMetricRecompute[]>;
   start(
     claim: ClaimedMetricRecompute,
@@ -293,7 +299,12 @@ export function createMetricRecomputeQueue(
       return z.number().int().nonnegative().parse(data);
     },
 
-    async recover(retry) {
+    async recover(retry, organizationId = null) {
+      const scopedOrganizationId =
+        organizationId === undefined || organizationId === null
+          ? null
+          : uuid.parse(organizationId);
+
       const data =
         await callRpc(
           client,
@@ -303,6 +314,7 @@ export function createMetricRecomputeQueue(
             p_max_attempts: retry.maxAttempts,
             p_base_delay_seconds: retry.baseDelaySeconds,
             p_max_delay_seconds: retry.maxDelaySeconds,
+            p_organization_id: scopedOrganizationId,
           },
         );
       const [row] =
@@ -318,6 +330,11 @@ export function createMetricRecomputeQueue(
     },
 
     async claim(input) {
+      const scopedOrganizationId =
+        input.organizationId === undefined || input.organizationId === null
+          ? null
+          : uuid.parse(input.organizationId);
+
       const data =
         await callRpc(
           client,
@@ -328,6 +345,7 @@ export function createMetricRecomputeQueue(
             p_limit: input.limit,
             p_lease_seconds: input.leaseSeconds,
             p_max_active: input.maxActive,
+            p_organization_id: scopedOrganizationId,
           },
         );
 

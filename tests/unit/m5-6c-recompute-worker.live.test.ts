@@ -279,11 +279,20 @@ async function consume(organizationId = ORG): Promise<number> {
   );
 }
 
-async function claim(owner: string, limit = 4, maxActive = 4): Promise<ClaimRow[]> {
+async function claim(
+  owner: string,
+  limit = 4,
+  maxActive = 4,
+  organizationId: string | null = null,
+): Promise<ClaimRow[]> {
+  const orgSql =
+    organizationId === null
+      ? "null::uuid"
+      : `${quote(organizationId)}::uuid`;
   const out = await svc(`
     select coalesce(pg_catalog.json_agg(c), '[]'::json)::text
     from public.claim_sku_daily_metric_recompute_requests(
-      ${quote(owner)}, ${limit}, 120, ${maxActive}
+      ${quote(owner)}, ${limit}, 120, ${maxActive}, ${orgSql}
     ) as c
   `);
 
@@ -323,11 +332,20 @@ function fail(
   `);
 }
 
-async function recover(): Promise<{ requeued: number; retry_scheduled: number; failed: number }> {
+async function recover(
+  organizationId: string | null = null,
+): Promise<{ requeued: number; retry_scheduled: number; failed: number }> {
+  const orgSql =
+    organizationId === null
+      ? "null::uuid"
+      : `${quote(organizationId)}::uuid`;
+
   return JSON.parse(
     await svc(`
       select pg_catalog.row_to_json(r)::text
-      from public.recover_expired_sku_daily_metric_recompute_leases(5, 30, 1800) as r
+      from public.recover_expired_sku_daily_metric_recompute_leases(
+        5, 30, 1800, ${orgSql}
+      ) as r
     `),
   );
 }
@@ -932,5 +950,127 @@ describeLive("M5.6C recompute worker", () => {
     expect(counters.running).toBe(1);
     expect(counters.succeeded).toBeGreaterThanOrEqual(1);
     expect(Object.values(counters).every((value) => typeof value === "number")).toBe(true);
+  });
+
+  it("M5.6E.3: org-scoped claim never selects another organization's work", async () => {
+    const today = await day(0);
+    // Older foreign work would win a global claim; scoped claim must skip it.
+    await insertRequest(grainB(today));
+    await psql(`
+      update public.sku_daily_metric_recompute_requests
+      set queued_at = pg_catalog.now() - interval '1 hour'
+      where organization_id = ${quote(ORG_B)}::uuid;
+    `);
+    await insertRequest(grain(0, today));
+
+    const scoped = await claim("scoped-a", 4, 4, ORG);
+    expect(scoped).toHaveLength(1);
+    expect(scoped[0].organization_id).toBe(ORG);
+    expect(scoped[0].variant_id).toBe(VARIANTS[0]);
+    expect(await state(grainB(today))).toBe("queued:1:0:0:0::true");
+
+    const signatures = await psql(`
+      select pg_catalog.string_agg(
+        p.proname || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')',
+        '|' order by p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid)
+      )
+      from pg_catalog.pg_proc p
+      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public'
+        and p.proname in (
+          'claim_sku_daily_metric_recompute_requests',
+          'recover_expired_sku_daily_metric_recompute_leases'
+        )
+    `);
+    expect(signatures).toBe(
+      [
+        "claim_sku_daily_metric_recompute_requests(p_owner_id text, p_limit integer, p_lease_seconds integer, p_max_active integer, p_organization_id uuid)",
+        "recover_expired_sku_daily_metric_recompute_leases(p_max_attempts integer, p_base_delay_seconds integer, p_max_delay_seconds integer, p_organization_id uuid)",
+      ].join("|"),
+    );
+    expect(signatures).not.toContain(
+      "claim_sku_daily_metric_recompute_requests(p_owner_id text, p_limit integer, p_lease_seconds integer, p_max_active integer)",
+    );
+  });
+
+  it("M5.6E.3: org-scoped recovery never changes another organization's expired leases", async () => {
+    const today = await day(0);
+    await insertRequest(grain(0, today));
+    await insertRequest(grainB(today));
+
+    const [rowA, rowB] = await claim("owner-recover", 4, 4);
+    expect(rowA.organization_id).toBe(ORG);
+    expect(rowB.organization_id).toBe(ORG_B);
+    await start(rowA, "owner-recover");
+    await start(rowB, "owner-recover");
+    await expire(grain(0, today));
+    await expire(grainB(today));
+
+    expect(await recover(ORG)).toEqual({
+      requeued: 0,
+      retry_scheduled: 1,
+      failed: 0,
+    });
+    expect(await state(grain(0, today))).toMatch(/^retry_wait:/);
+    expect(await state(grainB(today))).toMatch(/^running:/);
+
+    expect(await recover(null)).toEqual({
+      requeued: 0,
+      retry_scheduled: 1,
+      failed: 0,
+    });
+    expect(await state(grainB(today))).toMatch(/^retry_wait:/);
+  });
+
+  it("M5.6E.3: null organization claim preserves global ordering across orgs", async () => {
+    const today = await day(0);
+    await insertRequest(grainB(today));
+    await psql(`
+      update public.sku_daily_metric_recompute_requests
+      set queued_at = pg_catalog.now() - interval '2 hours'
+      where organization_id = ${quote(ORG_B)}::uuid;
+    `);
+    await insertRequest(grain(0, today));
+
+    const rows = await claim("global-null", 1, 4, null);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].organization_id).toBe(ORG_B);
+  });
+
+  it("M5.6E.3: global four-lease cap still applies under org-scoped claim", async () => {
+    const today = await day(0);
+    for (let n = 0; n < 4; n += 1) {
+      await insertRequest(grain(n, today));
+    }
+    await insertRequest(grainB(today));
+
+    const foreign = await claim("fill-global", 4, 4, ORG);
+    expect(foreign).toHaveLength(4);
+
+    expect(await claim("blocked-b", 4, 4, ORG_B)).toHaveLength(0);
+    expect(await state(grainB(today))).toBe("queued:1:0:0:0::true");
+  });
+
+  it("M5.6E.3: org-scoped claim keeps lease fencing and generation supersession", async () => {
+    const today = await day(0);
+    await insertRequest(grain(0, today), 2);
+    await insertRequest(grainB(today), 9);
+
+    const [row] = await claim("fence-a", 1, 4, ORG);
+    expect(row.organization_id).toBe(ORG);
+    expect(row.claimed_generation).toBe(2);
+    await start(row, "fence-a");
+
+    expect(await complete(row, "fence-a", "not-the-token")).toBe("fenced");
+    expect(await state(grain(0, today))).toMatch(/^running:2:2:0:1::false$/);
+
+    await psql(`
+      update public.sku_daily_metric_recompute_requests
+      set dirty_generation = 5
+      where ${grainWhere(grain(0, today))};
+    `);
+    expect(await complete(row, "fence-a", row.lease_claim_token)).toBe("superseded");
+    expect(await state(grain(0, today))).toBe("queued:5:2:0:0::true");
+    expect(await state(grainB(today))).toBe("queued:9:0:0:0::true");
   });
 });
