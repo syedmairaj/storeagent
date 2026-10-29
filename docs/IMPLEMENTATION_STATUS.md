@@ -22,7 +22,7 @@ M5 — derived SKU metrics — IN PROGRESS
 - M5.6A source-event capture — CLOSED
 - M5.6B recompute-request generation — CLOSED
 - M5.6C worker orchestration — CLOSED locally; HOSTED SCHEMA DEPLOYED; HOSTED ONE-SHOT RECOMPUTE PATH VERIFIED via M5.6E.4 Stage 3 (HTTP workers still DISABLED; no scheduler).
-- M5.6D daily rollover — IMPLEMENTED and locally verified; **NOT CLOSED**. HOSTED SCHEMA DEPLOYED; HOSTED ORG-SCOPED ROLLOVER PATH EXERCISED IN E.4 CANARY Stage 4 (does **not** close M5.6D). ROLLOVER HTTP TRIGGER DISABLED. NO SCHEDULER.
+- M5.6D daily rollover — **CLOSED** for **implementation and native verification** (acceptance D1–D12). HOSTED SCHEMA DEPLOYED (`20261020100000`). E.4 Stage 4 org-scoped rollover ×2 is **supporting hosted evidence**, not full HTTP runtime verification. Hosted multi-store, timezone recovery, and rollover HTTP execution remain **unverified**. ROLLOVER HTTP TRIGGER DISABLED. NO SCHEDULER.
 - M5.6E.3 org-scoped claim/recover — IMPLEMENTED; HOSTED SCHEMA DEPLOYED (`20261028100000`); HOSTED ORG-SCOPED CONSUME/CLAIM USED IN CANARY. WORKERS DISABLED.
 - M5.6E.4 hosted canary — **CLOSED** (hosted canary verification only: Stages 0–4). Metrics 0/0/7; Stage 4 rollover ×2 verified; final canary queue `queued` dirty=2 intentional (no further E.4 recompute); fingerprint `59d7d64dbcc254544f04cdb81ccff699`; workers OFF. See `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md` §0 / §8.
 - M5.7 adversarial verification — **CLOSED** for **local adversarial engineering only** (Phases 1–5B on `main` through `312bd9c`). Hosted F1/T4 migrations (`20261028210000`, `20261028220000`) **APPLIED AND VERIFIED ON HOSTED** (schema/grants only). Hosted worker/runtime verification and production activation remain separate and **unauthorized**. Workers / cron / HTTP metric routes remain DISABLED.
@@ -32,9 +32,9 @@ M6 — Forecasting — NOT STARTED. M6 owns forecasting.
 
 M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
 
-NEXT STEP = M5.6D INDEPENDENT ACCEPTANCE REVIEW AND HOSTED OPERATIONAL-READINESS PLANNING. DO NOT ENABLE WORKERS / CRON / HTTP METRIC ROUTES WITHOUT EXPLICIT APPROVAL. DO NOT MARK M5.6D CLOSED WITHOUT EXPLICIT APPROVAL. DO NOT CLAIM/RECOMPUTE THE E.4 CANARY GRAIN LEFT `queued` AT `dirty_generation=2` AS PART OF M5.7 OR E.4 CLOSEOUT. HOSTED M5.7 F1/T4 SCHEMA DEPLOY DOES **NOT** AUTHORIZE WORKER/RUNTIME ACTIVATION.
+NEXT STEP = HOSTED OPERATIONAL-READINESS PLANNING. DO NOT ENABLE WORKERS / CRON / HTTP METRIC (RECOMPUTE OR ROLLOVER) ROUTES WITHOUT EXPLICIT SEPARATE APPROVAL. DO NOT CLAIM/RECOMPUTE THE E.4 CANARY GRAIN LEFT `queued` AT `dirty_generation=2`. HOSTED M5.7 F1/T4 SCHEMA DEPLOY AND M5.6D IMPLEMENTATION CLOSURE DO **NOT** AUTHORIZE WORKER/RUNTIME ACTIVATION.
 
-M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. M5.6D daily rollover is implemented and verified on native local Supabase PostgreSQL 17 but is **not** closed. M5.7 local adversarial engineering is **closed** (see M5.7 closeout below); that closure is **not** hosted worker/runtime readiness. **Hosted schema:** M5.6A–D, M5.6E.3 (`20261028100000`), and M5.7 F1/T4 (`20261028210000`, `20261028220000`) are deployed and operator-verified on hosted. **Hosted canary runtime:** M5.6E.4 closed — org-scoped consume/claim, one-shot recompute, and frozen-as_of rollover ×2 verified on the canary org; foreign fingerprint unchanged; canary request remains intentionally `queued` at `dirty_generation=2` (`claimed_generation=1`, `applied_generation=1`, `attempt_count=0`, lease fields cleared). **Production worker enablement** and hosted metric-worker runtime verification remain separate and unauthorized. No scheduler. Canary runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`. Isolation decision: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. Handoff: `docs/M5_6_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
+M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. M5.6D daily rollover is **closed** for implementation and native local Supabase PostgreSQL 17 verification (independent acceptance D1–D12). M5.7 local adversarial engineering is **closed** (see M5.7 closeout below); that closure is **not** hosted worker/runtime readiness. **Hosted schema:** M5.6A–D (`20261020100000` for M5.6D), M5.6E.3 (`20261028100000`), and M5.7 F1/T4 (`20261028210000`, `20261028220000`) are deployed and operator-verified on hosted. **Hosted canary runtime:** M5.6E.4 closed — org-scoped consume/claim, one-shot recompute, and frozen-as_of rollover ×2 verified on the canary org (supporting evidence for M5.6D; not full HTTP rollover runtime verification); foreign fingerprint unchanged; canary request remains intentionally `queued` at `dirty_generation=2` (`claimed_generation=1`, `applied_generation=1`, `attempt_count=0`, lease fields cleared). Hosted multi-store, timezone-recovery, and HTTP rollover/recompute execution remain unverified. **Production worker enablement** and hosted metric-worker runtime verification remain separate and unauthorized. No scheduler. Canary runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`. Isolation decision: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. Handoff: `docs/M5_6_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
 
 ### Owners
 
@@ -3330,11 +3330,11 @@ Earlier PostgreSQL 16 role-shim evidence (40 unit / 36 live) is historical and s
 
 Final review before commit found one defect in the migration, and it is fixed. Expired-claim recovery now resets `attempt_count` when `dirty_generation` changed while the row was claimed. Without the fix, a newer generation could inherit an older generation's attempts. A live test covers this case and fails against the unfixed SQL.
 
-### M5.6D local implementation
+### M5.6D daily rollover (implementation closeout)
 
-Status: IMPLEMENTED LOCALLY AND VERIFIED ON NATIVE LOCAL SUPABASE POSTGRESQL 17. **HOSTED SCHEMA DEPLOYED.** Org-scoped rollover exercised in M5.6E.4 canary Stage 4 — **does not close M5.6D**. ROLLOVER HTTP TRIGGER DISABLED. NO SCHEDULER. **NOT CLOSED.**
+Status: **CLOSED** for **implementation and native verification** (independent acceptance D1–D12). Migration `20261020100000` **HOSTED SCHEMA DEPLOYED**. E.4 Stage 4 org-scoped rollover ×2 is **supporting hosted evidence**, not full HTTP runtime verification. Hosted multi-store fairness, timezone fail/recovery paths, and rollover HTTP execution remain **unverified**. ROLLOVER HTTP TRIGGER DISABLED. NO SCHEDULER. Closure does **not** authorize production activation.
 
-Migration: `supabase/migrations/20261020100000_m5_6d_metric_daily_rollover.sql` (hosted schema deployed; runtime unverified).
+Migration: `supabase/migrations/20261020100000_m5_6d_metric_daily_rollover.sql` (hosted schema deployed; HTTP/runtime enablement unverified).
 
 Adds `sku_daily_metric_rollover_runs`, `sku_daily_metric_rollover_enqueues`, `enqueue_sku_daily_metric_daily_rollover`, and `sku_daily_metric_rollover_stats`. Tables are RLS-enabled with `service_role` SELECT only. RPCs are `security definer` with empty `search_path` and `EXECUTE` for `service_role` only.
 
@@ -3350,7 +3350,7 @@ Tests:
 - `tests/unit/m5-6d-metric-rollover-architecture.test.ts`
 - `tests/unit/m5-6d-metric-rollover.live.test.ts`
 
-Native verification evidence:
+Native verification evidence (authoritative for closure):
 
 | Gate | Result |
 |---|---|
@@ -3359,11 +3359,13 @@ Native verification evidence:
 | M5.5–M5.6C + M5.6D combined | pass after TZ1 correction |
 | typecheck, lint, `git diff --check`, `npm run build` | pass |
 
-Invalid `stores.timezone` fails closed with zero enqueues. After the timezone becomes a recognized IANA name, the next rollover enqueue recovers `invalid_iana_timezone` failures automatically (same corrected local date reopens; differing UTC-derived keys leave the failed row and open the corrected date). Unrelated failed reasons are not reopened. Details: `docs/M5_6_HANDOFF.md` section 10. M5.6D must not be labelled closed until explicitly reviewed and approved.
+Hosted supporting evidence: M5.6E.4 Stage 4 ran org-scoped `enqueue_sku_daily_metric_daily_rollover` twice with frozen `as_of` on the canary org (first enroll completed; second idempotent zero enroll). Metrics unchanged by rollover; foreign fingerprint unchanged. Final canary request remains intentionally `queued` at `dirty_generation=2`, `claimed_generation=1`, `applied_generation=1` — do not drain.
+
+Invalid `stores.timezone` fails closed with zero enqueues. After the timezone becomes a recognized IANA name, the next rollover enqueue recovers `invalid_iana_timezone` failures automatically (same corrected local date reopens; differing UTC-derived keys leave the failed row and open the corrected date). Unrelated failed reasons are not reopened. Those TZ behaviors are **locally verified**; hosted TZ paths remain unverified. Details: `docs/M5_6_HANDOFF.md` section 10.
 
 ### M5.7 adversarial verification (local closeout)
 
-Status: **CLOSED** for **local adversarial engineering only**. HEAD at closeout documentation: `312bd9c`. Hosted F1/T4 schema deploy is recorded below; this still does **not** authorize hosted worker/runtime verification or production enablement. Workers / cron / HTTP metric routes remain **DISABLED**. M5.6D remains **NOT CLOSED**. The E.4 canary grain left `queued` at `dirty_generation=2` must **not** be drained as part of this closeout.
+Status: **CLOSED** for **local adversarial engineering only**. HEAD at closeout documentation: `312bd9c`. Hosted F1/T4 schema deploy is recorded below; this still does **not** authorize hosted worker/runtime verification or production enablement. Workers / cron / HTTP metric routes remain **DISABLED**. M5.6D is **CLOSED** for implementation/native verification only (see above); that does **not** authorize rollover HTTP. The E.4 canary grain left `queued` at `dirty_generation=2` must **not** be drained.
 
 Local vs hosted:
 
@@ -3381,4 +3383,4 @@ Phase record:
 | 4 — F2 SHARE decision | **Retain** five-table `LOCK … IN SHARE MODE` on stores/orders/order_items/return_refunds/inventory_snapshots plus SA008 source-token fencing. Do not replace with SERIALIZABLE, row-only locks, or grain advisory locks without an equivalence proof. Contain concurrency operationally. |
 | 5A / 5B — F2 containment | Design then implement single-flight defaults: `maxActive=1`, `claimLimit=1`; optional `METRIC_RECOMPUTE_MAX_ACTIVE` / `METRIC_RECOMPUTE_CLAIM_LIMIT` (integers 1–4, fail-closed). Per-item `executeDurationMs` and tick summary telemetry (not lock-wait). Commit `312bd9c`. Local containment adversarial C1–C7 passed as part of Phase 5B validation. |
 
-Evidence pointers: `docs/M5_6_HANDOFF.md` section 12; tests under `tests/unit/m5-7-*.ts`. Next canonical action: **M5.6D independent acceptance review** and **hosted operational-readiness planning** (separate approvals; not worker activation).
+Evidence pointers: `docs/M5_6_HANDOFF.md` section 12; tests under `tests/unit/m5-7-*.ts`. Next canonical action: **hosted operational-readiness planning** (separate approval; not worker/HTTP/cron activation).
