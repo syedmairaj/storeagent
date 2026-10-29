@@ -49,6 +49,7 @@ describe("StoreAgent forecast architecture", () => {
       "lib/forecasting/orchestrate.ts",
       "lib/forecasting/commerce-facts.ts",
       "lib/forecasting/evidence.ts",
+      "lib/forecasting/evidence-issuance.ts",
     ];
 
     const forbidden = [
@@ -59,6 +60,7 @@ describe("StoreAgent forecast architecture", () => {
       "@google/generative-ai",
       "@shopify",
       "stripe",
+      "supabase",
       "@/lib/decision-engine",
       "@/lib/metrics/sales-aggregates",
       "sales_velocity",
