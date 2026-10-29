@@ -4,6 +4,15 @@ import type {
 } from "@/lib/commerce-domain/types";
 
 import {
+  hasApplicableCoverageEvidence,
+  resolveDayDataComplete,
+  resolvePromotionState,
+  type CommerceDayCoverageEvidence,
+  type CommerceDayEventWatermark,
+  type CommerceDayPromotionEvidence,
+} from "./evidence";
+
+import {
   DEFAULT_FORECAST_LOOKBACK_DAYS_V1,
   type ForecastSkuDemandInput,
 } from "./orchestrate";
@@ -20,6 +29,8 @@ import {
  *
  * Reuses M5.3 sold/return/timezone/grain semantics in-memory.
  * Does not call M5 velocity math, invent lost sales, or touch the DB.
+ * Promotion/completeness come only from optional explicit evidence
+ * (or legacy trustedCompleteDates when no coverage evidence applies).
  */
 
 const SOLD_ORDER_STATUSES = new Set<OrderStatus>([
@@ -77,9 +88,24 @@ export interface BuildForecastSkuDemandInputArgs {
   inventorySnapshots: readonly CommerceForecastInventorySnapshot[];
   /**
    * Store-local dates the caller explicitly marks as fully ingested.
-   * All other days remain dataComplete=false.
+   * Used only when no coverage evidence row targets that day/grain.
+   * Cannot override partial, missing-stream, stale, conflicting, or
+   * untrusted coverage claims for the same day.
    */
   trustedCompleteDates?: readonly string[];
+  /**
+   * Promotion evidence whose trust was verified upstream (see evidence.ts
+   * external verification boundary). Absence → promotionState unknown.
+   * Never inferred from discounts or missing rows.
+   */
+  promotionEvidence?: readonly CommerceDayPromotionEvidence[];
+  /**
+   * Coverage evidence whose trust was verified upstream. Any row targeting
+   * a day/grain selects the coverage resolver for that day (no
+   * trustedCompleteDates fallback). Absence → dataComplete false unless
+   * trustedCompleteDates lists the day.
+   */
+  coverageEvidence?: readonly CommerceDayCoverageEvidence[];
   leadTimeDays?: number | null;
   reviewPeriodDays?: number | null;
 }
@@ -246,8 +272,8 @@ function availabilityFromQuantity(
 
 /**
  * Maps canonical commerce rows into ForecastSkuDemandInput for
- * forecastSkuDemand(). Promotion remains unknown. Completeness is
- * false unless the date is listed in trustedCompleteDates.
+ * forecastSkuDemand(). Promotion/completeness stay fail-closed unless
+ * optional trusted evidence (or legacy trustedCompleteDates) says otherwise.
  */
 export function buildForecastSkuDemandInput(
   input: BuildForecastSkuDemandInputArgs,
@@ -267,12 +293,15 @@ export function buildForecastSkuDemandInput(
     -(lookbackDays - 1),
   );
   const trustedComplete = new Set(input.trustedCompleteDates ?? []);
+  const promotionEvidence = input.promotionEvidence ?? [];
+  const coverageEvidence = input.coverageEvidence ?? [];
 
   for (const date of trustedComplete) {
     assertForecastDate(date, "trustedCompleteDates");
   }
 
   const buckets = emptyBuckets(input.forecastAsOf, lookbackDays);
+  const dayEvents: CommerceDayEventWatermark[] = [];
 
   const orders = new Map(
     canonicalRecords(
@@ -356,6 +385,15 @@ export function buildForecastSkuDemandInput(
     }
 
     bucket.soldUnits += item.quantity;
+    dayEvents.push({
+      organizationId: item.organizationId,
+      storeId: item.storeId,
+      locationId: item.locationId,
+      variantId: item.variantId,
+      localDate: metricDate,
+      observedAt: order.orderedAt,
+      stream: "orders",
+    });
   }
 
   for (const refund of returnRefunds) {
@@ -385,6 +423,15 @@ export function buildForecastSkuDemandInput(
     }
 
     bucket.returnedUnits += refund.returnedQuantity;
+    dayEvents.push({
+      organizationId: refund.organizationId,
+      storeId: refund.storeId,
+      locationId: refund.locationId,
+      variantId: refund.variantId,
+      localDate: metricDate,
+      observedAt: refund.occurredAt,
+      stream: "returns",
+    });
   }
 
   for (const snapshot of inventorySnapshots) {
@@ -439,6 +486,25 @@ export function buildForecastSkuDemandInput(
   for (const [date, bucket] of [...buckets.entries()].sort(
     ([left], [right]) => left.localeCompare(right),
   )) {
+    const promotionState = resolvePromotionState({
+      grain,
+      localDate: date,
+      evidence: promotionEvidence,
+    });
+
+    const dataComplete = hasApplicableCoverageEvidence(
+      grain,
+      date,
+      coverageEvidence,
+    )
+      ? resolveDayDataComplete({
+          grain,
+          localDate: date,
+          evidence: coverageEvidence,
+          dayEvents,
+        })
+      : trustedComplete.has(date);
+
     facts.push({
       organizationId: grain.organizationId,
       storeId: grain.storeId,
@@ -447,8 +513,8 @@ export function buildForecastSkuDemandInput(
       date,
       unitsSold: Math.max(0, bucket.soldUnits - bucket.returnedUnits),
       availability: availabilityFromQuantity(bucket.availableQuantity),
-      promotionState: "unknown",
-      dataComplete: trustedComplete.has(date),
+      promotionState,
+      dataComplete,
     });
   }
 

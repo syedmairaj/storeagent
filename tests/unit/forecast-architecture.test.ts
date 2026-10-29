@@ -48,6 +48,7 @@ describe("StoreAgent forecast architecture", () => {
       "lib/forecasting/series.ts",
       "lib/forecasting/orchestrate.ts",
       "lib/forecasting/commerce-facts.ts",
+      "lib/forecasting/evidence.ts",
     ];
 
     const forbidden = [
