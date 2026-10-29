@@ -96,6 +96,21 @@ describe("M5.6C recompute worker architecture", () => {
     expect(QUEUE).toContain('=== "1"');
   });
 
+  it("wires F2 containment concurrency from env into the tick", () => {
+    expect(WORKER).toMatch(/maxActive:\s*1/);
+    expect(WORKER).toMatch(/claimLimit:\s*1/);
+    expect(QUEUE).toContain("METRIC_RECOMPUTE_MAX_ACTIVE");
+    expect(QUEUE).toContain("METRIC_RECOMPUTE_CLAIM_LIMIT");
+    expect(QUEUE).toContain("MetricRecomputeWorkerConfigError");
+    expect(ROUTE).toContain("maxActive: config.maxActive");
+    expect(ROUTE).toContain("claimLimit: config.claimLimit");
+    expect(ROUTE).toContain("worker_misconfigured");
+    expect(ROUTE).toContain('eventType: "tick_summary"');
+    expect(ROUTE).toContain("activeLeases");
+    expect(ROUTE).not.toContain("claimToken");
+    expect(ROUTE).not.toContain("lease_claim_token");
+  });
+
   it("does not configure a scheduler", () => {
     expect(fs.existsSync(path.join(ROOT, "vercel.json"))).toBe(false);
   });

@@ -10,6 +10,7 @@ import {
   createMetricRecomputeQueue,
   createSkuDailyMetricRecomputeExecutor,
   isAuthorizedMetricRecomputeRequest,
+  MetricRecomputeWorkerConfigError,
   readMetricRecomputeWorkerConfig,
   type ClaimedMetricRecompute,
   type MetricRecomputeCompletion,
@@ -259,10 +260,10 @@ describe("M5.6C migration contract", () => {
 });
 
 describe("M5.6C worker settings", () => {
-  it("uses the approved bounds", () => {
+  it("uses the approved F2 containment bounds", () => {
     expect(METRIC_RECOMPUTE_WORKER_SETTINGS).toMatchObject({
-      maxActive: 4,
-      claimLimit: 4,
+      maxActive: 1,
+      claimLimit: 1,
       leaseSeconds: 120,
       itemDeadlineMs: 40_000,
       tickBudgetMs: 45_000,
@@ -329,6 +330,10 @@ describe("M5.6C tick orchestration", () => {
       "job_started",
       "job_succeeded",
     ]);
+    expect(events[0].executeDurationMs).toBeNull();
+    expect(events[1].executeDurationMs).toBeNull();
+    expect(events[2].executeDurationMs).toEqual(expect.any(Number));
+    expect(events[2].executeDurationMs).toBeGreaterThanOrEqual(0);
   });
 
   it("does not recompute when start is fenced", async () => {
@@ -730,6 +735,8 @@ describe("M5.6C trigger configuration", () => {
     expect(readMetricRecomputeWorkerConfig({})).toEqual({
       enabled: false,
       secret: null,
+      maxActive: 1,
+      claimLimit: 1,
     });
     expect(
       readMetricRecomputeWorkerConfig({
@@ -742,7 +749,42 @@ describe("M5.6C trigger configuration", () => {
         METRIC_RECOMPUTE_WORKER_ENABLED: "1",
         METRIC_RECOMPUTE_WORKER_SECRET: "short",
       }),
-    ).toEqual({ enabled: true, secret: null });
+    ).toEqual({
+      enabled: true,
+      secret: null,
+      maxActive: 1,
+      claimLimit: 1,
+    });
+  });
+
+  it("defaults concurrency to 1/1 and accepts explicit 1-4 values", () => {
+    expect(
+      readMetricRecomputeWorkerConfig({
+        METRIC_RECOMPUTE_MAX_ACTIVE: "3",
+        METRIC_RECOMPUTE_CLAIM_LIMIT: "2",
+      }),
+    ).toMatchObject({ maxActive: 3, claimLimit: 2 });
+    expect(
+      readMetricRecomputeWorkerConfig({
+        METRIC_RECOMPUTE_MAX_ACTIVE: "4",
+        METRIC_RECOMPUTE_CLAIM_LIMIT: "4",
+      }),
+    ).toMatchObject({ maxActive: 4, claimLimit: 4 });
+  });
+
+  it("fails closed on malformed concurrency env without falling back to 4", () => {
+    for (const bad of ["0", "5", "-1", "1.5", "01", " 1", "abc", "true"]) {
+      expect(() =>
+        readMetricRecomputeWorkerConfig({
+          METRIC_RECOMPUTE_MAX_ACTIVE: bad,
+        }),
+      ).toThrow(MetricRecomputeWorkerConfigError);
+      expect(() =>
+        readMetricRecomputeWorkerConfig({
+          METRIC_RECOMPUTE_CLAIM_LIMIT: bad,
+        }),
+      ).toThrow(MetricRecomputeWorkerConfigError);
+    }
   });
 
   it("accepts only the exact bearer secret", () => {

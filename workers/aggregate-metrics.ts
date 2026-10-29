@@ -61,11 +61,17 @@ export interface MetricRecomputeWorkerSettings {
   maxConsumeBatches: number;
 }
 
+/**
+ * M5.7 Phase 5B F2 containment defaults: single-flight commits.
+ * Optional env overrides (METRIC_RECOMPUTE_MAX_ACTIVE /
+ * METRIC_RECOMPUTE_CLAIM_LIMIT) are resolved by
+ * readMetricRecomputeWorkerConfig; absent env keeps these 1/1 values.
+ */
 export const METRIC_RECOMPUTE_WORKER_SETTINGS:
   Readonly<MetricRecomputeWorkerSettings> =
     Object.freeze({
-      maxActive: 4,
-      claimLimit: 4,
+      maxActive: 1,
+      claimLimit: 1,
       leaseSeconds: 120,
       itemDeadlineMs: 40_000,
       tickBudgetMs: 45_000,
@@ -238,6 +244,7 @@ export async function runMetricRecomputeTick(
     attemptCount: number | null,
     code: string | null,
     message: string | null,
+    executeDurationMs: number | null = null,
   ): void => {
     deps.emit(
       buildWorkerTelemetryEvent({
@@ -256,6 +263,7 @@ export async function runMetricRecomputeTick(
         code,
         message,
         occurredAt: new Date(deps.now()).toISOString(),
+        executeDurationMs,
       }),
     );
   };
@@ -336,11 +344,15 @@ export async function runMetricRecomputeTick(
     result.started += 1;
     emit("info", "job_started", claim, started.attemptCount, null, null);
 
+    const executeStartedAt =
+      deps.now();
     const outcome =
       await deps.execute(
         claim,
         settings.itemDeadlineMs,
       );
+    const executeDurationMs =
+      Math.max(0, deps.now() - executeStartedAt);
 
     if (outcome.ok) {
       const completion =
@@ -349,22 +361,54 @@ export async function runMetricRecomputeTick(
       switch (completion) {
         case "succeeded":
           result.succeeded += 1;
-          emit("info", "job_succeeded", claim, started.attemptCount, null, null);
+          emit(
+            "info",
+            "job_succeeded",
+            claim,
+            started.attemptCount,
+            null,
+            null,
+            executeDurationMs,
+          );
           return;
 
         case "superseded":
           result.superseded += 1;
-          emit("info", "job_cancelled", claim, started.attemptCount, "GENERATION_SUPERSEDED", "newer generation queued");
+          emit(
+            "info",
+            "job_cancelled",
+            claim,
+            started.attemptCount,
+            "GENERATION_SUPERSEDED",
+            "newer generation queued",
+            executeDurationMs,
+          );
           return;
 
         case "deferred":
           result.deferred += 1;
-          emit("info", "job_retry_scheduled", claim, started.attemptCount, "UNCONSUMED_SOURCE_EVENT", "relevant source event not yet consumed");
+          emit(
+            "info",
+            "job_retry_scheduled",
+            claim,
+            started.attemptCount,
+            "UNCONSUMED_SOURCE_EVENT",
+            "relevant source event not yet consumed",
+            executeDurationMs,
+          );
           return;
 
         case "fenced":
           result.fenced += 1;
-          emit("warn", "lease_expired", claim, started.attemptCount, "LEASE_FENCED", "completion was fenced");
+          emit(
+            "warn",
+            "lease_expired",
+            claim,
+            started.attemptCount,
+            "LEASE_FENCED",
+            "completion was fenced",
+            executeDurationMs,
+          );
           return;
       }
     }
@@ -385,22 +429,54 @@ export async function runMetricRecomputeTick(
     switch (failureOutcome) {
       case "retry_scheduled":
         result.retryScheduled += 1;
-        emit("warn", "job_retry_scheduled", claim, started.attemptCount, outcome.failure.code, outcome.failure.message);
+        emit(
+          "warn",
+          "job_retry_scheduled",
+          claim,
+          started.attemptCount,
+          outcome.failure.code,
+          outcome.failure.message,
+          executeDurationMs,
+        );
         return;
 
       case "failed":
         result.failed += 1;
-        emit("error", "job_failed", claim, started.attemptCount, outcome.failure.code, outcome.failure.message);
+        emit(
+          "error",
+          "job_failed",
+          claim,
+          started.attemptCount,
+          outcome.failure.code,
+          outcome.failure.message,
+          executeDurationMs,
+        );
         return;
 
       case "superseded":
         result.superseded += 1;
-        emit("info", "job_cancelled", claim, started.attemptCount, "GENERATION_SUPERSEDED", "newer generation queued");
+        emit(
+          "info",
+          "job_cancelled",
+          claim,
+          started.attemptCount,
+          "GENERATION_SUPERSEDED",
+          "newer generation queued",
+          executeDurationMs,
+        );
         return;
 
       case "fenced":
         result.fenced += 1;
-        emit("warn", "lease_expired", claim, started.attemptCount, "LEASE_FENCED", "failure report was fenced");
+        emit(
+          "warn",
+          "lease_expired",
+          claim,
+          started.attemptCount,
+          "LEASE_FENCED",
+          "failure report was fenced",
+          executeDurationMs,
+        );
         return;
     }
   };

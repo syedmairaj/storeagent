@@ -257,6 +257,8 @@ describe("worker observability contract", () => {
 
       occurredAt:
         "2026-10-08T07:00:00Z",
+
+      executeDurationMs: null,
     });
   });
 

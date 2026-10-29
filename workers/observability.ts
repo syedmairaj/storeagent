@@ -138,6 +138,30 @@ export interface BuildWorkerTelemetryEventInput {
   message: string | null;
 
   occurredAt: string;
+
+  /**
+   * End-to-end executor wall time only. Not lock-wait duration.
+   */
+  executeDurationMs?: number | null;
+}
+
+function normalizeExecuteDurationMs(
+  value: number | null | undefined,
+): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (
+    !Number.isSafeInteger(value) ||
+    value < 0
+  ) {
+    throw new Error(
+      "Worker telemetry executeDurationMs must be a non-negative safe integer.",
+    );
+  }
+
+  return value;
 }
 
 export function buildWorkerTelemetryEvent(
@@ -170,6 +194,11 @@ export function buildWorkerTelemetryEvent(
     occurredAt:
       requireUtcTimestamp(
         input.occurredAt,
+      ),
+
+    executeDurationMs:
+      normalizeExecuteDurationMs(
+        input.executeDurationMs,
       ),
   };
 }

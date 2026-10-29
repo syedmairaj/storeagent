@@ -381,4 +381,11 @@ export interface WorkerTelemetryEvent {
    * Explicit UTC execution timestamp.
    */
   occurredAt: string;
+
+  /**
+   * End-to-end item execution time in milliseconds (start of executor
+   * call through its return). Not lock-wait duration. Null when the
+   * event is not tied to a completed executor call.
+   */
+  executeDurationMs: number | null;
 }

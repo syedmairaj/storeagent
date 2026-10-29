@@ -576,12 +576,52 @@ export function createSkuDailyMetricRecomputeExecutor(
  * Worker trigger configuration. Disabled unless explicitly enabled with
  * "1". A secret shorter than 32 characters counts as absent, so the
  * trigger fails closed.
+ *
+ * M5.7 Phase 5B F2 containment: maxActive and claimLimit default to 1.
+ * Optional METRIC_RECOMPUTE_MAX_ACTIVE / METRIC_RECOMPUTE_CLAIM_LIMIT
+ * must be exact integers in 1..4 when set. Malformed values throw;
+ * they never silently fall back to higher concurrency.
  */
 export const METRIC_RECOMPUTE_WORKER_MIN_SECRET_LENGTH = 32;
+
+export const METRIC_RECOMPUTE_DEFAULT_MAX_ACTIVE = 1;
+export const METRIC_RECOMPUTE_DEFAULT_CLAIM_LIMIT = 1;
+
+export class MetricRecomputeWorkerConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MetricRecomputeWorkerConfigError";
+  }
+}
 
 export interface MetricRecomputeWorkerConfig {
   enabled: boolean;
   secret: string | null;
+  maxActive: number;
+  claimLimit: number;
+}
+
+/**
+ * Parse an optional concurrency bound. Absent / empty → default.
+ * Present values must match /^[1-4]$/ exactly (no whitespace, signs,
+ * decimals, or leading zeros).
+ */
+export function parseMetricRecomputeConcurrencyBound(
+  raw: string | undefined,
+  field: string,
+  fallback: number,
+): number {
+  if (raw === undefined || raw === "") {
+    return fallback;
+  }
+
+  if (!/^[1-4]$/.test(raw)) {
+    throw new MetricRecomputeWorkerConfigError(
+      `Metric recompute ${field} must be an integer from 1 to 4.`,
+    );
+  }
+
+  return Number(raw);
 }
 
 export function readMetricRecomputeWorkerConfig(
@@ -597,6 +637,18 @@ export function readMetricRecomputeWorkerConfig(
       secret.length >= METRIC_RECOMPUTE_WORKER_MIN_SECRET_LENGTH
         ? secret
         : null,
+    maxActive:
+      parseMetricRecomputeConcurrencyBound(
+        env.METRIC_RECOMPUTE_MAX_ACTIVE,
+        "maxActive",
+        METRIC_RECOMPUTE_DEFAULT_MAX_ACTIVE,
+      ),
+    claimLimit:
+      parseMetricRecomputeConcurrencyBound(
+        env.METRIC_RECOMPUTE_CLAIM_LIMIT,
+        "claimLimit",
+        METRIC_RECOMPUTE_DEFAULT_CLAIM_LIMIT,
+      ),
   };
 }
 
