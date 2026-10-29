@@ -47,6 +47,7 @@ describe("StoreAgent forecast architecture", () => {
       "lib/forecasting/reproducibility.ts",
       "lib/forecasting/series.ts",
       "lib/forecasting/orchestrate.ts",
+      "lib/forecasting/commerce-facts.ts",
     ];
 
     const forbidden = [
@@ -59,6 +60,8 @@ describe("StoreAgent forecast architecture", () => {
       "stripe",
       "@/lib/decision-engine",
       "@/lib/metrics/sales-aggregates",
+      "sales_velocity",
+      "calculateSalesVelocity",
     ];
 
     for (const file of files) {
