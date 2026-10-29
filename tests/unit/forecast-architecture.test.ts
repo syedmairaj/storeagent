@@ -45,6 +45,8 @@ describe("StoreAgent forecast architecture", () => {
       "lib/forecasting/horizons.ts",
       "lib/forecasting/backtesting.ts",
       "lib/forecasting/reproducibility.ts",
+      "lib/forecasting/series.ts",
+      "lib/forecasting/orchestrate.ts",
     ];
 
     const forbidden = [
@@ -55,6 +57,8 @@ describe("StoreAgent forecast architecture", () => {
       "@google/generative-ai",
       "@shopify",
       "stripe",
+      "@/lib/decision-engine",
+      "@/lib/metrics/sales-aggregates",
     ];
 
     for (const file of files) {
