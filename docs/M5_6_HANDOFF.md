@@ -20,6 +20,8 @@ Hosted Supabase migration history (schema):
 - `20261018100000` — M5.6C, **hosted schema deployed**; hosted **one-shot recompute** verified via E.4 Stage 3; HTTP worker still disabled
 - `20261020100000` — M5.6D, **hosted schema deployed**; hosted **org-scoped rollover** exercised in E.4 Stage 4 (M5.6D milestone still **not** closed); HTTP rollover trigger still disabled
 - `20261028100000` — M5.6E.3 org-scoped claim/recover, **hosted schema deployed**; org-scoped consume/claim exercised in canary
+- `20261028210000` — M5.7 F1 deferred-attempt reset — **APPLIED AND VERIFIED ON HOSTED** (schema/grants; not worker enablement)
+- `20261028220000` — M5.7 T4 busy-grain claim exclusion — **APPLIED AND VERIFIED ON HOSTED** (schema/grants; not worker enablement)
 
 **Hosted canary verification ≠ production worker enablement.** Workers remain disabled; no scheduler. M5.6E.4 **CLOSED** (Stages 0–4; metrics 0/0/7; Stage 4 ×2; fingerprint `59d7d64dbcc254544f04cdb81ccff699`; final queue `queued` dirty=2 intentional). Isolation: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. Runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`.
 
@@ -34,9 +36,9 @@ Hosted Supabase migration history (schema):
 | M5.6D daily rollover | **Implemented locally; native verification in section 10. Not closed.** **Hosted schema deployed.** Org-scoped rollover path used in E.4 Stage 4 — does **not** close M5.6D. Rollover HTTP trigger disabled. No scheduler. |
 | M5.6E.3 org-scoped claim/recover | **Hosted schema deployed** (`20261028100000`). Org-scoped consume/claim used in canary. Workers off. See `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. |
 | M5.6E.4 hosted canary | **CLOSED** (hosted canary verification only). See runbook §0 / §8. |
-| M5.7 adversarial verification | **NEXT** |
+| M5.7 adversarial verification | **CLOSED** for **local adversarial engineering only** (section 12). Hosted F1/T4 schema **APPLIED AND VERIFIED**. Hosted worker/runtime activation **not** authorized. |
 
-Worker/rollover HTTP enablement and scheduling remain separate, explicitly approved steps. Do not claim/recompute the E.4 canary grain left `queued` at dirty=2 for closeout. Canonical next: **M5.7**.
+Worker/rollover HTTP enablement and scheduling remain separate, explicitly approved steps. Do not claim/recompute the E.4 canary grain left `queued` at dirty=2 as part of M5.7 or E.4 closeout. Canonical next: **M5.6D independent acceptance review** and **hosted operational-readiness planning**.
 
 ## 3. M5.6A source-event architecture
 
@@ -292,7 +294,8 @@ Still true after closeout, hosted schema deploy, and E.4 Stage 3:
 - No scheduler / no `vercel.json`
 - Hosted one-shot canary recompute verified (E.4 Stage 3); do not treat as worker enablement
 - Hosted org-scoped rollover verified on canary (E.4 Stage 4); do not treat as M5.6D close or HTTP rollover enablement
-- M5.6E.4 **CLOSED** (canary only); next = M5.7
+- M5.6E.4 **CLOSED** (canary only)
+- M5.7 **CLOSED** locally only (section 12); hosted F1/T4 schema applied and verified; workers still disabled
 
 ### Earlier shim evidence (historical)
 
@@ -300,19 +303,58 @@ Before native verification, an implementing environment ran the same suites agai
 
 The M5.6C live suite refuses to run if claimable or active requests exist outside its own test tenants, because claims are global.
 
-## 12. Next steps for Cursor
+## 12. M5.7 adversarial verification (CLOSED — local engineering only)
 
-1. Confirm branch `main` at `4d219c8` (includes M5.6C/D). Hosted A–D schema is deployed; runtime is not verified.
-2. Do not enable workers/rollover, configure a scheduler, consume hosted events, or recompute hosted metrics without separate explicit approval. Follow `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md` (Option C) before an isolation-proven hosted canary.
-3. Review M5.6D implementation (section 10). Do not mark M5.6D closed without explicit approval after review.
-4. When M5.6C **runtime** enablement is approved (after isolation-safe canary):
-   1. Confirm Option C (or equivalent org isolation) is deployed if required by the canary plan.
-   2. Read `sku_daily_metric_recompute_queue_stats` (read-only) to size the backlog.
-   3. Set a secret of at least 32 characters.
-   4. Set `METRIC_RECOMPUTE_WORKER_ENABLED=1`.
-   5. Trigger manually and inspect the counts.
-   6. Only then add a scheduler.
-5. M5.6D hosted **runtime** enablement is a separate approval after M5.6C enablement policy is clear.
-6. Never stage `docs/StoreAgent_Roadmap_2026.docx`, `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx`, `docs/StoreAgent_Roadmap_2026_Connectivity_Update.docx`, or `docs/archive/`.
+Baseline at local closeout: `main` @ `312bd9c`.
+
+**Scope closed:** local adversarial architecture audit, corrective migrations on local PostgreSQL 17, concurrency/containment tests, and single-flight worker defaults in application code on `main`.
+
+**Scope not closed / not authorized by this section:** hosted worker or rollover HTTP enablement, hosted metric-worker runtime verification, cron/scheduler, draining the E.4 canary `queued` dirty=2 request, or marking M5.6D closed. Hosted F1/T4 **schema** deploy is recorded below and does **not** authorize those runtime steps.
+
+### Local vs hosted
+
+| Layer | State |
+|---|---|
+| Local adversarial engineering (Phases 1–5B) | **Closed** |
+| Hosted schema through M5.6E.3 (`20261028100000`) | Deployed (prior operator verification) |
+| Hosted M5.7 F1 (`20261028210000`) | **APPLIED AND VERIFIED ON HOSTED** |
+| Hosted M5.7 T4 (`20261028220000`) | **APPLIED AND VERIFIED ON HOSTED** |
+| Hosted F1/T4 grant/definer checks | Both claim/complete paths `SECURITY DEFINER=true`, `search_path=""`; `service_role` EXECUTE only; `anon` / `authenticated` / `PUBLIC` denied |
+| Workers / cron / HTTP metric routes | **DISABLED** |
+| Hosted worker/runtime activation | **Unauthorized** (separate from schema deploy) |
+| M5.6D milestone | **NOT CLOSED** |
+| E.4 canary final queue | Intentionally `queued` at `dirty_generation=2`, `claimed_generation=1`, `applied_generation=1`, `attempt_count=0`, lease fields cleared; do not drain for this closeout |
+
+### Phase outcomes
+
+1. **Phase 1 — Architecture audit.** READ-ONLY review of M5.6 recompute/rollover claim, lease fencing, generation rules, and commit locking. High findings: F1 deferred completions burned `attempt_count`; F2 table SHARE holds create cross-tenant writer lock-wait risk; Medium: T4 busy-grain claim starvation under `LIMIT 500`.
+
+2. **Phase 2 — F1 deferred-attempt correction.** Migration `supabase/migrations/20261028210000_m5_7_deferred_completion_attempt_reset.sql` sets `attempt_count = 0` on deferred completion after fencing/supersession checks. Commit `a23d37f`.
+
+3. **Phase 3 / 3B — Adversarial concurrency and T4 fix.** Live tests cover busy-grain exclusion, SHARE contention observation (`55P03`), SA008 stale-token fencing, and related isolation cases. Migration `supabase/migrations/20261028220000_m5_7_claim_busy_grain_exclusion.sql` excludes busy grains before the claim `LIMIT`. Commit `5db70f7`.
+
+4. **Phase 4 — F2 SHARE decision.** **Keep** the existing five-table SHARE locks plus SA008 source-token revalidation. Do not replace with SERIALIZABLE, row-only locks, or grain advisory locks without an equivalence proof. Prefer bounded execution/observability (Phase 5).
+
+5. **Phase 5A / 5B — Single-flight containment.** Defaults `maxActive=1` and `claimLimit=1` in `METRIC_RECOMPUTE_WORKER_SETTINGS`; optional env `METRIC_RECOMPUTE_MAX_ACTIVE` / `METRIC_RECOMPUTE_CLAIM_LIMIT` accept only integers `1`–`4` and fail closed. HTTP route wires those settings; activation gates unchanged. Commit `312bd9c`. Local Phase 5B validation included containment adversarial tests C1–C7 plus related M5.6/M5.7 regression (122 reported tests), TypeScript, ESLint, and `git diff --check`.
+
+Tests (local): `tests/unit/m5-7-deferred-attempt-reset-architecture.test.ts`, `tests/unit/m5-7-claim-busy-grain-exclusion-architecture.test.ts`, `tests/unit/m5-7-adversarial-concurrency.live.test.ts`, `tests/unit/m5-7-f2-containment-architecture.test.ts`, `tests/unit/m5-7-f2-containment.live.test.ts`.
+
+## 13. Next steps for Cursor
+
+1. Confirm branch `main` at `312bd9c` (includes M5.7 local closeout commits through Phase 5B). Hosted M5.7 F1/T4 schema is applied and verified; that is not runtime enablement.
+2. Do not enable workers/rollover, configure a scheduler, consume hosted events, or recompute hosted metrics without separate explicit approval.
+3. **Next:** M5.6D independent acceptance review (section 10). Do not mark M5.6D closed without explicit approval after review.
+4. In parallel or after M5.6D review: hosted operational-readiness planning (containment defaults, secrets, kill switch, backlog sizing) — still not authorization to enable HTTP.
+5. When M5.6C **runtime** enablement is later approved (separate from this closeout):
+   1. Reconfirm hosted F1/T4 remain applied.
+   2. Confirm containment defaults (`maxActive=1` / `claimLimit=1`) or approved env overrides.
+   3. Read `sku_daily_metric_recompute_queue_stats` (read-only) to size the backlog.
+   4. Set a secret of at least 32 characters.
+   5. Set `METRIC_RECOMPUTE_WORKER_ENABLED=1` only under explicit approval.
+   6. Trigger manually and inspect the counts.
+   7. Only then consider a scheduler under further approval.
+6. M5.6D hosted **runtime** enablement remains a separate approval after recompute enablement policy is clear.
+7. Do not drain the E.4 canary grain left `queued` at `dirty_generation=2` as closeout work.
+8. Never stage `docs/StoreAgent_Roadmap_2026.docx`, `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx`, `docs/StoreAgent_Roadmap_2026_Connectivity_Update.docx`, or `docs/archive/`.
 
 Live order tests share advisory lock `561606` (`tests/support/orders-live-lock.ts`). Run the M5.5, M5.6A, M5.6B, M5.6C, and M5.6D live files in one Vitest command when verifying the full chain.
