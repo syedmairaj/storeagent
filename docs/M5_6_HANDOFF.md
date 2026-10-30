@@ -1,11 +1,20 @@
 # M5.6 development handoff
 
-Resume from this file. Canonical milestone state remains `docs/IMPLEMENTATION_STATUS.md`.
+Resume M5.6/M5.7 metric-worker detail from this file. Canonical milestone state: `docs/IMPLEMENTATION_STATUS.md`. New-session bootstrap: `docs/PROJECT_HANDOFF.md`.
+
+## Current program (read first)
+
+- Engineering HEAD: `main` @ `6136874` (M6 P4d). M6 hosted **schema readiness CLOSED** through `20261030200000`. Production forecast operation remains **NOT APPROVED**.
+- M5.6D is **CLOSED** for implementation/native verification; M5.7 is **CLOSED** for local adversarial engineering. Hosted M5 worker/rollover HTTP remain **OFF** by repo configuration (live host env not verified).
+- E.4 canary final queue remains intentionally `queued` at `dirty_generation=2`, `claimed_generation=1` — do not drain (untouched by M6 schema deploy).
+- M6 forecast migrations `20261030100000`, `20261030110000`, `20261030120000`–`20261030160000`, and `20261030200000` are **hosted applied and verified**. Schema ≠ production forecast activation.
 
 ## 1. Baseline
 
 - Repository: StoreAgent.si
 - Branch: `main`
+- Program HEAD (M6 P4d + hosted schema closeout): `6136874da8a99772e93b9913db8938f363063183` (`6136874`)
+- M5.7 local closeout commit: `312bd9c`
 - M5.6C commit: `5cc0e6fd21f87a8975c1cec91aa76e6b6c85d4b8` (`5cc0e6f`)
 - Last commit before M5.6C: `8c2af57fdda45a4dad67548ba4fad1f664b2d687` (`docs: sync M5.6A-B closeout and M5.6C handoff`)
 - M5.6B commit: `118d9b511070d3f690d1852478230cb61b6d2527` (`118d9b5`)
@@ -22,8 +31,14 @@ Hosted Supabase migration history (schema):
 - `20261028100000` — M5.6E.3 org-scoped claim/recover, **hosted schema deployed**; org-scoped consume/claim exercised in canary
 - `20261028210000` — M5.7 F1 deferred-attempt reset — **APPLIED AND VERIFIED ON HOSTED** (schema/grants; not worker enablement)
 - `20261028220000` — M5.7 T4 busy-grain claim exclusion — **APPLIED AND VERIFIED ON HOSTED** (schema/grants; not worker enablement)
+- `20261030100000`, `20261030110000` — M6 evidence schema/RPCs, **hosted applied and verified**
+- `20261030120000` — M6 correction outbox + 7 commerce triggers, **hosted applied and verified** (pending=0 at closeout)
+- `20261030130000` — M6 sku-demand source snapshot RPC, **hosted applied and verified**
+- `20261030140000` — M6 forecast persistence foundation, **hosted applied and verified** (row counts 0 at closeout)
+- `20261030150000`, `20261030160000` — M6 publication + fresh reader, **hosted applied and verified** (`sku_forecast_current` pointers=0)
+- `20261030200000` — M6 evaluation persistence, **hosted applied and verified** (eval row counts 0; trust flags hard-false)
 
-**Hosted canary verification ≠ production worker enablement.** Workers remain disabled; no scheduler. M5.6E.4 **CLOSED** (Stages 0–4; metrics 0/0/7; Stage 4 ×2; fingerprint `59d7d64dbcc254544f04cdb81ccff699`; final queue `queued` dirty=2 intentional). Isolation: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. Runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`.
+**Hosted canary verification ≠ production worker enablement.** Workers remain disabled by repo configuration; no scheduler; live hosting env not verified at M6 schema closeout. M5.6E.4 **CLOSED** (Stages 0–4; metrics 0/0/7; Stage 4 ×2; fingerprint `59d7d64dbcc254544f04cdb81ccff699`; final queue `queued` dirty=2 claimed=1 intentional). Isolation: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. Runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`.
 
 ## 2. Milestone state
 
@@ -37,9 +52,9 @@ Hosted Supabase migration history (schema):
 | M5.6E.3 org-scoped claim/recover | **Hosted schema deployed** (`20261028100000`). Org-scoped consume/claim used in canary. Workers off. See `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. |
 | M5.6E.4 hosted canary | **CLOSED** (hosted canary verification only). See runbook §0 / §8. |
 | M5.7 adversarial verification | **CLOSED** for **local adversarial engineering only** (section 12). Hosted F1/T4 schema **APPLIED AND VERIFIED**. Hosted worker/runtime activation **not** authorized. |
+| M6 forecasting (through P4d) | Local P1–P4d on `main` @ `6136874`. **Hosted schema readiness CLOSED** through `20261030200000`. Production forecast operation **NOT APPROVED**. Detail in `docs/IMPLEMENTATION_STATUS.md` and `docs/PROJECT_HANDOFF.md`. |
 
-Worker/rollover HTTP enablement and scheduling remain separate, explicitly approved steps. Do not claim/recompute the E.4 canary grain left `queued` at dirty=2. Canonical next: **hosted operational-readiness planning** (activation separately approved).
-
+Worker/rollover HTTP enablement and scheduling remain separate, explicitly approved steps. Do not claim/recompute the E.4 canary grain left `queued` at dirty=2 / claimed=1. **Engineering next:** no production forecast activation without a new approval; optional P1 live host-env verification / trigger EXECUTE defense-in-depth. **M5 activation next (separate approval):** hosted operational-readiness planning — still not authorization to enable HTTP.
 ## 3. M5.6A source-event architecture
 
 A committed source change inserts one row in `public.sku_daily_metric_source_events` per affected grain and store-local date. The grain is organization, store, location, variant, `source_date`, and algorithm version `m5-derived-metrics-v1`.
@@ -346,10 +361,11 @@ Tests (local): `tests/unit/m5-7-deferred-attempt-reset-architecture.test.ts`, `t
 
 ## 13. Next steps for Cursor
 
-1. Confirm branch `main` includes M5.7 local closeout (`312bd9c`+) and this M5.6D documentation closeout. Hosted M5.7 F1/T4 and M5.6D schema are applied and verified; that is not runtime enablement.
+1. Prefer `docs/PROJECT_HANDOFF.md` for new ChatGPT/Cursor sessions. Confirm `main` includes M6 through P4d (`6136874`) and M5.7 local closeout (`312bd9c`+). Hosted M5.7 F1/T4, M5.6D, and M6 forecast schema through `20261030200000` are applied and verified; that is **not** runtime/forecast-operation enablement.
 2. Do not enable workers/rollover, configure a scheduler, consume hosted events, or recompute hosted metrics without separate explicit approval.
-3. **Next:** hosted operational-readiness planning (containment defaults, secrets, kill switch, backlog sizing) — still **not** authorization to enable HTTP.
-4. When M5.6C **runtime** enablement is later approved (separate from this closeout):
+3. **Engineering next:** do **not** activate production forecast persist/publish/eval callers, algorithm approval, automatic publication, or M7 without a new explicit approval. Optional P1: live hosting env verification; correction-outbox trigger-function EXECUTE defense-in-depth.
+4. **M5 activation (separate track):** hosted operational-readiness planning (containment defaults, secrets, kill switch, backlog sizing) — still **not** authorization to enable HTTP.
+5. When M5.6C **runtime** enablement is later approved (separate from this closeout):
    1. Reconfirm hosted F1/T4 remain applied.
    2. Confirm containment defaults (`maxActive=1` / `claimLimit=1`) or approved env overrides.
    3. Read `sku_daily_metric_recompute_queue_stats` (read-only) to size the backlog.
@@ -357,8 +373,8 @@ Tests (local): `tests/unit/m5-7-deferred-attempt-reset-architecture.test.ts`, `t
    5. Set `METRIC_RECOMPUTE_WORKER_ENABLED=1` only under explicit approval.
    6. Trigger manually and inspect the counts.
    7. Only then consider a scheduler under further approval.
-5. M5.6D hosted **runtime** enablement (HTTP rollover) remains a separate approval after recompute enablement policy is clear. Hosted multi-store and timezone paths remain unverified until that planning/activation work.
-6. Do not drain the E.4 canary grain left `queued` at `dirty_generation=2`.
-7. Never stage `docs/StoreAgent_Roadmap_2026.docx`, `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx`, `docs/StoreAgent_Roadmap_2026_Connectivity_Update.docx`, or `docs/archive/`.
+6. M5.6D hosted **runtime** enablement (HTTP rollover) remains a separate approval after recompute enablement policy is clear. Hosted multi-store and timezone paths remain unverified until that planning/activation work.
+7. Do not drain the E.4 canary grain left `queued` at `dirty_generation=2` / `claimed_generation=1`.
+8. Never stage `docs/StoreAgent_Roadmap_2026.docx`, `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx`, `docs/StoreAgent_Roadmap_2026_Connectivity_Update.docx`, or `docs/archive/`.
 
 Live order tests share advisory lock `561606` (`tests/support/orders-live-lock.ts`). Run the M5.5, M5.6A, M5.6B, M5.6C, and M5.6D live files in one Vitest command when verifying the full chain.

@@ -2,15 +2,17 @@
 
 ## Active handoff
 
-Project thesis, also recorded in `README.md`:
+Project thesis, also recorded in `README.md` and `docs/PROJECT_HANDOFF.md`:
 
 Data determines reality. Deterministic forecasting and inventory logic calculate decisions. AI explains, prioritizes, and communicates those decisions. Merchants approve actions until automation earns trust.
+
+Baseline for this handoff: `main` @ `6136874` (M6 P4d diagnostic reporting; hosted schema closeout through `20261030200000`). Session bootstrap: `docs/PROJECT_HANDOFF.md`. M5.6 operating detail: `docs/M5_6_HANDOFF.md`.
 
 ### Roadmap ownership
 
 M4 — Data Quality Foundation — CLOSED
 
-M5 — derived SKU metrics — IN PROGRESS
+M5 — derived SKU metrics — IN PROGRESS (implementation closed through M5.7 local; hosted worker/rollover runtime still unauthorized; M5.8 gate open)
 
 - M5.1 contract — CLOSED
 - M5.2 schema + RLS — CLOSED
@@ -18,23 +20,42 @@ M5 — derived SKU metrics — IN PROGRESS
 - M5.3 sales-aggregate implementation — CLOSED
 - M5.4 inventory metrics — CLOSED
 - M5.5 persistence/recomputation — CLOSED
-- M5.6 orchestration — IN PROGRESS
+- M5.6 orchestration — implementation closed through M5.6D; HTTP workers/scheduler still DISABLED (not a full hosted runtime close)
 - M5.6A source-event capture — CLOSED
 - M5.6B recompute-request generation — CLOSED
 - M5.6C worker orchestration — CLOSED locally; HOSTED SCHEMA DEPLOYED; HOSTED ONE-SHOT RECOMPUTE PATH VERIFIED via M5.6E.4 Stage 3 (HTTP workers still DISABLED; no scheduler).
 - M5.6D daily rollover — **CLOSED** for **implementation and native verification** (acceptance D1–D12). HOSTED SCHEMA DEPLOYED (`20261020100000`). E.4 Stage 4 org-scoped rollover ×2 is **supporting hosted evidence**, not full HTTP runtime verification. Hosted multi-store, timezone recovery, and rollover HTTP execution remain **unverified**. ROLLOVER HTTP TRIGGER DISABLED. NO SCHEDULER.
 - M5.6E.3 org-scoped claim/recover — IMPLEMENTED; HOSTED SCHEMA DEPLOYED (`20261028100000`); HOSTED ORG-SCOPED CONSUME/CLAIM USED IN CANARY. WORKERS DISABLED.
-- M5.6E.4 hosted canary — **CLOSED** (hosted canary verification only: Stages 0–4). Metrics 0/0/7; Stage 4 rollover ×2 verified; final canary queue `queued` dirty=2 intentional (no further E.4 recompute); fingerprint `59d7d64dbcc254544f04cdb81ccff699`; workers OFF. See `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md` §0 / §8.
-- M5.7 adversarial verification — **CLOSED** for **local adversarial engineering only** (Phases 1–5B on `main` through `312bd9c`). Hosted F1/T4 migrations (`20261028210000`, `20261028220000`) **APPLIED AND VERIFIED ON HOSTED** (schema/grants only). Hosted worker/runtime verification and production activation remain separate and **unauthorized**. Workers / cron / HTTP metric routes remain DISABLED.
-- M5.8 final architecture/documentation gate
+- M5.6E.4 hosted canary — **CLOSED** (hosted canary verification only: Stages 0–4). Metrics 0/0/7; Stage 4 rollover ×2 verified; final canary queue `queued` dirty=2 claimed=1 intentional (no further E.4 recompute); fingerprint `59d7d64dbcc254544f04cdb81ccff699`; workers OFF by repo configuration (live host env not verified at M6 schema closeout). See `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md` §0 / §8.
+- M5.7 adversarial verification — **CLOSED** for **local adversarial engineering only** (Phases 1–5B on `main` through `312bd9c`). Hosted F1/T4 migrations (`20261028210000`, `20261028220000`) **APPLIED AND VERIFIED ON HOSTED** (schema/grants only). Hosted worker/runtime verification and production activation remain separate and **unauthorized**. Workers / cron / HTTP metric routes remain DISABLED by repo configuration.
+- M5.8 final architecture/documentation gate — OPEN (does not block M6 engineering)
 
-M6 — Forecasting — NOT STARTED. M6 owns forecasting.
+M6 — Forecasting — **IN PROGRESS** (owns forecasting). Local P1–P4d implemented/tested/committed through **`6136874`**. **Hosted schema readiness CLOSED** through `20261030200000`. Production forecast operation remains **NOT APPROVED**. See M6 progress section below.
 
-M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions.
+- M6 P1 deterministic orchestrator — IMPLEMENTED; locally verified (`cb5c371`)
+- M6 P2a commerce facts adapter — IMPLEMENTED; locally verified (`0df9666`)
+- M6 P2b.1 promotion/coverage evidence model — IMPLEMENTED; locally verified (`d363c72`, `210f92d`)
+- M6 P2b.2a/b evidence schema, RLS, RPCs, persistence — IMPLEMENTED; locally verified; **hosted schema applied** (`20261030100000`, `20261030110000`)
+- M6 P2b.2c.1 merchant attestation boundary — IMPLEMENTED; locally verified (`e76a8cc`)
+- M6 P2b.2c.3b coverage correction outbox — IMPLEMENTED; Git committed (`fb160e9`); **hosted `20261030120000` APPLIED AND VERIFIED** (7 correction-outbox triggers; pending=0 at closeout)
+- M6 P2c.1 gated forecast sku-demand source snapshot RPC — IMPLEMENTED; Git committed (`92853fa`); **hosted `20261030130000` APPLIED AND VERIFIED**
+- M6 P2c.2 gated TypeScript loader — IMPLEMENTED; locally verified (`7f6ba7f`)
+- M6 P2c.3 integration/concurrency verification — IMPLEMENTED; locally verified (`7cbd8e9`)
+- M6 P3b forecast persistence foundation + adapter — IMPLEMENTED; locally verified (`c915079`, `6e40bbf`); **hosted `20261030140000` APPLIED AND VERIFIED**
+- M6 P3d publication foundation, adapter, fresh reader — IMPLEMENTED; locally verified (`091a29c`, `a71faff`, `83c29b0`); **hosted `20261030150000` / `20261030160000` APPLIED AND VERIFIED**
+- M6 P4a PIT backtest harness — IMPLEMENTED; locally verified (`d4a91b2`); fixture-only diagnostics
+- M6 P4b historical evidence integrity gate — IMPLEMENTED; locally verified (`24fa202`); live historical PIT replay **unsupported**
+- M6 P4c evaluation persistence — IMPLEMENTED; locally verified (`f179516`, `42c6111`, `4dfa844`); **hosted `20261030200000` APPLIED AND VERIFIED**; trust flags hard-false
+- M6 P4d diagnostic evaluation reporting — IMPLEMENTED; locally verified (`6136874`); pure-TS; hard-false trust; fixture ≠ merchant performance
+- M6 hosted schema readiness — **CLOSED** (migrations `100000`, `110000`, `120000`–`160000`, `20261030200000` applied + post-deploy verified on linked project `qlsqminsfdntpqdkhxjx`)
+- M6 production forecast operation (persist/publish/eval callers, algorithm approval, automatic publication) — **NOT APPROVED**
+- M6 → M7 activation — **BLOCKED** until separate future gates
 
-NEXT STEP = HOSTED OPERATIONAL-READINESS PLANNING. DO NOT ENABLE WORKERS / CRON / HTTP METRIC (RECOMPUTE OR ROLLOVER) ROUTES WITHOUT EXPLICIT SEPARATE APPROVAL. DO NOT CLAIM/RECOMPUTE THE E.4 CANARY GRAIN LEFT `queued` AT `dirty_generation=2`. HOSTED M5.7 F1/T4 SCHEMA DEPLOY AND M5.6D IMPLEMENTATION CLOSURE DO **NOT** AUTHORIZE WORKER/RUNTIME ACTIVATION.
+M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions (after forecasting). Product sequence remains M6 forecasting → M7 decisions → approval-gated buying. Preserve Gemini roadmap: REORDER/REDUCE/PROMOTE/WATCH, available-stock planning, multi-location isolation, lead-time, supplier MOQ, approval-gated buying, CSV→Shopify→WooCommerce→Amazon, seven-day trial, premium decision-first UX.
 
-M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. M5.6D daily rollover is **closed** for implementation and native local Supabase PostgreSQL 17 verification (independent acceptance D1–D12). M5.7 local adversarial engineering is **closed** (see M5.7 closeout below); that closure is **not** hosted worker/runtime readiness. **Hosted schema:** M5.6A–D (`20261020100000` for M5.6D), M5.6E.3 (`20261028100000`), and M5.7 F1/T4 (`20261028210000`, `20261028220000`) are deployed and operator-verified on hosted. **Hosted canary runtime:** M5.6E.4 closed — org-scoped consume/claim, one-shot recompute, and frozen-as_of rollover ×2 verified on the canary org (supporting evidence for M5.6D; not full HTTP rollover runtime verification); foreign fingerprint unchanged; canary request remains intentionally `queued` at `dirty_generation=2` (`claimed_generation=1`, `applied_generation=1`, `attempt_count=0`, lease fields cleared). Hosted multi-store, timezone-recovery, and HTTP rollover/recompute execution remain unverified. **Production worker enablement** and hosted metric-worker runtime verification remain separate and unauthorized. No scheduler. Canary runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`. Isolation decision: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. Handoff: `docs/M5_6_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
+NEXT STEP = **Do not activate production forecast operation.** Hosted M6 schema is closed; production persist/publish/eval callers, algorithm approval, automatic publication, and M7 remain **separate future approvals**. Optional P1: correction-outbox trigger-function EXECUTE defense-in-depth; live hosting env verification for worker flags. M5 worker/rollover HTTP enablement remains a **separate** unauthorized track. DO NOT ENABLE WORKERS / CRON / HTTP METRIC (RECOMPUTE OR ROLLOVER) OR FORECAST WORKERS WITHOUT EXPLICIT SEPARATE APPROVAL. DO NOT CLAIM/RECOMPUTE THE E.4 CANARY GRAIN LEFT `queued` AT `dirty_generation=2` / `claimed_generation=1`. HOSTED SCHEMA DEPLOY DOES **NOT** AUTHORIZE PRODUCTION FORECAST OPERATION, ALGORITHM APPROVAL, OR M7.
+
+M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. M5.6D daily rollover is **closed** for implementation and native local Supabase PostgreSQL 17 verification (independent acceptance D1–D12). M5.7 local adversarial engineering is **closed** (see M5.7 closeout below); that closure is **not** hosted worker/runtime readiness. **Hosted schema (M5):** M5.6A–D (`20261020100000` for M5.6D), M5.6E.3 (`20261028100000`), and M5.7 F1/T4 (`20261028210000`, `20261028220000`) are deployed and operator-verified on hosted. **Hosted canary runtime:** M5.6E.4 closed — org-scoped consume/claim, one-shot recompute, and frozen-as_of rollover ×2 verified on the canary org (supporting evidence for M5.6D; not full HTTP rollover runtime verification); foreign fingerprint unchanged; canary request remains intentionally `queued` at `dirty_generation=2` (`claimed_generation=1`, `applied_generation=1`, `attempt_count=0`, lease fields cleared) and was **untouched** by M6 schema deploy. Hosted multi-store, timezone-recovery, and HTTP rollover/recompute execution remain unverified. **Production worker enablement** and hosted metric-worker runtime verification remain separate and unauthorized. Repo configuration keeps workers/cron/HTTP disabled; live hosting env was **not** verified at M6 schema closeout. No scheduler. **Hosted schema (M6):** `20261030100000`, `20261030110000`, `20261030120000`–`20261030160000`, and `20261030200000` **APPLIED AND VERIFIED**. Post-deploy verification: seven correction-outbox triggers installed; outbox pending=0; forecast/publication/current/evaluation hosted row counts=0; no automatic persist/publish/eval activation. Canary runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`. Isolation decision: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. M5 handoff: `docs/M5_6_HANDOFF.md`. Project handoff: `docs/PROJECT_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
 
 ### Owners
 
@@ -3289,7 +3310,7 @@ Migration, present in both local and remote migration history:
 
 Table: `public.sku_daily_metric_recompute_requests`. Function: `public.consume_sku_daily_metric_source_events(integer, uuid)`, `security definer`, empty `search_path`, `EXECUTE` granted to `service_role` only. Consumption locks unconsumed events and writes generation-aware requests in the caller’s transaction. It does not run by itself, and a request row does not mean the metric is current.
 
-M5.6D daily rollover is NOT STARTED. M5.6 is not fully closed. The operating contract is `docs/M5_6_HANDOFF.md`.
+M5.6D daily rollover is **CLOSED** for implementation and native verification (see M5.6D closeout below). Hosted worker/rollover HTTP runtime remain unauthorized. The operating contract is `docs/M5_6_HANDOFF.md`.
 
 ### M5.6C completion
 
@@ -3383,4 +3404,60 @@ Phase record:
 | 4 — F2 SHARE decision | **Retain** five-table `LOCK … IN SHARE MODE` on stores/orders/order_items/return_refunds/inventory_snapshots plus SA008 source-token fencing. Do not replace with SERIALIZABLE, row-only locks, or grain advisory locks without an equivalence proof. Contain concurrency operationally. |
 | 5A / 5B — F2 containment | Design then implement single-flight defaults: `maxActive=1`, `claimLimit=1`; optional `METRIC_RECOMPUTE_MAX_ACTIVE` / `METRIC_RECOMPUTE_CLAIM_LIMIT` (integers 1–4, fail-closed). Per-item `executeDurationMs` and tick summary telemetry (not lock-wait). Commit `312bd9c`. Local containment adversarial C1–C7 passed as part of Phase 5B validation. |
 
-Evidence pointers: `docs/M5_6_HANDOFF.md` section 12; tests under `tests/unit/m5-7-*.ts`. Next canonical action: **hosted operational-readiness planning** (separate approval; not worker/HTTP/cron activation).
+Evidence pointers: `docs/M5_6_HANDOFF.md` section 12; tests under `tests/unit/m5-7-*.ts`. M5 worker/HTTP/cron activation remains a separate approval and must not drain the E.4 canary `queued` dirty=2 grain. M6 local work through P4d is on `main` @ `6136874`; hosted M6 schema readiness is **CLOSED** (see M6 progress below and `docs/PROJECT_HANDOFF.md`). Production forecast operation remains **NOT APPROVED**.
+
+### M6 forecasting progress (through P4d + hosted schema closeout)
+
+Status: **IN PROGRESS** for forecasting product operation; **local P1–P4d CLOSED** on `main` @ `6136874`; **hosted schema readiness CLOSED** through `20261030200000`. M6 owns forecasting only (not M7 decisions, not buying execution). No forecast HTTP worker/cron. Diagnostic backtesting is fixture-controlled PIT only; live historical PIT replay is unsupported. Product sequence remains forecasting → decisions → approval-gated buying.
+
+| Phase | Commit(s) | State |
+|---|---|---|
+| P1 deterministic orchestrator | `cb5c371` | Implemented; locally verified |
+| P2a commerce facts adapter | `0df9666` | Implemented; locally verified |
+| P2b.1 promotion/coverage evidence | `d363c72`, `210f92d` | Implemented; locally verified |
+| P2b.2a/b evidence schema, RLS, RPCs, persistence | `d776876`, `aeff78d`, `37699c4` (+ related) | Implemented; locally verified; **hosted** `20261030100000`, `20261030110000` **applied** |
+| P2b.2c.1 merchant attestation | `e76a8cc` | Implemented; locally verified |
+| P2b.2c.3b coverage correction outbox | `fb160e9` | Implemented; Git committed; **hosted `20261030120000` APPLIED AND VERIFIED** (7 triggers; pending=0) |
+| P2c.1 gated sku-demand source snapshot RPC | `92853fa` | Implemented; Git committed; **hosted `20261030130000` APPLIED AND VERIFIED**; no table-level SHARE; `statement_timeout=15s`, `lock_timeout=2s` |
+| P2c.2 gated TypeScript loader | `7f6ba7f` | Implemented; locally verified |
+| P2c.3 loader integration/concurrency | `7cbd8e9` | Implemented; locally verified |
+| P3b forecast persistence foundation + adapter | `c915079`, `6e40bbf` | Implemented; locally verified; **hosted `20261030140000` APPLIED AND VERIFIED** |
+| P3d publication + fresh reader | `091a29c`, `a71faff`, `83c29b0` | Implemented; locally verified; **hosted `20261030150000` / `20261030160000` APPLIED AND VERIFIED**; `m7_eligible` hard-false; persist ≠ publish |
+| P4a PIT backtest harness | `d4a91b2` | Implemented; locally verified; fixture diagnostics only |
+| P4b historical evidence integrity gate | `24fa202` | Implemented; locally verified; live historical PIT **unsupported** |
+| P4c evaluation persistence | `f179516`, `42c6111`, `4dfa844` | Implemented; locally verified; **hosted `20261030200000` APPLIED AND VERIFIED**; trust flags hard-false |
+| P4d diagnostic evaluation reporting | `6136874` | Implemented; locally verified; pure-TS report; hard-false trust; fixture ≠ merchant performance |
+
+Hosted schema closeout verification (read-only; linked project `qlsqminsfdntpqdkhxjx`):
+
+- Migrations local=remote through `20261030200000` (including `100000`, `110000`, `120000`–`160000`, `200000`).
+- Seven correction-outbox triggers installed; outbox pending/total = 0.
+- Hosted row counts = 0 for `forecast_runs`, `sku_forecasts`, `sku_forecast_publications`, `sku_forecast_current`, `forecast_evaluation_runs`, `forecast_evaluation_model_scores`.
+- E.4 canary remains `queued`, `dirty_generation=2`, `claimed_generation=1` (untouched).
+- Invalid IANA timezone store count = 0.
+- M5/forecast workers, cron, and HTTP remain disabled by **repo configuration**; live hosting environment settings were **not** verified.
+
+Key artifacts:
+
+- `lib/forecasting/*` (orchestrator, commerce facts, evidence, attestation, harness, integrity, diagnostic report)
+- `lib/persistence/*` forecast load/persist/publish/eval adapters (server-only; not auto-activated)
+- `supabase/migrations/20261030100000_m6_p2b2b1_forecast_day_evidence.sql`
+- `supabase/migrations/20261030110000_m6_p2b2b2_forecast_evidence_rpcs.sql`
+- `supabase/migrations/20261030120000_m6_p2b2c3b_forecast_coverage_correction_outbox.sql` (**hosted**)
+- `supabase/migrations/20261030130000_m6_p2c1_forecast_sku_demand_source_snapshot.sql` (**hosted**)
+- `supabase/migrations/20261030140000_m6_p3b_forecast_persistence.sql` (**hosted**)
+- `supabase/migrations/20261030150000_m6_p3d1_forecast_publication.sql` (**hosted**)
+- `supabase/migrations/20261030160000_m6_p3d3_fresh_published_forecast_reader.sql` (**hosted**)
+- `supabase/migrations/20261030200000_m6_p4c1_forecast_evaluation_persistence.sql` (**hosted**)
+
+Not approved / blocked (separate future gates):
+
+- Production forecast operation (calling persist/publish/eval as production paths)
+- Production algorithm approval / automatic publication
+- M7 decisions and approval-gated buying
+- M5 or forecast workers / cron / HTTP enablement
+- Live historical PIT replay as merchant or production evidence
+
+Open P1 (non-blocking): correction-outbox trigger-function EXECUTE defense-in-depth; live hosting env verification for worker flags.
+
+Next: preserve schema closeout bans; await separate approval before any production forecast activation or M7. Preserve E.4 canary dirty=2/claimed=1 and worker OFF bans.
