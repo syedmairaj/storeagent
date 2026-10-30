@@ -297,6 +297,7 @@ describeLive("M6 P4c.1 forecast evaluation persistence concurrency (live)", () =
 
       const scores = await psql(`
         select count(*)::text from public.forecast_evaluation_model_scores
+        where organization_id = ${quote(ORG)}::uuid
       `);
       expect(scores).toBe("3");
     } finally {
@@ -369,6 +370,7 @@ describeLive("M6 P4c.1 forecast evaluation persistence concurrency (live)", () =
 
       const scores = await psql(`
         select count(*)::text from public.forecast_evaluation_model_scores
+        where organization_id = ${quote(ORG)}::uuid
       `);
       expect(scores).toBe("3");
     } finally {

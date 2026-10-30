@@ -23,6 +23,7 @@ import {
   buildForecastEvaluationPersistPayload,
   ForecastEvaluationPersistConflictError,
   ForecastEvaluationPersistDeniedError,
+  ForecastEvaluationPersistTimeoutError,
   ForecastEvaluationPersistUnavailableError,
   ForecastEvaluationPersistValidationError,
   persistForecastEvaluation,
@@ -437,6 +438,49 @@ describe("M6 P4c.2 forecast evaluation persist adapter", () => {
         })),
       ),
     ).rejects.toBeInstanceOf(ForecastEvaluationPersistUnavailableError);
+  });
+
+  it("maps permission denied and statement timeout fail-closed", async () => {
+    const integrity = acceptedIntegrity();
+
+    await expect(
+      persistForecastEvaluation(
+        {
+          tenant: TENANT,
+          locationId: LOCATION,
+          variantId: VARIANT,
+          originStart: shiftForecastDate(START, 10),
+          originEnd: shiftForecastDate(START, 12),
+          lookbackDays: 7,
+          integrity,
+        },
+        mockClient(() => ({
+          data: null,
+          error: { code: "42501", message: "permission denied for function" },
+        })),
+      ),
+    ).rejects.toBeInstanceOf(ForecastEvaluationPersistDeniedError);
+
+    await expect(
+      persistForecastEvaluation(
+        {
+          tenant: TENANT,
+          locationId: LOCATION,
+          variantId: VARIANT,
+          originStart: shiftForecastDate(START, 10),
+          originEnd: shiftForecastDate(START, 12),
+          lookbackDays: 7,
+          integrity,
+        },
+        mockClient(() => ({
+          data: null,
+          error: {
+            code: "57014",
+            message: "canceling statement due to statement timeout",
+          },
+        })),
+      ),
+    ).rejects.toBeInstanceOf(ForecastEvaluationPersistTimeoutError);
   });
 
   it("rejects approval claims in RPC responses", async () => {
