@@ -144,6 +144,6 @@ describe("M7.3b human approval lifecycle schema architecture", () => {
     expect(source).toContain("must not backfill created events");
     expect(source).toContain("SET LOCAL ROLE authenticated");
     expect(source).toContain("cross-org superseded_by");
-    expect(source).toContain("must not ship lifecycle transition RPCs");
+    expect(source).toContain("action_events");
   });
 });

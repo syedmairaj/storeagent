@@ -86,7 +86,6 @@ DECLARE
   status_check text;
   has_superseded boolean;
   has_events boolean;
-  has_lifecycle_rpc boolean;
 BEGIN
   SELECT pg_get_constraintdef(c.oid)
   INTO status_check
@@ -131,22 +130,6 @@ BEGIN
   SELECT to_regclass('public.action_events') IS NOT NULL INTO has_events;
   IF NOT has_events THEN
     RAISE EXCEPTION 'action_events table missing';
-  END IF;
-
-  SELECT EXISTS (
-    SELECT 1
-    FROM pg_proc p
-    JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public'
-      AND p.proname IN (
-        'transition_inventory_action_merchant',
-        'expire_inventory_action_system',
-        'supersede_inventory_action_system'
-      )
-  ) INTO has_lifecycle_rpc;
-
-  IF has_lifecycle_rpc THEN
-    RAISE EXCEPTION 'M7.3b must not ship lifecycle transition RPCs yet';
   END IF;
 END;
 $$;
@@ -490,6 +473,13 @@ DECLARE
   event_id uuid;
   raised boolean;
 BEGIN
+  -- M7.3c+ requires the trusted lifecycle gate even for owner structural inserts.
+  PERFORM set_config(
+    'storeagent.inventory_action_lifecycle_gate',
+    'trusted_lifecycle_rpc_v1',
+    true
+  );
+
   INSERT INTO public.action_events (
     organization_id, store_id, variant_id, inventory_action_id,
     event_type, edited_quantity, note, actor_user_id,
@@ -537,6 +527,11 @@ BEGIN
   END IF;
 
   -- REDUCE cannot carry editedQuantity / accepted_with_edit
+  PERFORM set_config(
+    'storeagent.inventory_action_lifecycle_gate',
+    'trusted_lifecycle_rpc_v1',
+    true
+  );
   raised := false;
   BEGIN
     INSERT INTO public.action_events (
@@ -564,6 +559,11 @@ BEGIN
   END IF;
 
   -- editedQuantity equal to recommendation rejected
+  PERFORM set_config(
+    'storeagent.inventory_action_lifecycle_gate',
+    'trusted_lifecycle_rpc_v1',
+    true
+  );
   raised := false;
   BEGIN
     INSERT INTO public.action_events (
@@ -591,6 +591,11 @@ BEGIN
   END IF;
 
   -- Grain mismatch rejected (same org/store FK-valid variant, wrong for action)
+  PERFORM set_config(
+    'storeagent.inventory_action_lifecycle_gate',
+    'trusted_lifecycle_rpc_v1',
+    true
+  );
   raised := false;
   BEGIN
     INSERT INTO public.action_events (
@@ -618,6 +623,11 @@ BEGIN
   END IF;
 
   -- Idempotency unique conflict
+  PERFORM set_config(
+    'storeagent.inventory_action_lifecycle_gate',
+    'trusted_lifecycle_rpc_v1',
+    true
+  );
   raised := false;
   BEGIN
     INSERT INTO public.action_events (
