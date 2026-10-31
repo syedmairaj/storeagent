@@ -27,6 +27,7 @@ import {
   demoDismissControlLabel,
   demoPrimaryControlDescription,
   demoPrimaryControlLabel,
+  demoQuantityApplyLabel,
   demoQuantityValidationMessage,
   validateDemoReorderEditQuantity,
 } from "@/lib/demo/m7-decision-demo-controls";
@@ -174,7 +175,7 @@ export function DemoApprovalCluster({
   return (
     <section
       aria-label="Demonstration decision controls"
-      className="mt-8 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-4 sm:px-5 sm:py-5"
+      className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-4 sm:px-5 sm:py-5"
     >
       <div className="flex items-start gap-2.5">
         <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-500 shadow-sm">
@@ -186,13 +187,20 @@ export function DemoApprovalCluster({
 
         <div className="min-w-0">
           <p className="text-sm font-semibold text-zinc-900">
-            Demonstration controls
+            Local demo controls
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
-            Production approvals are disabled. Every interaction stays in local UI state only.
+            Production approvals are disabled. These buttons only teach the interaction — nothing is written.
           </p>
         </div>
       </div>
+
+      <p
+        role="status"
+        className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-950"
+      >
+        {DEMO_NO_SAVE_MESSAGE}
+      </p>
 
       {!canDecide ? (
         <p
@@ -235,7 +243,7 @@ export function DemoApprovalCluster({
                       onClick={() =>
                         adjustDraft(-1)
                       }
-                      className="flex size-11 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 motion-safe:duration-150"
+                      className="flex size-11 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 motion-safe:duration-150 motion-reduce:transition-none"
                     >
                       <Minus
                         className="size-4"
@@ -271,7 +279,7 @@ export function DemoApprovalCluster({
                       onClick={() =>
                         adjustDraft(1)
                       }
-                      className="flex size-11 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 motion-safe:duration-150"
+                      className="flex size-11 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-700 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 motion-safe:duration-150 motion-reduce:transition-none"
                     >
                       <Plus
                         className="size-4"
@@ -282,9 +290,9 @@ export function DemoApprovalCluster({
                     <button
                       type="button"
                       onClick={onApplyDemoEdit}
-                      className="min-h-11 rounded-full border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-800 transition hover:border-zinc-400 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 motion-safe:duration-150"
+                      className="min-h-11 rounded-full border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-800 transition hover:border-zinc-400 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 motion-safe:duration-150 motion-reduce:transition-none"
                     >
-                      Apply demo edit
+                      {demoQuantityApplyLabel()}
                     </button>
                   </div>
 
@@ -309,7 +317,7 @@ export function DemoApprovalCluster({
               title={demoPrimaryControlDescription(
                 action.actionType,
               )}
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 motion-safe:duration-150"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-zinc-950 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 motion-safe:duration-150 motion-reduce:transition-none"
             >
               {primaryLabel}
             </button>
@@ -318,7 +326,7 @@ export function DemoApprovalCluster({
               type="button"
               onClick={onDismiss}
               aria-describedby={feedbackId}
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-300 bg-white px-5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 motion-safe:duration-150"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-300 bg-white px-5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 motion-safe:duration-150 motion-reduce:transition-none"
             >
               {dismissLabel}
             </button>

@@ -6,7 +6,7 @@ export function DemoDataBanner() {
   return (
     <div
       role="status"
-      className="sticky top-0 z-10 flex items-start gap-3 rounded-2xl border border-amber-200/90 bg-amber-50 px-4 py-3.5 text-amber-950 shadow-sm sm:items-center sm:px-5"
+      className="sticky top-16 z-[15] flex items-start gap-3 rounded-2xl border border-amber-200/90 bg-amber-50/95 px-4 py-3.5 text-amber-950 shadow-sm backdrop-blur-sm sm:items-center sm:px-5 lg:top-0"
     >
       <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800 sm:mt-0">
         <TriangleAlert

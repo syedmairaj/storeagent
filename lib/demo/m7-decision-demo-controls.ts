@@ -121,10 +121,10 @@ export function demoPrimaryControlLabel(
   if (
     actionType === "WATCH"
   ) {
-    return "Acknowledge review";
+    return "Try demo acknowledge";
   }
 
-  return "Approve recommendation";
+  return "Try demo approve";
 }
 
 export function demoDismissControlLabel(
@@ -133,10 +133,10 @@ export function demoDismissControlLabel(
   if (
     actionType === "WATCH"
   ) {
-    return "Dismiss watch";
+    return "Try demo dismiss watch";
   }
 
-  return "Dismiss";
+  return "Try demo dismiss";
 }
 
 export function demoPrimaryControlDescription(
@@ -145,8 +145,12 @@ export function demoPrimaryControlDescription(
   if (
     actionType === "WATCH"
   ) {
-    return "Demonstration acknowledge only. No inventory action is saved.";
+    return "Local demonstration acknowledge only. No inventory action is saved.";
   }
 
-  return "Demonstration approve only. No inventory action is saved.";
+  return "Local demonstration approve only. No inventory action is saved.";
+}
+
+export function demoQuantityApplyLabel(): string {
+  return "Try demo quantity edit";
 }

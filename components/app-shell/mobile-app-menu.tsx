@@ -16,12 +16,15 @@ import {
   ChartNoAxesCombined,
   ClipboardCheck,
   Database,
-  LayoutDashboard,
   LogOut,
   Menu,
   ShieldCheck,
   X,
 } from "lucide-react";
+
+import {
+  OverviewNavLink,
+} from "@/components/app-shell/overview-nav-link";
 
 import type {
   OrganizationMemberRole,
@@ -173,20 +176,13 @@ export function MobileAppMenu({
                 aria-label="Mobile primary"
                 className="space-y-1 p-4"
               >
-                <Link
-                  href={`/app/${organization.id}`}
-                  onClick={() =>
+                <OverviewNavLink
+                  organizationId={organization.id}
+                  variant="mobile"
+                  onNavigate={() =>
                     setOpen(false)
                   }
-                  className="flex min-h-11 items-center gap-3 rounded-xl bg-zinc-950 px-3.5 text-sm font-medium text-white"
-                >
-                  <LayoutDashboard
-                    className="size-[18px]"
-                    aria-hidden="true"
-                  />
-
-                  Overview
-                </Link>
+                />
 
                 {FUTURE_NAVIGATION.map(
                   ({

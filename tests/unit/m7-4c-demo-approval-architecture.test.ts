@@ -84,10 +84,12 @@ describe("M7.4c demonstration approval architecture", () => {
     expect(controls).toContain(
       "Demonstration only — no action was saved.",
     );
-    expect(controls).toContain("Acknowledge review");
+    expect(controls).toContain("Try demo acknowledge");
+    expect(controls).toContain("Try demo approve");
     expect(controls).toContain("View only — demonstration");
-    expect(cluster).toContain("Apply demo edit");
+    expect(cluster).toContain("demoQuantityApplyLabel");
     expect(cluster).toContain("DEMO_VIEW_ONLY_MESSAGE");
+    expect(cluster).toContain("Local demo controls");
   });
 
   it("wires organization role into the Actions demo page", () => {

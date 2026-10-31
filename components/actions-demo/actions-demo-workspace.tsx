@@ -42,6 +42,7 @@ import {
 } from "@/lib/demo/m7-decision-demo-fixtures";
 
 import {
+  explainDemoReasonCode,
   formatDemoConfidenceLabel,
   formatDemoDataQualityScore,
   formatDemoPriorityLabel,
@@ -315,11 +316,20 @@ export function ActionsDemoWorkspace({
         }}
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)] xl:grid-cols-[minmax(0,0.4fr)_minmax(0,0.6fr)] lg:items-start lg:gap-8">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.4fr)_minmax(0,0.6fr)] xl:grid-cols-[minmax(18rem,0.38fr)_minmax(0,0.62fr)] lg:items-start lg:gap-7">
         <section
           aria-label="Decision queue"
-          className="min-w-0 space-y-3"
+          className="min-w-0 space-y-2.5"
         >
+          {filter !== "ALL" &&
+            filter !== "HEALTHY" && (
+              <p className="px-0.5 text-xs font-medium text-zinc-500">
+                {filteredActions.length === 1
+                  ? "1 matching decision"
+                  : `${filteredActions.length} matching decisions`}
+              </p>
+            )}
+
           {filter !== "HEALTHY" &&
             filteredActions.length === 0 && (
               <EmptyQueueState />
@@ -333,6 +343,9 @@ export function ActionsDemoWorkspace({
                 selected={
                   action.id === resolvedSelectedId &&
                   (isDesktopSplit || sheetOpen)
+                }
+                compact={
+                  filteredActions.length === 1
                 }
                 onSelect={() =>
                   selectAction(action.id)
@@ -366,7 +379,7 @@ export function ActionsDemoWorkspace({
           aria-label="Evidence inspector"
           className="hidden min-w-0 lg:block"
         >
-          <div className="sticky top-6">
+          <div className="sticky top-24 max-h-[calc(100vh-7.5rem)]">
             {selectedAction ? (
               <ActionEvidenceInspector
                 action={selectedAction}
@@ -450,7 +463,7 @@ function ActionTypeFilter({
   counts: Record<FilterKey, number>;
 }) {
   return (
-    <div className="sticky top-[4.25rem] z-[5] -mx-1 overflow-x-auto px-1 pb-1 lg:static lg:overflow-visible">
+    <div className="sticky top-[8.75rem] z-[5] -mx-1 overflow-x-auto overscroll-x-contain bg-[#f7f8f7]/95 px-1 py-1 backdrop-blur-sm lg:static lg:overflow-visible lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
       <div
         role="toolbar"
         aria-label="Filter decisions by type"
@@ -476,7 +489,7 @@ function ActionTypeFilter({
                 onClick={() =>
                   onChange(key)
                 }
-                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-medium transition motion-safe:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
+                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-medium motion-safe:transition-[border-color,background-color,color,box-shadow] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
                   active
                     ? "border-zinc-950 bg-zinc-950 text-white shadow-sm"
                     : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
@@ -504,11 +517,13 @@ function ActionTypeFilter({
 function ActionRow({
   action,
   selected,
+  compact,
   onSelect,
   rowRef,
 }: {
   action: DemoActionItem;
   selected: boolean;
+  compact?: boolean;
   onSelect: () => void;
   rowRef: (node: HTMLButtonElement | null) => void;
 }) {
@@ -538,18 +553,31 @@ function ActionRow({
       }}
       aria-pressed={selected}
       aria-label={`${meta.label}: ${action.productTitle}, ${action.variantTitle}`}
-      className={`group w-full rounded-2xl border px-4 py-4 text-left shadow-sm transition motion-safe:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 sm:px-5 sm:py-5 ${
+      className={`group relative w-full overflow-hidden rounded-2xl border text-left shadow-sm motion-safe:transition-[border-color,box-shadow,background-color] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
+        compact
+          ? "px-4 py-3.5 sm:px-5"
+          : "px-4 py-3.5 sm:px-5 sm:py-4"
+      } ${
         selected
-          ? "border-zinc-950 bg-white ring-1 ring-zinc-950/10"
+          ? "border-zinc-950 bg-white shadow-md ring-1 ring-zinc-950/10"
           : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50/80"
       }`}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <span
+        aria-hidden="true"
+        className={`absolute inset-y-0 left-0 w-1 motion-safe:transition-colors motion-safe:duration-200 motion-reduce:transition-none ${
+          selected
+            ? "bg-zinc-950"
+            : "bg-transparent group-hover:bg-zinc-300"
+        }`}
+      />
+
+      <div className="flex flex-wrap items-start justify-between gap-2.5">
         <ActionTypeChip
           actionType={action.actionType}
         />
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           <PriorityBadge
             priority={action.priority}
           />
@@ -559,22 +587,22 @@ function ActionRow({
         </div>
       </div>
 
-      <div className="mt-4 min-w-0">
-        <p className="truncate text-base font-semibold tracking-[-0.02em] text-zinc-950">
+      <div className="mt-3 min-w-0">
+        <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-zinc-950 sm:text-base">
           {action.productTitle}
         </p>
-        <p className="mt-1 truncate text-sm text-zinc-500">
+        <p className="mt-0.5 truncate text-sm text-zinc-500">
           {action.variantTitle}
         </p>
       </div>
 
-      <p className="mt-3 line-clamp-2 text-sm leading-6 text-zinc-600">
+      <p className="mt-2.5 line-clamp-2 text-sm leading-5 text-zinc-600">
         {action.conciseReason}
       </p>
 
       {showQty && (
-        <p className="mt-4 text-sm font-medium text-zinc-900">
-          Recommended quantity{" "}
+        <p className="mt-3 text-sm font-medium text-zinc-900">
+          Qty{" "}
           <span className="tabular-nums">
             {action.recommendedQuantity}
           </span>
@@ -582,7 +610,7 @@ function ActionRow({
       )}
 
       {action.actionType === "WATCH" && (
-        <p className="mt-4 flex items-center gap-2 text-xs font-medium text-zinc-500">
+        <p className="mt-3 flex items-center gap-2 text-xs font-medium text-zinc-500">
           <span
             className="size-1.5 rounded-full bg-zinc-400"
             aria-hidden="true"
@@ -733,9 +761,19 @@ function ActionEvidenceInspector({
       action,
     );
 
+  const keyFields =
+    getKeyEvidenceFields(
+      action,
+    );
+
+  const secondaryFields =
+    getSecondaryEvidenceFields(
+      action,
+    );
+
   return (
-    <article className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm motion-safe:transition-shadow motion-safe:duration-200">
-      <header className="border-b border-zinc-100 px-6 py-6 sm:px-8 sm:py-7">
+    <article className="flex max-h-[inherit] flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm motion-safe:transition-shadow motion-safe:duration-200">
+      <header className="shrink-0 border-b border-zinc-100 px-5 py-5 sm:px-7 sm:py-6">
         <div className="flex flex-wrap items-center gap-2">
           <ActionTypeChip
             actionType={action.actionType}
@@ -748,23 +786,23 @@ function ActionEvidenceInspector({
           />
         </div>
 
-        <h2 className="mt-5 text-2xl font-semibold tracking-[-0.03em] text-zinc-950">
+        <h2 className="mt-4 text-xl font-semibold tracking-[-0.03em] text-zinc-950 sm:text-2xl">
           {action.productTitle}
         </h2>
         <p className="mt-1 text-sm text-zinc-500">
           {action.variantTitle}
         </p>
 
-        <p className="mt-4 text-sm leading-6 text-zinc-600">
+        <p className="mt-3 text-sm leading-6 text-zinc-700">
           {action.conciseReason}
         </p>
 
-        <p className="mt-4 text-xs font-medium uppercase tracking-[0.12em] text-zinc-400">
+        <p className="mt-3 text-xs font-medium uppercase tracking-[0.12em] text-zinc-400">
           {meta.shortWhy}
         </p>
 
         {showQty && (
-          <div className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-4">
+          <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3.5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
               Recommended quantity
             </p>
@@ -772,64 +810,93 @@ function ActionEvidenceInspector({
               {action.recommendedQuantity}
             </p>
             {action.recommendedActionDate && (
-              <p className="mt-2 text-sm text-zinc-600">
+              <p className="mt-1.5 text-sm text-zinc-600">
                 Suggested by{" "}
                 <span className="font-medium text-zinc-800">
                   {action.recommendedActionDate}
                 </span>
               </p>
             )}
-            <p className="mt-3 text-xs leading-5 text-zinc-500">
-              Quantity grounded in this synthetic fixture only. Controls below never persist a production decision.
+            <p className="mt-2 text-xs leading-5 text-zinc-500">
+              Quantity grounded in this synthetic fixture only.
             </p>
           </div>
         )}
 
         {action.actionType !== "REORDER" && (
-          <p className="mt-5 text-xs leading-5 text-zinc-500">
+          <p className="mt-4 text-xs leading-5 text-zinc-500">
             No recommended quantity for {meta.label} in this demonstration.
           </p>
         )}
       </header>
 
-      <div className="px-6 py-6 sm:px-8 sm:py-7">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7 sm:py-6">
         <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-          Evidence
+          Key evidence
         </h3>
 
         <EvidenceGrid
-          action={action}
+          fields={keyFields}
         />
 
-        <ReasonCodeList
+        <ReasonExplanationList
           codes={action.evidence.reasonCodes}
           watch={
             action.actionType === "WATCH"
           }
         />
 
-        {action.confidenceReasonCodes.length >
-          0 && (
-          <div className="mt-6">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              Confidence notes
-            </h3>
-            <ul className="mt-3 space-y-2">
-              {action.confidenceReasonCodes.map(
-                (code) => (
-                  <li
-                    key={code}
-                    className="text-sm text-zinc-600"
-                  >
-                    <span className="font-mono text-xs text-zinc-500">
-                      {code}
-                    </span>
-                  </li>
-                ),
-              )}
-            </ul>
+        <details className="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50/70 px-4 py-3 open:bg-white">
+          <summary className="cursor-pointer list-none rounded-xl text-sm font-medium text-zinc-800 marker:content-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex min-h-11 items-center">
+              Technical details
+            </span>
+          </summary>
+
+          <div className="pb-2 pt-1">
+            {secondaryFields.length > 0 && (
+              <>
+                <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                  Additional evidence
+                </h4>
+                <EvidenceGrid
+                  fields={secondaryFields}
+                />
+              </>
+            )}
+
+            <RawReasonCodeList
+              title="Raw reason codes"
+              codes={action.evidence.reasonCodes}
+            />
+
+            {action.confidenceReasonCodes.length >
+              0 && (
+              <div className="mt-4">
+                <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                  Confidence notes
+                </h4>
+                <ul className="mt-2 space-y-2">
+                  {action.confidenceReasonCodes.map(
+                    (code) => (
+                      <li
+                        key={code}
+                        className="text-sm leading-5 text-zinc-600"
+                      >
+                        <span>
+                          {explainDemoReasonCode(code)}
+                        </span>
+                        <span className="mt-0.5 block font-mono text-[11px] text-zinc-400">
+                          {code}
+                        </span>
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
-        )}
+        </details>
 
         <DemoApprovalCluster
           key={action.id}
@@ -841,18 +908,18 @@ function ActionEvidenceInspector({
   );
 }
 
-function EvidenceGrid({
-  action,
-}: {
-  action: DemoActionItem;
-}) {
+type EvidenceField = {
+  label: string;
+  value: string;
+};
+
+function getKeyEvidenceFields(
+  action: DemoActionItem,
+): EvidenceField[] {
   const evidence =
     action.evidence;
 
-  const fields: {
-    label: string;
-    value: string;
-  }[] = [
+  const fields: EvidenceField[] = [
     {
       label: "Available",
       value: formatDemoUnknownNumber(
@@ -893,25 +960,32 @@ function EvidenceGrid({
         },
       ),
     },
-    {
-      label: "Safety stock",
-      value: formatDemoUnknownNumber(
-        evidence.safetyStockUnits,
-      ),
-    },
-    {
-      label: "Reorder point",
-      value: formatDemoUnknownNumber(
-        evidence.reorderPointUnits,
-      ),
-    },
-    {
-      label: "Target stock",
-      value: formatDemoUnknownNumber(
-        evidence.targetStockUnits,
-      ),
-    },
-    {
+  ];
+
+  if (
+    action.actionType === "REORDER"
+  ) {
+    fields.push(
+      {
+        label: "Reorder point",
+        value: formatDemoUnknownNumber(
+          evidence.reorderPointUnits,
+        ),
+      },
+      {
+        label: "Target stock",
+        value: formatDemoUnknownNumber(
+          evidence.targetStockUnits,
+        ),
+      },
+    );
+  }
+
+  if (
+    action.actionType === "REDUCE" ||
+    action.actionType === "PROMOTE"
+  ) {
+    fields.push({
       label: "Inventory age",
       value: formatDemoUnknownNumber(
         evidence.inventoryAgeDays,
@@ -919,23 +993,85 @@ function EvidenceGrid({
           suffix: " days",
         },
       ),
-    },
+    });
+  }
+
+  fields.push({
+    label: "Data quality",
+    value: formatDemoDataQualityScore(
+      evidence.dataQualityScore,
+    ),
+  });
+
+  return fields;
+}
+
+function getSecondaryEvidenceFields(
+  action: DemoActionItem,
+): EvidenceField[] {
+  const evidence =
+    action.evidence;
+
+  const fields: EvidenceField[] = [
     {
-      label: "Forecast demand",
+      label: "Safety stock",
       value: formatDemoUnknownNumber(
-        evidence.forecastExpectedDemandUnits,
-      ),
-    },
-    {
-      label: "Data quality",
-      value: formatDemoDataQualityScore(
-        evidence.dataQualityScore,
+        evidence.safetyStockUnits,
       ),
     },
   ];
 
+  if (
+    action.actionType !== "REORDER"
+  ) {
+    fields.push(
+      {
+        label: "Reorder point",
+        value: formatDemoUnknownNumber(
+          evidence.reorderPointUnits,
+        ),
+      },
+      {
+        label: "Target stock",
+        value: formatDemoUnknownNumber(
+          evidence.targetStockUnits,
+        ),
+      },
+    );
+  }
+
+  if (
+    action.actionType !== "REDUCE" &&
+    action.actionType !== "PROMOTE"
+  ) {
+    fields.push({
+      label: "Inventory age",
+      value: formatDemoUnknownNumber(
+        evidence.inventoryAgeDays,
+        {
+          suffix: " days",
+        },
+      ),
+    });
+  }
+
+  fields.push({
+    label: "Forecast demand",
+    value: formatDemoUnknownNumber(
+      evidence.forecastExpectedDemandUnits,
+    ),
+  });
+
+  return fields;
+}
+
+function EvidenceGrid({
+  fields,
+}: {
+  fields: EvidenceField[];
+}) {
   return (
-    <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <dl className="mt-3 grid grid-cols-1 gap-2.5 min-[380px]:grid-cols-2 sm:grid-cols-3">
       {fields.map(
         ({
           label,
@@ -943,13 +1079,13 @@ function EvidenceGrid({
         }) => (
           <div
             key={label}
-            className="rounded-2xl border border-zinc-100 bg-zinc-50/80 px-3.5 py-3"
+            className="min-w-0 rounded-2xl border border-zinc-100 bg-zinc-50/80 px-3.5 py-2.5"
           >
             <dt className="text-[11px] font-medium uppercase tracking-[0.1em] text-zinc-500">
               {label}
             </dt>
             <dd
-              className={`mt-1.5 text-sm font-semibold tabular-nums tracking-[-0.01em] ${
+              className={`mt-1 text-sm font-semibold tabular-nums tracking-[-0.01em] ${
                 value === "Unknown"
                   ? "text-zinc-400"
                   : "text-zinc-950"
@@ -964,7 +1100,7 @@ function EvidenceGrid({
   );
 }
 
-function ReasonCodeList({
+function ReasonExplanationList({
   codes,
   watch,
 }: {
@@ -972,11 +1108,11 @@ function ReasonCodeList({
   watch: boolean;
 }) {
   return (
-    <div className="mt-6">
+    <div className="mt-5">
       <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
         {watch
-          ? "Watch reason codes"
-          : "Reason codes"}
+          ? "Why this is a watch"
+          : "Why this recommendation"}
       </h3>
 
       {watch && (
@@ -990,7 +1126,42 @@ function ReasonCodeList({
           Unknown
         </p>
       ) : (
-        <ul className="mt-3 flex flex-wrap gap-2">
+        <ul className="mt-3 space-y-2.5">
+          {codes.map(
+            (code) => (
+              <li
+                key={code}
+                className="rounded-2xl border border-zinc-200 bg-white px-3.5 py-3 text-sm leading-5 text-zinc-700"
+              >
+                {explainDemoReasonCode(code)}
+              </li>
+            ),
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function RawReasonCodeList({
+  title,
+  codes,
+}: {
+  title: string;
+  codes: string[];
+}) {
+  return (
+    <div className="mt-4">
+      <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+        {title}
+      </h4>
+
+      {codes.length === 0 ? (
+        <p className="mt-2 text-sm text-zinc-400">
+          Unknown
+        </p>
+      ) : (
+        <ul className="mt-2 flex flex-wrap gap-2">
           {codes.map(
             (code) => (
               <li
@@ -1058,8 +1229,15 @@ function ActionDetailSheet({
         }
 
         const focusable =
-          panelRef.current.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          Array.from(
+            panelRef.current.querySelectorAll<HTMLElement>(
+              'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+            ),
+          ).filter(
+            (node) =>
+              node.tabIndex !== -1 &&
+              !node.hasAttribute("disabled") &&
+              node.getAttribute("aria-hidden") !== "true",
           );
 
         if (
@@ -1122,39 +1300,49 @@ function ActionDetailSheet({
     >
       <button
         type="button"
+        tabIndex={-1}
         aria-label="Close decision detail"
-        className="absolute inset-0 bg-zinc-950/40 motion-safe:transition-opacity motion-safe:duration-200"
+        className="absolute inset-0 bg-zinc-950/40 motion-safe:transition-opacity motion-safe:duration-200 motion-reduce:transition-none"
         onClick={onClose}
       />
 
       <div
         ref={panelRef}
-        className="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto overscroll-contain rounded-t-[1.75rem] bg-[#f7f8f7] shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 motion-reduce:animate-none"
+        className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#f7f8f7] shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 motion-reduce:animate-none"
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-white/95 px-4 py-3 backdrop-blur">
-          <p
-            id={titleId}
-            className="text-sm font-semibold text-zinc-950"
-          >
-            Decision detail
-          </p>
+        <div className="shrink-0 border-b border-zinc-200 bg-white">
+          <div className="flex items-center justify-between px-4 py-3">
+            <p
+              id={titleId}
+              className="text-sm font-semibold text-zinc-950"
+            >
+              Decision detail
+            </p>
 
-          <button
-            ref={closeRef}
-            type="button"
-            aria-label="Close decision detail"
-            title="Close"
-            onClick={onClose}
-            className="flex size-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
+            <button
+              ref={closeRef}
+              type="button"
+              aria-label="Close decision detail"
+              title="Close"
+              onClick={onClose}
+              className="flex size-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
+            >
+              <X
+                className="size-5"
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+
+          <p
+            role="status"
+            className="border-t border-amber-100 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-950"
           >
-            <X
-              className="size-5"
-              aria-hidden="true"
-            />
-          </button>
+            Synthetic demonstration data — not live inventory
+          </p>
         </div>
 
-        <div className="p-4 pb-10 sm:p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-10 sm:p-5">
           <ActionEvidenceInspector
             action={action}
             role={role}

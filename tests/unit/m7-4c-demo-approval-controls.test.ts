@@ -91,24 +91,30 @@ describe("M7.4c demonstration approval controls", () => {
     }
   });
 
-  it("uses acknowledge/review language for WATCH, not buying language", () => {
+  it("uses explicit local-demo control language, not production approval copy", () => {
     expect(
       demoPrimaryControlLabel("WATCH"),
-    ).toBe("Acknowledge review");
+    ).toBe("Try demo acknowledge");
     expect(
       demoDismissControlLabel("WATCH"),
-    ).toBe("Dismiss watch");
+    ).toBe("Try demo dismiss watch");
     expect(
       demoPrimaryControlLabel("REORDER"),
-    ).toBe("Approve recommendation");
+    ).toBe("Try demo approve");
+    expect(
+      demoDismissControlLabel("REORDER"),
+    ).toBe("Try demo dismiss");
 
     for (const label of [
       demoPrimaryControlLabel("WATCH"),
       demoDismissControlLabel("WATCH"),
+      demoPrimaryControlLabel("REORDER"),
+      demoDismissControlLabel("REORDER"),
     ]) {
+      expect(label.toLowerCase()).toContain("demo");
       expect(label.toLowerCase()).not.toContain("buy");
       expect(label.toLowerCase()).not.toContain("purchase");
-      expect(label.toLowerCase()).not.toContain("order");
+      expect(label).not.toContain("Approved");
     }
   });
 

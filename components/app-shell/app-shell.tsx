@@ -6,7 +6,6 @@ import {
   ChevronDown,
   ClipboardCheck,
   Database,
-  LayoutDashboard,
   LogOut,
   ShieldCheck,
   Sparkles,
@@ -15,6 +14,10 @@ import {
 import {
   MobileAppMenu,
 } from "@/components/app-shell/mobile-app-menu";
+
+import {
+  OverviewNavLink,
+} from "@/components/app-shell/overview-nav-link";
 
 import type {
   OrganizationMemberRole,
@@ -116,18 +119,9 @@ export function AppShell({
             aria-label="Primary"
             className="mt-8 space-y-1 px-4"
           >
-            <Link
-              href={`/app/${organization.id}`}
-              aria-current="page"
-              className="flex min-h-11 items-center gap-3 rounded-xl bg-zinc-950 px-3.5 text-sm font-medium text-white shadow-sm"
-            >
-              <LayoutDashboard
-                className="size-[18px]"
-                aria-hidden="true"
-              />
-
-              Overview
-            </Link>
+            <OverviewNavLink
+              organizationId={organization.id}
+            />
 
             {FUTURE_NAVIGATION.map(
               ({
