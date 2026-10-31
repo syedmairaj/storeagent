@@ -128,17 +128,24 @@ describe("M7.2b dormant inventory action persistence architecture", () => {
     expect(source).toContain("SET LOCAL ROLE authenticated");
   });
 
-  it("does not introduce a TypeScript production persistence adapter", () => {
-    const persistDir = path.join(ROOT, "lib/persistence");
-    const names = fs.existsSync(persistDir)
-      ? fs.readdirSync(persistDir)
-      : [];
+  it("allows only the dormant M7.2c harness adapter, not a production writer", () => {
+    const adapterPath = path.join(
+      ROOT,
+      "lib/persistence/persist-inventory-action.ts",
+    );
+    expect(fs.existsSync(adapterPath)).toBe(true);
 
-    expect(
-      names.some((name) =>
-        /inventory.?action|persist.?decision|persist.?inventory/i.test(name),
-      ),
-    ).toBe(false);
+    const adapter = fs.readFileSync(adapterPath, "utf8");
+    const importLines = adapter
+      .split("\n")
+      .filter((line) => /^\s*import\b/.test(line))
+      .join("\n");
+    expect(adapter.startsWith('import "server-only"')).toBe(true);
+    expect(adapter).toContain("m7_persistence_contract_harness_v1");
+    expect(adapter).toContain("PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE");
+    expect(importLines).not.toContain("fixture-evaluation");
+    expect(importLines).not.toContain("evaluateFixtureInventoryDecision");
+    expect(importLines).not.toContain("decideInventoryAction");
 
     const decisionDir = path.join(ROOT, "lib/decision-engine");
     const decisionFiles = fs.readdirSync(decisionDir);

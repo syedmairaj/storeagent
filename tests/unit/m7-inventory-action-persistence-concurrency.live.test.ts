@@ -179,8 +179,33 @@ async function openSession(): Promise<Session> {
   };
 }
 
+async function assertImmutabilityTriggerEnabled(): Promise<void> {
+  const state = await psql(`
+    select t.tgenabled::text
+    from pg_catalog.pg_trigger as t
+    where
+      t.tgname = 'inventory_actions_immutable'
+      and t.tgrelid = 'public.inventory_actions'::regclass
+  `);
+  // O = enabled for origin sessions (normal enabled).
+  expect(state).toBe("O");
+}
+
 async function wipeActions(): Promise<void> {
-  await psql("truncate table public.inventory_actions;");
+  // One explicit transaction on the hardcoded local connection.
+  // DISABLE is transactional: failed DELETE aborts and rolls back trigger state.
+  expect(psqlArgs().slice(0, 4)).toEqual(["-h", "127.0.0.1", "-p", "55322"]);
+  await psql(`
+    begin;
+    alter table public.inventory_actions
+      disable trigger inventory_actions_immutable;
+    delete from public.inventory_actions
+    where organization_id = ${quote(ORG)}::uuid;
+    alter table public.inventory_actions
+      enable trigger inventory_actions_immutable;
+    commit;
+  `);
+  await assertImmutabilityTriggerEnabled();
 }
 
 describeLive("M7.2b inventory action persistence concurrency (live)", () => {
@@ -253,6 +278,27 @@ describeLive("M7.2b inventory action persistence concurrency (live)", () => {
   afterAll(async () => {
     await wipeActions();
   }, 180000);
+
+  it("failed wipe DELETE rolls back and leaves immutability trigger enabled", async () => {
+    expect(psqlArgs().slice(0, 4)).toEqual(["-h", "127.0.0.1", "-p", "55322"]);
+    await assertImmutabilityTriggerEnabled();
+
+    await expect(
+      psql(`
+        begin;
+        alter table public.inventory_actions
+          disable trigger inventory_actions_immutable;
+        delete from public.inventory_actions
+        where organization_id = ${quote(ORG)}::uuid
+          and (1 / 0) = 1;
+        alter table public.inventory_actions
+          enable trigger inventory_actions_immutable;
+        commit;
+      `),
+    ).rejects.toThrow(/division by zero|ERROR/i);
+
+    await assertImmutabilityTriggerEnabled();
+  }, 120000);
 
   it("competing same-key writers create exactly one inventory action", async () => {
     const payload = await hashedPayloadSql({
