@@ -683,6 +683,155 @@ BEGIN
 END;
 $$;
 
+\echo '--- Valid REDUCE / PROMOTE persist with null quantity ---'
+
+DO $$
+DECLARE
+  payload jsonb;
+  hashes jsonb;
+  result jsonb;
+  raised boolean;
+  action_row public.inventory_actions%rowtype;
+BEGIN
+  -- REDUCE with null quantity
+  payload := pg_temp.m7_base_payload(
+    '71009000-0000-4000-8000-000000000001'::uuid,
+    '71009000-0000-4000-8000-000000000002'::uuid,
+    '71009000-0000-4000-8000-000000000003'::uuid,
+    '71009000-0000-4000-8000-000000000005'::uuid
+  );
+  payload := (
+    payload || jsonb_build_object(
+      'actionType', 'REDUCE',
+      'recommendedQuantity', null,
+      'priority', 'high',
+      'compatibleSecondaryActionTypes', jsonb_build_array('PROMOTE'),
+      'metricSourceWatermark', 'reduce-watermark-v1',
+      'evidenceSnapshot', jsonb_build_object(
+        'availableQuantity', 40,
+        'incomingQuantity', 10,
+        'demandVelocity', 0.5,
+        'daysOfStock', 80,
+        'leadTimeDays', 7,
+        'safetyStockUnits', 3,
+        'reorderPointUnits', 10,
+        'targetStockUnits', 20,
+        'inventoryAgeDays', 30,
+        'forecastExpectedDemandUnits', null,
+        'dataQualityScore', 0.8,
+        'reasonCodes', jsonb_build_array('OVERSTOCK_RISK_HIGH', 'ABOVE_TARGET_STOCK')
+      )
+    )
+  ) - 'decisionBodyHash' - 'evidenceProvenanceFingerprint';
+  hashes := public.inventory_action_derive_hashes(payload);
+  payload := payload || hashes;
+
+  result := public.persist_inventory_action_recommendation(
+    '71009000-0000-4000-8000-000000000001'::uuid,
+    '71009000-0000-4000-8000-000000000002'::uuid,
+    '71009000-0000-4000-8000-000000000003'::uuid,
+    '71009000-0000-4000-8000-000000000005'::uuid,
+    payload
+  );
+  IF result->>'disposition' <> 'created' THEN
+    RAISE EXCEPTION 'valid REDUCE should create, got %', result;
+  END IF;
+
+  SELECT * INTO action_row
+  FROM public.inventory_actions
+  WHERE id = (result->>'inventoryActionId')::uuid;
+  IF action_row.recommended_quantity IS NOT NULL
+    OR action_row.action_type <> 'REDUCE'
+  THEN
+    RAISE EXCEPTION 'REDUCE row must store null quantity: %', action_row;
+  END IF;
+
+  -- PROMOTE with null quantity
+  payload := pg_temp.m7_base_payload(
+    '71009000-0000-4000-8000-000000000001'::uuid,
+    '71009000-0000-4000-8000-000000000002'::uuid,
+    '71009000-0000-4000-8000-000000000003'::uuid,
+    '71009000-0000-4000-8000-000000000005'::uuid
+  );
+  payload := (
+    payload || jsonb_build_object(
+      'actionType', 'PROMOTE',
+      'recommendedQuantity', null,
+      'priority', 'medium',
+      'compatibleSecondaryActionTypes', '[]'::jsonb,
+      'metricSourceWatermark', 'promote-watermark-v1',
+      'evidenceSnapshot', jsonb_build_object(
+        'availableQuantity', 40,
+        'incomingQuantity', 0,
+        'demandVelocity', 0,
+        'daysOfStock', 90,
+        'leadTimeDays', 7,
+        'safetyStockUnits', 3,
+        'reorderPointUnits', 10,
+        'targetStockUnits', 20,
+        'inventoryAgeDays', 100,
+        'forecastExpectedDemandUnits', null,
+        'dataQualityScore', 0.7,
+        'reasonCodes', jsonb_build_array('AGED_INVENTORY', 'ZERO_DEMAND')
+      )
+    )
+  ) - 'decisionBodyHash' - 'evidenceProvenanceFingerprint';
+  hashes := public.inventory_action_derive_hashes(payload);
+  payload := payload || hashes;
+
+  result := public.persist_inventory_action_recommendation(
+    '71009000-0000-4000-8000-000000000001'::uuid,
+    '71009000-0000-4000-8000-000000000002'::uuid,
+    '71009000-0000-4000-8000-000000000003'::uuid,
+    '71009000-0000-4000-8000-000000000005'::uuid,
+    payload
+  );
+  IF result->>'disposition' <> 'created' THEN
+    RAISE EXCEPTION 'valid PROMOTE should create, got %', result;
+  END IF;
+
+  SELECT * INTO action_row
+  FROM public.inventory_actions
+  WHERE id = (result->>'inventoryActionId')::uuid;
+  IF action_row.recommended_quantity IS NOT NULL
+    OR action_row.action_type <> 'PROMOTE'
+  THEN
+    RAISE EXCEPTION 'PROMOTE row must store null quantity: %', action_row;
+  END IF;
+
+  -- REDUCE with positive quantity must be rejected
+  payload := (
+    payload || jsonb_build_object(
+      'actionType', 'REDUCE',
+      'recommendedQuantity', 5,
+      'metricSourceWatermark', 'reduce-qty-forbidden-v1'
+    )
+  ) - 'decisionBodyHash' - 'evidenceProvenanceFingerprint';
+  hashes := public.inventory_action_derive_hashes(payload);
+  payload := payload || hashes;
+  raised := false;
+  BEGIN
+    PERFORM public.persist_inventory_action_recommendation(
+      '71009000-0000-4000-8000-000000000001'::uuid,
+      '71009000-0000-4000-8000-000000000002'::uuid,
+      '71009000-0000-4000-8000-000000000003'::uuid,
+      '71009000-0000-4000-8000-000000000005'::uuid,
+      payload
+    );
+  EXCEPTION
+    WHEN others THEN
+      IF SQLERRM LIKE '%DECISION_PERSISTENCE_INVALID_PAYLOAD%' THEN
+        raised := true;
+      ELSE
+        RAISE EXCEPTION 'unexpected REDUCE qty error: %', SQLERRM;
+      END IF;
+  END;
+  IF NOT raised THEN
+    RAISE EXCEPTION 'REDUCE with quantity must be rejected';
+  END IF;
+END;
+$$;
+
 \echo '--- forecastRunId / fixture / reserved M5 / forged trust ---'
 
 DO $$
