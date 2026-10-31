@@ -33,6 +33,7 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     expect(banner).toContain('role="status"');
     expect(banner).toContain("sticky top-16");
     expect(banner).toContain("lg:top-0");
+    expect(banner).toContain("py-2.5");
   });
 
   it("preserves sheet Esc, focus trap, restore focus, and reduced motion", () => {
@@ -50,6 +51,21 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     expect(workspace).toContain(
       "Synthetic demonstration data — not live inventory",
     );
+    expect(workspace).toContain("md:hidden");
+    expect(workspace).toContain("env(safe-area-inset-bottom)");
+  });
+
+  it("hides mobile filter scrollbars while keeping overflow affordances", () => {
+    const workspace = read(
+      "components/actions-demo/actions-demo-workspace.tsx",
+    );
+
+    expect(workspace).toContain("[scrollbar-width:none]");
+    expect(workspace).toContain("[&::-webkit-scrollbar]:hidden");
+    expect(workspace).toContain("scrollIntoView");
+    expect(workspace).toContain("bg-gradient-to-r");
+    expect(workspace).toContain("bg-gradient-to-l");
+    expect(workspace).toContain('(min-width: 768px)');
   });
 
   it("uses a single-column evidence grid on the narrowest phones", () => {

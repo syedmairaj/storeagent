@@ -114,15 +114,26 @@ export function ActionsDemoWorkspace({
     useState(false);
 
   const [
-    isDesktopSplit,
-    setIsDesktopSplit,
+    viewportLayout,
+    setViewportLayout,
   ] =
-    useState(false);
+    useState<"mobile" | "tablet" | "desktop">(
+      "mobile",
+    );
 
   const rowRefs =
     useRef<Map<string, HTMLButtonElement>>(
       new Map(),
     );
+
+  const isDesktopSplit =
+    viewportLayout === "desktop";
+
+  const isTabletStack =
+    viewportLayout === "tablet";
+
+  const usesSheet =
+    viewportLayout === "mobile";
 
   const filteredActions =
     useMemo(
@@ -196,31 +207,111 @@ export function ActionsDemoWorkspace({
 
   useEffect(
     () => {
-      const media =
+      const desktop =
         window.matchMedia(
           "(min-width: 1024px)",
         );
+      const tablet =
+        window.matchMedia(
+          "(min-width: 768px)",
+        );
 
       function sync() {
-        setIsDesktopSplit(
-          media.matches,
+        if (
+          desktop.matches
+        ) {
+          setViewportLayout(
+            "desktop",
+          );
+          setSheetOpen(
+            false,
+          );
+          return;
+        }
+
+        if (
+          tablet.matches
+        ) {
+          setViewportLayout(
+            "tablet",
+          );
+          setSheetOpen(
+            false,
+          );
+          return;
+        }
+
+        setViewportLayout(
+          "mobile",
         );
       }
 
       sync();
-      media.addEventListener(
+      desktop.addEventListener(
+        "change",
+        sync,
+      );
+      tablet.addEventListener(
         "change",
         sync,
       );
 
       return () => {
-        media.removeEventListener(
+        desktop.removeEventListener(
+          "change",
+          sync,
+        );
+        tablet.removeEventListener(
           "change",
           sync,
         );
       };
     },
     [],
+  );
+
+  useEffect(
+    () => {
+      if (
+        !resolvedSelectedId ||
+        !(
+          isDesktopSplit ||
+          isTabletStack
+        )
+      ) {
+        return;
+      }
+
+      const row =
+        rowRefs.current.get(
+          resolvedSelectedId,
+        );
+
+      if (
+        !row
+      ) {
+        return;
+      }
+
+      const reduceMotion =
+        window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+
+      row.scrollIntoView({
+        block: "nearest",
+        inline: "nearest",
+        behavior: reduceMotion
+          ? "auto"
+          : "smooth",
+      });
+    },
+    [
+      filter,
+      resolvedSelectedId,
+      isDesktopSplit,
+      isTabletStack,
+    ],
   );
 
   function changeFilter(
@@ -255,7 +346,7 @@ export function ActionsDemoWorkspace({
     setSelectedId(actionId);
 
     if (
-      !isDesktopSplit
+      usesSheet
     ) {
       setSheetOpen(true);
     }
@@ -277,28 +368,34 @@ export function ActionsDemoWorkspace({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-5 lg:space-y-6">
       <StoreLocationContextBar
         storeLabel={dataset.storeLabel}
         locationLabel={dataset.locationLabel}
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="max-w-2xl">
-          <p className="text-sm font-medium text-zinc-500">
-            Actions
-          </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+        <div className="min-w-0 max-w-2xl">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-xs font-medium text-zinc-500 sm:text-sm">
+              Actions
+            </p>
 
-          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-zinc-400 sm:hidden">
+              {dataset.actions.length} demo
+            </p>
+          </div>
+
+          <h1 className="mt-1 text-2xl font-semibold tracking-[-0.035em] sm:mt-2 sm:text-3xl lg:text-4xl">
             Decision queue
           </h1>
 
-          <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-600">
+          <p className="mt-2 hidden max-w-xl text-sm leading-6 text-zinc-600 sm:block">
             Review what StoreAgent would recommend next. Select a decision to inspect the evidence — demonstration only.
           </p>
         </div>
 
-        <p className="text-xs font-medium uppercase tracking-[0.12em] text-zinc-400">
+        <p className="hidden text-xs font-medium uppercase tracking-[0.12em] text-zinc-400 sm:block">
           {dataset.actions.length} demo decisions
         </p>
       </div>
@@ -316,7 +413,7 @@ export function ActionsDemoWorkspace({
         }}
       />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.4fr)_minmax(0,0.6fr)] xl:grid-cols-[minmax(18rem,0.38fr)_minmax(0,0.62fr)] lg:items-start lg:gap-7">
+      <div className="grid gap-4 md:gap-5 lg:grid-cols-[minmax(0,0.4fr)_minmax(0,0.6fr)] xl:grid-cols-[minmax(18rem,0.38fr)_minmax(0,0.62fr)] lg:items-start lg:gap-7">
         <section
           aria-label="Decision queue"
           className="min-w-0 space-y-2.5"
@@ -342,7 +439,9 @@ export function ActionsDemoWorkspace({
                 action={action}
                 selected={
                   action.id === resolvedSelectedId &&
-                  (isDesktopSplit || sheetOpen)
+                  (isDesktopSplit ||
+                    isTabletStack ||
+                    sheetOpen)
                 }
                 compact={
                   filteredActions.length === 1
@@ -375,6 +474,26 @@ export function ActionsDemoWorkspace({
           )}
         </section>
 
+        {isTabletStack && (
+          <section
+            aria-label="Evidence inspector"
+            className="min-w-0 lg:hidden"
+          >
+            {selectedAction ? (
+              <ActionEvidenceInspector
+                action={selectedAction}
+                role={role}
+              />
+            ) : (
+              <InspectorEmptyState
+                healthyOnly={
+                  filter === "HEALTHY"
+                }
+              />
+            )}
+          </section>
+        )}
+
         <aside
           aria-label="Evidence inspector"
           className="hidden min-w-0 lg:block"
@@ -396,7 +515,7 @@ export function ActionsDemoWorkspace({
         </aside>
       </div>
 
-      {!isDesktopSplit &&
+      {usesSheet &&
         sheetOpen &&
         selectedAction && (
           <ActionDetailSheet
@@ -427,8 +546,8 @@ function StoreLocationContextBar({
   locationLabel: string;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:gap-6 sm:px-5">
-      <div className="flex min-w-0 items-center gap-2.5 text-sm text-zinc-700">
+    <div className="flex flex-row flex-wrap items-center gap-x-4 gap-y-1.5 rounded-2xl border border-zinc-200 bg-white px-3.5 py-2.5 shadow-sm sm:gap-6 sm:px-5 sm:py-3.5">
+      <div className="flex min-w-0 items-center gap-2 text-sm text-zinc-700">
         <Store
           className="size-4 shrink-0 text-zinc-500"
           aria-hidden="true"
@@ -440,7 +559,7 @@ function StoreLocationContextBar({
 
       <div className="hidden h-4 w-px bg-zinc-200 sm:block" />
 
-      <div className="flex min-w-0 items-center gap-2.5 text-sm text-zinc-600">
+      <div className="flex min-w-0 items-center gap-2 text-sm text-zinc-600">
         <MapPin
           className="size-4 shrink-0 text-zinc-500"
           aria-hidden="true"
@@ -462,53 +581,211 @@ function ActionTypeFilter({
   onChange: (next: FilterKey) => void;
   counts: Record<FilterKey, number>;
 }) {
+  const scrollerRef =
+    useRef<HTMLDivElement>(
+      null,
+    );
+
+  const activeRef =
+    useRef<HTMLButtonElement>(
+      null,
+    );
+
+  const [
+    overflow,
+    setOverflow,
+  ] =
+    useState({
+      left: false,
+      right: false,
+    });
+
+  useEffect(
+    () => {
+      const scroller =
+        scrollerRef.current;
+
+      if (
+        !scroller
+      ) {
+        return;
+      }
+
+      function updateOverflow() {
+        if (
+          !scroller
+        ) {
+          return;
+        }
+
+        const maxScroll =
+          scroller.scrollWidth -
+          scroller.clientWidth;
+
+        setOverflow({
+          left: scroller.scrollLeft > 4,
+          right:
+            maxScroll > 4 &&
+            scroller.scrollLeft < maxScroll - 4,
+        });
+      }
+
+      updateOverflow();
+      scroller.addEventListener(
+        "scroll",
+        updateOverflow,
+        {
+          passive: true,
+        },
+      );
+      window.addEventListener(
+        "resize",
+        updateOverflow,
+      );
+
+      return () => {
+        scroller.removeEventListener(
+          "scroll",
+          updateOverflow,
+        );
+        window.removeEventListener(
+          "resize",
+          updateOverflow,
+        );
+      };
+    },
+    [
+      filter,
+    ],
+  );
+
+  useEffect(
+    () => {
+      const chip =
+        activeRef.current;
+      const scroller =
+        scrollerRef.current;
+
+      if (
+        !chip ||
+        !scroller
+      ) {
+        return;
+      }
+
+      const reduceMotion =
+        window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+
+      const chipLeft =
+        chip.offsetLeft;
+      const chipRight =
+        chipLeft + chip.offsetWidth;
+      const viewLeft =
+        scroller.scrollLeft;
+      const viewRight =
+        viewLeft + scroller.clientWidth;
+      const pad =
+        24;
+
+      if (
+        chipLeft < viewLeft + pad ||
+        chipRight > viewRight - pad
+      ) {
+        chip.scrollIntoView({
+          inline: "center",
+          block: "nearest",
+          behavior: reduceMotion
+            ? "auto"
+            : "smooth",
+        });
+      }
+    },
+    [
+      filter,
+    ],
+  );
+
   return (
-    <div className="sticky top-[8.75rem] z-[5] -mx-1 overflow-x-auto overscroll-x-contain bg-[#f7f8f7]/95 px-1 py-1 backdrop-blur-sm lg:static lg:overflow-visible lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
-      <div
-        role="toolbar"
-        aria-label="Filter decisions by type"
-        className="inline-flex min-w-full gap-2 sm:min-w-0 sm:flex-wrap"
-      >
-        <span className="sr-only">
-          <Filter aria-hidden="true" />
-        </span>
+    <div className="sticky top-[7.25rem] z-[5] -mx-1 bg-[#f7f8f7]/95 px-1 py-1 backdrop-blur-sm md:top-[7.75rem] lg:static lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
+      <div className="relative">
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-y-0 left-0 z-[1] w-8 bg-gradient-to-r from-[#f7f8f7] to-transparent motion-safe:transition-opacity motion-safe:duration-150 motion-reduce:transition-none lg:hidden ${
+            overflow.left
+              ? "opacity-100"
+              : "opacity-0"
+          }`}
+        />
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-y-0 right-0 z-[1] w-8 bg-gradient-to-l from-[#f7f8f7] to-transparent motion-safe:transition-opacity motion-safe:duration-150 motion-reduce:transition-none lg:hidden ${
+            overflow.right
+              ? "opacity-100"
+              : "opacity-0"
+          }`}
+        />
 
-        {FILTERS.map(
-          ({
-            key,
-            label,
-          }) => {
-            const active =
-              filter === key;
+        <div
+          ref={scrollerRef}
+          className="overflow-x-auto overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:overflow-visible"
+        >
+          <div
+            role="toolbar"
+            aria-label="Filter decisions by type"
+            className="inline-flex min-w-full gap-2 sm:min-w-0 sm:flex-wrap"
+          >
+            <span className="sr-only">
+              <Filter aria-hidden="true" />
+              {overflow.right || overflow.left
+                ? "More filters available. Swipe or use arrow keys when focused."
+                : null}
+            </span>
 
-            return (
-              <button
-                key={key}
-                type="button"
-                aria-pressed={active}
-                onClick={() =>
-                  onChange(key)
-                }
-                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-medium motion-safe:transition-[border-color,background-color,color,box-shadow] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
-                  active
-                    ? "border-zinc-950 bg-zinc-950 text-white shadow-sm"
-                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
-                }`}
-              >
-                {label}
-                <span
-                  className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${
-                    active
-                      ? "bg-white/15 text-white"
-                      : "bg-zinc-100 text-zinc-500"
-                  }`}
-                >
-                  {counts[key]}
-                </span>
-              </button>
-            );
-          },
-        )}
+            {FILTERS.map(
+              ({
+                key,
+                label,
+              }) => {
+                const active =
+                  filter === key;
+
+                return (
+                  <button
+                    key={key}
+                    ref={
+                      active
+                        ? activeRef
+                        : undefined
+                    }
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      onChange(key)
+                    }
+                    className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-medium motion-safe:transition-[border-color,background-color,color,box-shadow] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
+                      active
+                        ? "border-zinc-950 bg-zinc-950 text-white shadow-sm"
+                        : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+                    }`}
+                  >
+                    {label}
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${
+                        active
+                          ? "bg-white/15 text-white"
+                          : "bg-zinc-100 text-zinc-500"
+                      }`}
+                    >
+                      {counts[key]}
+                    </span>
+                  </button>
+                );
+              },
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1293,7 +1570,7 @@ function ActionDetailSheet({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[90] lg:hidden"
+      className="fixed inset-0 z-[90] md:hidden"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
@@ -1308,7 +1585,7 @@ function ActionDetailSheet({
 
       <div
         ref={panelRef}
-        className="absolute inset-x-0 bottom-0 flex max-h-[92vh] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#f7f8f7] shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 motion-reduce:animate-none"
+        className="absolute inset-x-0 bottom-0 flex max-h-[min(92vh,100dvh)] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#f7f8f7] pb-[env(safe-area-inset-bottom)] shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 motion-reduce:animate-none"
       >
         <div className="shrink-0 border-b border-zinc-200 bg-white">
           <div className="flex items-center justify-between px-4 py-3">
@@ -1325,7 +1602,7 @@ function ActionDetailSheet({
               aria-label="Close decision detail"
               title="Close"
               onClick={onClose}
-              className="flex size-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
+              className="flex size-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 motion-safe:transition-[background-color] motion-safe:duration-150 motion-reduce:transition-none hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
             >
               <X
                 className="size-5"
@@ -1342,7 +1619,7 @@ function ActionDetailSheet({
           </p>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-10 sm:p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-8 sm:p-5">
           <ActionEvidenceInspector
             action={action}
             role={role}
