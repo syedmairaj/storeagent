@@ -904,6 +904,49 @@ BEGIN
 END;
 $$;
 
+\echo '--- Post-suite: eligibility hash fail-closed + immutability triggers enabled ---'
+
+DO $$
+DECLARE
+  elig_def text;
+  actions_enabled text;
+  events_enabled text;
+BEGIN
+  SELECT pg_get_functiondef(p.oid)
+  INTO elig_def
+  FROM pg_proc p
+  JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'public'
+    AND p.proname = 'inventory_action_is_merchant_approvable';
+
+  IF elig_def IS NULL
+    OR elig_def NOT ILIKE '%else false end%'
+    OR elig_def ILIKE '%m7_lifecycle_eligibility_probe_v1%'
+  THEN
+    RAISE EXCEPTION 'eligibility helper not fail-closed after suite: %', elig_def;
+  END IF;
+
+  SELECT t.tgenabled::text
+  INTO actions_enabled
+  FROM pg_catalog.pg_trigger AS t
+  WHERE t.tgname = 'inventory_actions_immutable'
+    AND t.tgrelid = 'public.inventory_actions'::regclass;
+
+  SELECT t.tgenabled::text
+  INTO events_enabled
+  FROM pg_catalog.pg_trigger AS t
+  WHERE t.tgname = 'action_events_immutable'
+    AND t.tgrelid = 'public.action_events'::regclass;
+
+  IF actions_enabled IS DISTINCT FROM 'O'
+    OR events_enabled IS DISTINCT FROM 'O'
+  THEN
+    RAISE EXCEPTION 'immutability triggers not enabled (actions=%, events=%)',
+      actions_enabled, events_enabled;
+  END IF;
+END;
+$$;
+
 \echo '=== M7.3c TRUSTED LIFECYCLE RPC ADVERSARIAL PASSED ==='
 
 ROLLBACK;
