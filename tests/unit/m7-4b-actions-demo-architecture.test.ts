@@ -150,22 +150,25 @@ describe("M7.4b Actions demonstration architecture", () => {
     }
   });
 
-  it("does not implement Approve/Edit/Dismiss production semantics in M7.4b UI", () => {
-    const workspace = read(
+  it("does not wire Approve/Edit/Dismiss to production lifecycle semantics", () => {
+    const files = [
       "components/actions-demo/actions-demo-workspace.tsx",
-    );
+      "components/actions-demo/demo-approval-cluster.tsx",
+    ];
 
-    expect(workspace).not.toContain(
-      "transition_inventory_action_merchant",
-    );
-    expect(workspace).not.toContain("Approved");
-    expect(workspace).not.toContain("PO created");
-    expect(workspace).not.toMatch(
-      /onClick=\{[^}]*Approve/,
-    );
-    expect(workspace).toContain(
-      "Production Approve, Edit, and Dismiss are not available",
-    );
+    for (const file of files) {
+      if (!fs.existsSync(path.join(ROOT, file))) {
+        continue;
+      }
+
+      const source = read(file);
+
+      expect(source).not.toContain(
+        "transition_inventory_action_merchant",
+      );
+      expect(source).not.toContain("PO created");
+      expect(source).not.toContain("Purchased");
+    }
   });
 
   it("renders HEALTHY as a separate non-action skim", () => {

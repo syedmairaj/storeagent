@@ -1,4 +1,8 @@
 import {
+  redirect,
+} from "next/navigation";
+
+import {
   DemoDataBanner,
 } from "@/components/actions-demo/demo-data-banner";
 
@@ -7,9 +11,17 @@ import {
 } from "@/components/actions-demo/actions-demo-workspace";
 
 import {
+  requireAppIdentity,
+} from "@/lib/auth/app-route";
+
+import {
   getM7DecisionDemoFixtureRoot,
   loadM7DecisionDemoDataset,
 } from "@/lib/demo/m7-decision-demo-fixtures";
+
+import {
+  resolveServerOrganizationContext,
+} from "@/lib/tenancy/server-organization-context";
 
 export default async function OrganizationActionsDemoPage({
   params,
@@ -18,10 +30,30 @@ export default async function OrganizationActionsDemoPage({
     organizationId: string;
   }>;
 }) {
-  // Organization membership is enforced by the parent layout.
-  // Fixtures are synthetic only — organizationId is unused for data loading.
-  await params;
+  const identity =
+    await requireAppIdentity();
 
+  const {
+    organizationId,
+  } =
+    await params;
+
+  // Membership is also enforced by the parent layout; resolve again for role chrome.
+  const resolution =
+    await resolveServerOrganizationContext(
+      identity,
+      organizationId,
+    );
+
+  if (
+    !resolution.ok
+  ) {
+    redirect(
+      "/app?tenant_error=organization_access_denied",
+    );
+  }
+
+  // Fixtures are synthetic only — organizationId is unused for decision data.
   const loaded =
     loadM7DecisionDemoDataset(
       getM7DecisionDemoFixtureRoot(),
@@ -34,6 +66,7 @@ export default async function OrganizationActionsDemoPage({
       {loaded.ok ? (
         <ActionsDemoWorkspace
           dataset={loaded.dataset}
+          role={resolution.context.role}
         />
       ) : (
         <DemoAttestationError

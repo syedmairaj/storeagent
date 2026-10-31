@@ -26,6 +26,14 @@ import {
 } from "@/components/actions-demo/action-type-presentation";
 
 import {
+  DemoApprovalCluster,
+} from "@/components/actions-demo/demo-approval-cluster";
+
+import type {
+  OrganizationMemberRole,
+} from "@/lib/commerce-domain/types";
+
+import {
   demoActionShowsRecommendedQuantity,
   type DemoActionItem,
   type DemoActionType,
@@ -77,10 +85,12 @@ const FILTERS: {
 
 interface ActionsDemoWorkspaceProps {
   dataset: M7DecisionDemoFixtureRoot;
+  role: OrganizationMemberRole;
 }
 
 export function ActionsDemoWorkspace({
   dataset,
+  role,
 }: ActionsDemoWorkspaceProps) {
   const [
     filter,
@@ -360,6 +370,7 @@ export function ActionsDemoWorkspace({
             {selectedAction ? (
               <ActionEvidenceInspector
                 action={selectedAction}
+                role={role}
               />
             ) : (
               <InspectorEmptyState
@@ -377,6 +388,7 @@ export function ActionsDemoWorkspace({
         selectedAction && (
           <ActionDetailSheet
             action={selectedAction}
+            role={role}
             onClose={closeSheet}
           />
         )}
@@ -706,8 +718,10 @@ function InspectorEmptyState({
 
 function ActionEvidenceInspector({
   action,
+  role,
 }: {
   action: DemoActionItem;
+  role: OrganizationMemberRole;
 }) {
   const meta =
     getActionTypeMeta(
@@ -766,7 +780,7 @@ function ActionEvidenceInspector({
               </p>
             )}
             <p className="mt-3 text-xs leading-5 text-zinc-500">
-              Quantity grounded in this synthetic fixture only. Edit / approve controls arrive in a later demonstration step and will not save production actions.
+              Quantity grounded in this synthetic fixture only. Controls below never persist a production decision.
             </p>
           </div>
         )}
@@ -817,9 +831,11 @@ function ActionEvidenceInspector({
           </div>
         )}
 
-        <p className="mt-8 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs leading-5 text-zinc-500">
-          Production Approve, Edit, and Dismiss are not available in this milestone. Demonstration controls will communicate that no action was saved.
-        </p>
+        <DemoApprovalCluster
+          key={action.id}
+          action={action}
+          role={role}
+        />
       </div>
     </article>
   );
@@ -993,9 +1009,11 @@ function ReasonCodeList({
 
 function ActionDetailSheet({
   action,
+  role,
   onClose,
 }: {
   action: DemoActionItem;
+  role: OrganizationMemberRole;
   onClose: () => void;
 }) {
   const titleId =
@@ -1139,6 +1157,7 @@ function ActionDetailSheet({
         <div className="p-4 pb-10 sm:p-5">
           <ActionEvidenceInspector
             action={action}
+            role={role}
           />
         </div>
       </div>
