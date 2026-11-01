@@ -156,16 +156,26 @@ describe("M7.4c demonstration approval architecture", () => {
     );
   });
 
-  it("keeps Actions nav disabled", () => {
+  it("keeps Actions nav as demonstration-only after activation", () => {
+    const actionsNav = read(
+      "components/app-shell/actions-nav-link.tsx",
+    );
+
+    expect(actionsNav).toContain("/actions");
+    expect(actionsNav).toContain("Demo");
+    expect(actionsNav).toContain(
+      "Actions demonstration",
+    );
+
     for (const file of [
       "components/app-shell/app-shell.tsx",
       "components/app-shell/mobile-app-menu.tsx",
     ]) {
       const source = read(file);
 
-      expect(source).toContain('label: "Actions"');
+      expect(source).toContain("ActionsNavLink");
       expect(source).toContain("Later");
-      expect(source).not.toContain("/actions");
+      expect(source).not.toContain('label: "Actions"');
     }
   });
 

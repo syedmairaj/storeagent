@@ -14,13 +14,16 @@ import Link from "next/link";
 import {
   Boxes,
   ChartNoAxesCombined,
-  ClipboardCheck,
   Database,
   LogOut,
   Menu,
   ShieldCheck,
   X,
 } from "lucide-react";
+
+import {
+  ActionsNavLink,
+} from "@/components/app-shell/actions-nav-link";
 
 import {
   OverviewNavLink,
@@ -45,10 +48,6 @@ interface MobileAppMenuProps {
 }
 
 const FUTURE_NAVIGATION = [
-  {
-    label: "Actions",
-    icon: ClipboardCheck,
-  },
   {
     label: "Inventory",
     icon: Boxes,
@@ -177,6 +176,14 @@ export function MobileAppMenu({
                 className="space-y-1 p-4"
               >
                 <OverviewNavLink
+                  organizationId={organization.id}
+                  variant="mobile"
+                  onNavigate={() =>
+                    setOpen(false)
+                  }
+                />
+
+                <ActionsNavLink
                   organizationId={organization.id}
                   variant="mobile"
                   onNavigate={() =>

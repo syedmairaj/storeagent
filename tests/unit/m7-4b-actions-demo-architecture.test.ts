@@ -90,21 +90,26 @@ describe("M7.4b Actions demonstration architecture", () => {
     expect(banner).toContain('role="status"');
   });
 
-  it("keeps Actions nav disabled until later acceptance", () => {
+  it("exposes Actions nav through the dedicated demo nav link", () => {
+    const actionsNav = read(
+      "components/app-shell/actions-nav-link.tsx",
+    );
+
+    expect(actionsNav).toContain(
+      "`/app/${organizationId}/actions`",
+    );
+    expect(actionsNav).toContain("Demo");
+
     for (const file of [
       "components/app-shell/app-shell.tsx",
       "components/app-shell/mobile-app-menu.tsx",
     ]) {
       const source = read(file);
 
-      expect(source).toContain('label: "Actions"');
+      expect(source).toContain("ActionsNavLink");
       expect(source).toContain("Later");
-      expect(source).not.toContain(
-        "`/app/${organization.id}/actions`",
-      );
-      expect(source).not.toContain(
-        "/actions\"",
-      );
+      expect(source).toContain('label: "Inventory"');
+      expect(source).not.toContain('label: "Actions"');
     }
   });
 

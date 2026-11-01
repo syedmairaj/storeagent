@@ -103,21 +103,32 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     );
   });
 
-  it("keeps Actions navigation disabled pending visual acceptance", () => {
+  it("activates Actions navigation with a visible Demo distinction", () => {
+    const actionsNav = read(
+      "components/app-shell/actions-nav-link.tsx",
+    );
+
+    expect(actionsNav).toContain("/actions");
+    expect(actionsNav).toContain("Demo");
+    expect(actionsNav).toContain("aria-current");
+
     for (const file of [
       "components/app-shell/app-shell.tsx",
       "components/app-shell/mobile-app-menu.tsx",
     ]) {
       const source = read(file);
-      expect(source).toContain('label: "Actions"');
+      expect(source).toContain("ActionsNavLink");
       expect(source).toContain("Later");
-      expect(source).not.toContain("/actions");
+      expect(source).not.toContain('label: "Actions"');
     }
   });
 
   it("clears Overview active highlighting off the exact Overview route", () => {
     const overviewNav = read(
       "components/app-shell/overview-nav-link.tsx",
+    );
+    const actionsNav = read(
+      "components/app-shell/actions-nav-link.tsx",
     );
     const shell = read(
       "components/app-shell/app-shell.tsx",
@@ -129,8 +140,11 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     expect(overviewNav).toContain("usePathname");
     expect(overviewNav).toContain('aria-current');
     expect(overviewNav).toContain("pathname === href");
+    expect(actionsNav).toContain("pathname === href");
     expect(shell).toContain("OverviewNavLink");
+    expect(shell).toContain("ActionsNavLink");
     expect(mobile).toContain("OverviewNavLink");
+    expect(mobile).toContain("ActionsNavLink");
     expect(shell).not.toContain('aria-current="page"');
     expect(overviewNav).not.toContain("/actions");
   });

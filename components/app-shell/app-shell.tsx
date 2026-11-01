@@ -4,12 +4,15 @@ import {
   Boxes,
   ChartNoAxesCombined,
   ChevronDown,
-  ClipboardCheck,
   Database,
   LogOut,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+
+import {
+  ActionsNavLink,
+} from "@/components/app-shell/actions-nav-link";
 
 import {
   MobileAppMenu,
@@ -41,10 +44,6 @@ interface AppShellProps {
 }
 
 const FUTURE_NAVIGATION = [
-  {
-    label: "Actions",
-    icon: ClipboardCheck,
-  },
   {
     label: "Inventory",
     icon: Boxes,
@@ -120,6 +119,10 @@ export function AppShell({
             className="mt-8 space-y-1 px-4"
           >
             <OverviewNavLink
+              organizationId={organization.id}
+            />
+
+            <ActionsNavLink
               organizationId={organization.id}
             />
 
