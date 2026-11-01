@@ -33,7 +33,7 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     expect(banner).toContain('role="status"');
     expect(banner).toContain("sticky top-16");
     expect(banner).toContain("lg:top-0");
-    expect(banner).toContain("py-2.5");
+    expect(banner).toContain("py-2");
   });
 
   it("preserves sheet Esc, focus trap, restore focus, and reduced motion", () => {
@@ -66,6 +66,10 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     expect(workspace).toContain("bg-gradient-to-r");
     expect(workspace).toContain("bg-gradient-to-l");
     expect(workspace).toContain('(min-width: 768px)');
+    expect(workspace).toContain('(min-width: 1280px)');
+    expect(workspace).toContain("xl:grid-cols-");
+    expect(workspace).toContain("tabletInspectorRef");
+    expect(workspace).toContain("min-w-0 max-w-full");
   });
 
   it("uses a single-column evidence grid on the narrowest phones", () => {

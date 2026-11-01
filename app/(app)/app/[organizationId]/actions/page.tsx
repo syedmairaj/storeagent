@@ -60,7 +60,7 @@ export default async function OrganizationActionsDemoPage({
     );
 
   return (
-    <div className="space-y-3 sm:space-y-5 lg:space-y-6">
+    <div className="-mt-2 min-w-0 max-w-full space-y-2.5 sm:mt-0 sm:space-y-5 xl:space-y-6">
       <DemoDataBanner />
 
       {loaded.ok ? (

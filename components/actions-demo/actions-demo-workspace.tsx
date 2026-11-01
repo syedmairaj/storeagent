@@ -126,6 +126,11 @@ export function ActionsDemoWorkspace({
       new Map(),
     );
 
+  const tabletInspectorRef =
+    useRef<HTMLDivElement>(
+      null,
+    );
+
   const isDesktopSplit =
     viewportLayout === "desktop";
 
@@ -207,9 +212,10 @@ export function ActionsDemoWorkspace({
 
   useEffect(
     () => {
+      // Split only when content width is usable with the lg shell sidebar.
       const desktop =
         window.matchMedia(
-          "(min-width: 1024px)",
+          "(min-width: 1280px)",
         );
       const tablet =
         window.matchMedia(
@@ -273,22 +279,7 @@ export function ActionsDemoWorkspace({
   useEffect(
     () => {
       if (
-        !resolvedSelectedId ||
-        !(
-          isDesktopSplit ||
-          isTabletStack
-        )
-      ) {
-        return;
-      }
-
-      const row =
-        rowRefs.current.get(
-          resolvedSelectedId,
-        );
-
-      if (
-        !row
+        !resolvedSelectedId
       ) {
         return;
       }
@@ -298,12 +289,37 @@ export function ActionsDemoWorkspace({
           "(prefers-reduced-motion: reduce)",
         ).matches;
 
-      row.scrollIntoView({
+      const behavior =
+        reduceMotion
+          ? "auto"
+          : "smooth";
+
+      if (
+        isTabletStack
+      ) {
+        tabletInspectorRef.current?.scrollIntoView({
+          block: "nearest",
+          inline: "nearest",
+          behavior,
+        });
+        return;
+      }
+
+      if (
+        !isDesktopSplit
+      ) {
+        return;
+      }
+
+      const row =
+        rowRefs.current.get(
+          resolvedSelectedId,
+        );
+
+      row?.scrollIntoView({
         block: "nearest",
         inline: "nearest",
-        behavior: reduceMotion
-          ? "auto"
-          : "smooth",
+        behavior,
       });
     },
     [
@@ -368,13 +384,13 @@ export function ActionsDemoWorkspace({
   }
 
   return (
-    <div className="space-y-3 sm:space-y-5 lg:space-y-6">
+    <div className="min-w-0 max-w-full space-y-2.5 sm:space-y-5 xl:space-y-6">
       <StoreLocationContextBar
         storeLabel={dataset.storeLabel}
         locationLabel={dataset.locationLabel}
       />
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+      <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
         <div className="min-w-0 max-w-2xl">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-xs font-medium text-zinc-500 sm:text-sm">
@@ -386,7 +402,7 @@ export function ActionsDemoWorkspace({
             </p>
           </div>
 
-          <h1 className="mt-1 text-2xl font-semibold tracking-[-0.035em] sm:mt-2 sm:text-3xl lg:text-4xl">
+          <h1 className="mt-0.5 text-[1.375rem] font-semibold leading-tight tracking-[-0.035em] sm:mt-2 sm:text-3xl xl:text-4xl">
             Decision queue
           </h1>
 
@@ -413,7 +429,7 @@ export function ActionsDemoWorkspace({
         }}
       />
 
-      <div className="grid gap-4 md:gap-5 lg:grid-cols-[minmax(0,0.4fr)_minmax(0,0.6fr)] xl:grid-cols-[minmax(18rem,0.38fr)_minmax(0,0.62fr)] lg:items-start lg:gap-7">
+      <div className="grid min-w-0 gap-4 md:gap-5 xl:grid-cols-[minmax(18rem,0.42fr)_minmax(0,0.58fr)] xl:items-start xl:gap-7">
         <section
           aria-label="Decision queue"
           className="min-w-0 space-y-2.5"
@@ -434,38 +450,63 @@ export function ActionsDemoWorkspace({
 
           {filteredActions.map(
             (action) => (
-              <ActionRow
+              <div
                 key={action.id}
-                action={action}
-                selected={
-                  action.id === resolvedSelectedId &&
-                  (isDesktopSplit ||
-                    isTabletStack ||
-                    sheetOpen)
-                }
-                compact={
-                  filteredActions.length === 1
-                }
-                onSelect={() =>
-                  selectAction(action.id)
-                }
-                rowRef={(node) => {
-                  if (
-                    node
-                  ) {
-                    rowRefs.current.set(
-                      action.id,
-                      node,
-                    );
-                  } else {
-                    rowRefs.current.delete(
-                      action.id,
-                    );
+                className="min-w-0 space-y-2.5"
+              >
+                <ActionRow
+                  action={action}
+                  selected={
+                    action.id === resolvedSelectedId &&
+                    (isDesktopSplit ||
+                      isTabletStack ||
+                      sheetOpen)
                   }
-                }}
-              />
+                  compact={
+                    filteredActions.length === 1
+                  }
+                  onSelect={() =>
+                    selectAction(action.id)
+                  }
+                  rowRef={(node) => {
+                    if (
+                      node
+                    ) {
+                      rowRefs.current.set(
+                        action.id,
+                        node,
+                      );
+                    } else {
+                      rowRefs.current.delete(
+                        action.id,
+                      );
+                    }
+                  }}
+                />
+
+                {isTabletStack &&
+                  action.id === resolvedSelectedId &&
+                  selectedAction && (
+                    <div
+                      ref={tabletInspectorRef}
+                      className="min-w-0"
+                    >
+                      <ActionEvidenceInspector
+                        action={selectedAction}
+                        role={role}
+                      />
+                    </div>
+                  )}
+              </div>
             ),
           )}
+
+          {isTabletStack &&
+            filter === "HEALTHY" && (
+              <InspectorEmptyState
+                healthyOnly
+              />
+            )}
 
           {showHealthySkim && (
             <HealthySkimSection
@@ -474,29 +515,9 @@ export function ActionsDemoWorkspace({
           )}
         </section>
 
-        {isTabletStack && (
-          <section
-            aria-label="Evidence inspector"
-            className="min-w-0 lg:hidden"
-          >
-            {selectedAction ? (
-              <ActionEvidenceInspector
-                action={selectedAction}
-                role={role}
-              />
-            ) : (
-              <InspectorEmptyState
-                healthyOnly={
-                  filter === "HEALTHY"
-                }
-              />
-            )}
-          </section>
-        )}
-
         <aside
           aria-label="Evidence inspector"
-          className="hidden min-w-0 lg:block"
+          className="hidden min-w-0 xl:block"
         >
           <div className="sticky top-24 max-h-[calc(100vh-7.5rem)]">
             {selectedAction ? (
@@ -546,7 +567,7 @@ function StoreLocationContextBar({
   locationLabel: string;
 }) {
   return (
-    <div className="flex flex-row flex-wrap items-center gap-x-4 gap-y-1.5 rounded-2xl border border-zinc-200 bg-white px-3.5 py-2.5 shadow-sm sm:gap-6 sm:px-5 sm:py-3.5">
+    <div className="flex w-full min-w-0 max-w-full flex-row flex-wrap items-center gap-x-4 gap-y-1.5 rounded-2xl border border-zinc-200 bg-white px-3.5 py-2 shadow-sm sm:gap-6 sm:px-5 sm:py-3.5">
       <div className="flex min-w-0 items-center gap-2 text-sm text-zinc-700">
         <Store
           className="size-4 shrink-0 text-zinc-500"
@@ -708,8 +729,8 @@ function ActionTypeFilter({
   );
 
   return (
-    <div className="sticky top-[7.25rem] z-[5] -mx-1 bg-[#f7f8f7]/95 px-1 py-1 backdrop-blur-sm md:top-[7.75rem] lg:static lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
-      <div className="relative">
+    <div className="sticky top-[7.25rem] z-[5] w-full min-w-0 max-w-full bg-[#f7f8f7]/95 py-1 backdrop-blur-sm md:top-[7.75rem] lg:static lg:bg-transparent lg:py-0 lg:backdrop-blur-none">
+      <div className="relative min-w-0 max-w-full">
         <div
           aria-hidden="true"
           className={`pointer-events-none absolute inset-y-0 left-0 z-[1] w-8 bg-gradient-to-r from-[#f7f8f7] to-transparent motion-safe:transition-opacity motion-safe:duration-150 motion-reduce:transition-none lg:hidden ${
@@ -729,12 +750,12 @@ function ActionTypeFilter({
 
         <div
           ref={scrollerRef}
-          className="overflow-x-auto overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:overflow-visible"
+          className="max-w-full min-w-0 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:overflow-visible"
         >
           <div
             role="toolbar"
             aria-label="Filter decisions by type"
-            className="inline-flex min-w-full gap-2 sm:min-w-0 sm:flex-wrap"
+            className="flex w-max max-w-none gap-2 pr-1 sm:w-full sm:max-w-full sm:flex-wrap"
           >
             <span className="sr-only">
               <Filter aria-hidden="true" />
@@ -830,7 +851,7 @@ function ActionRow({
       }}
       aria-pressed={selected}
       aria-label={`${meta.label}: ${action.productTitle}, ${action.variantTitle}`}
-      className={`group relative w-full overflow-hidden rounded-2xl border text-left shadow-sm motion-safe:transition-[border-color,box-shadow,background-color] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
+      className={`group relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border text-left shadow-sm motion-safe:transition-[border-color,box-shadow,background-color] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
         compact
           ? "px-4 py-3.5 sm:px-5"
           : "px-4 py-3.5 sm:px-5 sm:py-4"
