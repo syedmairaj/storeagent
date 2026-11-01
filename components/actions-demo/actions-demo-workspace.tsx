@@ -494,6 +494,7 @@ export function ActionsDemoWorkspace({
                       <ActionEvidenceInspector
                         action={selectedAction}
                         role={role}
+                        heightMode="flow"
                       />
                     </div>
                   )}
@@ -524,6 +525,7 @@ export function ActionsDemoWorkspace({
               <ActionEvidenceInspector
                 action={selectedAction}
                 role={role}
+                heightMode="contained"
               />
             ) : (
               <InspectorEmptyState
@@ -1045,9 +1047,17 @@ function InspectorEmptyState({
 function ActionEvidenceInspector({
   action,
   role,
+  heightMode = "flow",
 }: {
   action: DemoActionItem;
   role: OrganizationMemberRole;
+  /**
+   * contained: desktop sticky panel — one internal scroller under an explicit max-height.
+   * flow: sheet/tablet — grow with content; parent owns scrolling (avoids iOS nested-scroll traps).
+   */
+  heightMode?:
+    | "contained"
+    | "flow";
 }) {
   const meta =
     getActionTypeMeta(
@@ -1069,9 +1079,18 @@ function ActionEvidenceInspector({
       action,
     );
 
+  const contained =
+    heightMode === "contained";
+
   return (
-    <article className="flex max-h-[inherit] flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm motion-safe:transition-shadow motion-safe:duration-200">
-      <header className="shrink-0 border-b border-zinc-100 px-5 py-5 sm:px-7 sm:py-6">
+    <article
+      className={
+        contained
+          ? "flex max-h-[inherit] flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm motion-safe:transition-shadow motion-safe:duration-200"
+          : "rounded-3xl border border-zinc-200 bg-white shadow-sm"
+      }
+    >
+      <header className={`${contained ? "shrink-0 " : ""}border-b border-zinc-100 px-5 py-5 sm:px-7 sm:py-6`}>
         <div className="flex flex-wrap items-center gap-2">
           <ActionTypeChip
             actionType={action.actionType}
@@ -1128,7 +1147,13 @@ function ActionEvidenceInspector({
         )}
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7 sm:py-6">
+      <div
+        className={
+          contained
+            ? "min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7 sm:py-6"
+            : "px-5 py-5 sm:px-7 sm:py-6"
+        }
+      >
         <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
           Key evidence
         </h3>
@@ -1606,7 +1631,7 @@ function ActionDetailSheet({
 
       <div
         ref={panelRef}
-        className="absolute inset-x-0 bottom-0 flex max-h-[min(92vh,100dvh)] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#f7f8f7] pb-[env(safe-area-inset-bottom)] shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 motion-reduce:animate-none"
+        className="absolute inset-x-0 bottom-0 flex max-h-[min(92dvh,100dvh)] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#f7f8f7] shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 motion-reduce:animate-none"
       >
         <div className="shrink-0 border-b border-zinc-200 bg-white">
           <div className="flex items-center justify-between px-4 py-3">
@@ -1640,10 +1665,14 @@ function ActionDetailSheet({
           </p>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-8 sm:p-5">
+        <div
+          data-actions-sheet-scroll="true"
+          className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain p-4 pb-[max(2rem,env(safe-area-inset-bottom))] sm:p-5 [-webkit-overflow-scrolling:touch]"
+        >
           <ActionEvidenceInspector
             action={action}
             role={role}
+            heightMode="flow"
           />
         </div>
       </div>

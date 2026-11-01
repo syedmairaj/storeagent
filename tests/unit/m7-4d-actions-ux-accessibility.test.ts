@@ -55,6 +55,27 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     expect(workspace).toContain("env(safe-area-inset-bottom)");
   });
 
+  it("keeps the mobile sheet as the sole scroll owner for flow inspector content", () => {
+    const workspace = read(
+      "components/actions-demo/actions-demo-workspace.tsx",
+    );
+
+    expect(workspace).toContain('data-actions-sheet-scroll="true"');
+    expect(workspace).toContain("touch-pan-y");
+    expect(workspace).toContain("heightMode=\"flow\"");
+    expect(workspace).toContain("heightMode=\"contained\"");
+    expect(workspace).toContain("document.body.style.overflow");
+
+    // Sheet mounts flow mode so WATCH/REORDER content is not trapped in a nested scroller.
+    const sheetFnStart = workspace.indexOf(
+      "function ActionDetailSheet(",
+    );
+    const sheetSlice = workspace.slice(sheetFnStart);
+    expect(sheetSlice).toContain('heightMode="flow"');
+    expect(sheetSlice).toContain('data-actions-sheet-scroll="true"');
+    expect(sheetSlice).not.toContain('heightMode="contained"');
+  });
+
   it("hides mobile filter scrollbars while keeping overflow affordances", () => {
     const workspace = read(
       "components/actions-demo/actions-demo-workspace.tsx",
