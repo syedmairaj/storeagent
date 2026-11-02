@@ -659,10 +659,11 @@ describe("M7.4e E3.1 forceDeterministicFallback delivery", () => {
     ).toBe(
       true,
     );
+    // valid_looking prose is untemplated → semantic reject; still fallback-only.
     expect(
       result.diagnostics.discardReasons,
     ).toContain(
-      "AI_PROSE_SEMANTIC_VALIDATION_REQUIRED",
+      "AI_PROSE_SEMANTIC_VALIDATION_REJECTED",
     );
 
     const e2 =
@@ -1073,7 +1074,7 @@ describe("M7.4e E3.1 adversarial adapter outcomes", () => {
     ).toEqual(
       expect.arrayContaining([
         "AI_NUMERIC_MUTATION",
-        "AI_PROSE_SEMANTIC_VALIDATION_REQUIRED",
+        "AI_PROSE_SEMANTIC_VALIDATION_REJECTED",
       ]),
     );
 

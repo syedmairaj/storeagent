@@ -24,6 +24,12 @@ import {
   isWatchPurchaseImplicationText,
 } from "@/lib/decision-brief/next-step";
 
+import {
+  AI_BRIEF_SEMANTIC_PROFILE_APPROVED,
+  assessAiBriefSemanticClaimsV1,
+  type SemanticClaimsEvaluationInput,
+} from "@/lib/decision-brief/semantic-claims-v1";
+
 import type {
   BriefClaimValidationResult,
   DecisionBriefActionType,
@@ -595,15 +601,34 @@ export function validateBriefClaims(
   };
 }
 
-/**
- * E0/E1 semantic-validation boundary: AI prose must not be delivered as
- * ai_validated until a separately approved semantic profile accepts it.
- * Structured numeric + evidenceRefs alone are insufficient.
- */
-export function assessAiProseSemanticGate(options: {
+export type AssessAiProseSemanticGateOptions = {
+  /**
+   * When false, gate fails closed with AI_PROSE_SEMANTIC_VALIDATION_REQUIRED.
+   * E3.2 sets the profile approved constant; callers may still pass false in
+   * legacy unit checks.
+   */
   semanticProfileApproved: boolean;
+  /**
+   * Legacy precomputed accept flag used when `evaluation` is omitted.
+   */
   semanticProfileAccepted?: boolean;
-}): BriefClaimValidationResult {
+  /**
+   * E3.2+: run ai-brief-semantic-claims-v1 over prose + grounding.
+   * When present, ignores semanticProfileAccepted and evaluates deterministically.
+   */
+  evaluation?: SemanticClaimsEvaluationInput;
+};
+
+/**
+ * Semantic-validation boundary for AI prose.
+ *
+ * Structured numeric + evidenceRefs alone are insufficient.
+ * E3.2 completes this gate with ai-brief-semantic-claims-v1 when `evaluation`
+ * is provided and the profile is approved.
+ */
+export function assessAiProseSemanticGate(
+  options: AssessAiProseSemanticGateOptions,
+): BriefClaimValidationResult {
   if (
     !options.semanticProfileApproved
   ) {
@@ -615,6 +640,27 @@ export function assessAiProseSemanticGate(options: {
       detail:
         "AI prose delivery requires a separately approved semantic/claim-validation profile.",
     };
+  }
+
+  if (
+    options.evaluation
+  ) {
+    if (
+      !AI_BRIEF_SEMANTIC_PROFILE_APPROVED
+    ) {
+      return {
+        ok: false,
+        reasons: [
+          "AI_PROSE_SEMANTIC_VALIDATION_REQUIRED",
+        ],
+        detail:
+          "ai-brief-semantic-claims-v1 is not approved.",
+      };
+    }
+
+    return assessAiBriefSemanticClaimsV1(
+      options.evaluation,
+    );
   }
 
   if (

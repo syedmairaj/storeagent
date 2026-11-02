@@ -12,6 +12,10 @@ import {
 } from "@/lib/decision-brief/next-step";
 
 import {
+  buildTemplatedOfflineStubCandidate,
+} from "@/lib/decision-brief/ai/templated-stub-candidate";
+
+import {
   AI_BRIEF_SEMANTIC_CLAIMS_VERSION,
   AI_EXPLANATION_ADAPTER_CONTRACT_VERSION,
   type AiExplanationAdapter,
@@ -28,6 +32,12 @@ import type {
 export type OfflineStubBehavior =
   | {
       mode: "valid_looking";
+    }
+  | {
+      /**
+       * Prose + claims rendered from ai-brief-semantic-claims-v1 templates.
+       */
+      mode: "templated_valid";
     }
   | {
       mode: "error";
@@ -417,6 +427,30 @@ export function createOfflineStubAdapter(
               options,
             ),
           };
+
+        case "templated_valid": {
+          const candidate =
+            buildTemplatedOfflineStubCandidate(
+              envelope,
+              options,
+            );
+
+          if (
+            !candidate
+          ) {
+            return {
+              ok: false,
+              reason: "AI_UNSUPPORTED_SHAPE",
+              detail:
+                "Offline stub could not render ai-brief-semantic-claims-v1 templates for this grounding.",
+            };
+          }
+
+          return {
+            ok: true,
+            candidate,
+          };
+        }
 
         default: {
           const _exhaustive: never =

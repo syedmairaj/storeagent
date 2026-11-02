@@ -478,10 +478,9 @@ export async function explainDecisionBriefFromGrounding(
         validation.adapterReason;
     }
   } else {
-    // Valid-looking still discarded under forceDeterministicFallback.
-    diagnostics.discardReasons = [
-      "AI_PROSE_SEMANTIC_VALIDATION_REQUIRED",
-    ];
+    // Candidate passed structured + semantic gates but E3.2 merchant
+    // delivery remains force-fallback (never ai_validated).
+    diagnostics.discardReasons = [];
   }
 
   return fallbackResult(

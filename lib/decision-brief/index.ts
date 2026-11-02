@@ -70,7 +70,23 @@ export {
   groundingUnknownEvidenceFieldKeys,
   groundingToNumericTruthSnapshot,
   type BriefNumericTruthSnapshot,
+  type AssessAiProseSemanticGateOptions,
 } from "@/lib/decision-brief/validate-claims";
+
+export {
+  AI_BRIEF_SEMANTIC_CLAIMS_PROFILE_VERSION,
+  AI_BRIEF_SEMANTIC_PROFILE_APPROVED,
+  AI_BRIEF_SEMANTIC_TEMPLATES_V1,
+  assessAiBriefSemanticClaimsV1,
+  buildTemplatedSemanticProse,
+  isSafeSemanticTextSlot,
+  normalizeSemanticProse,
+  selectTemplatedEvidenceRefs,
+  splitSemanticSentences,
+  type SemanticClaimsEvaluationInput,
+  type SemanticProseSections,
+  type SemanticTemplateDefinition,
+} from "@/lib/decision-brief/semantic-claims-v1";
 
 export {
   buildDeterministicFallbackBrief,

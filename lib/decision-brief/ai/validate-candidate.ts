@@ -542,10 +542,23 @@ export function validateAiExplanationCandidate(
       }
     }
 
-    // E3.1: semantic profile is not approved; gate must reject.
+    // E3.2: run ai-brief-semantic-claims-v1. Merchant delivery still
+    // force-falls back in the orchestrator (never ai_validated in E3.2).
     const semantic =
       assessAiProseSemanticGate({
-        semanticProfileApproved: false,
+        semanticProfileApproved: true,
+        evaluation: {
+          grounding: envelope.grounding,
+          prose: typed.prose,
+          claims: typed.claims,
+          suggestedNextStepCode:
+            typed.suggestedNextStepCode,
+          evidenceEmphasis:
+            typed.evidenceEmphasis,
+          groundingHash: typed.groundingHash,
+          expectedGroundingHash:
+            envelope.groundingHash,
+        },
       });
 
     if (

@@ -59,6 +59,10 @@ export {
 } from "@/lib/decision-brief/ai/offline-stub-adapter";
 
 export {
+  buildTemplatedOfflineStubCandidate,
+} from "@/lib/decision-brief/ai/templated-stub-candidate";
+
+export {
   explainDecisionBriefFromGrounding,
   disabledAiExplanationOptions,
   testInjectedAiExplanationOptions,
