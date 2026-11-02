@@ -26,6 +26,12 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     const banner = read(
       "components/actions-demo/demo-data-banner.tsx",
     );
+    const workspace = read(
+      "components/actions-demo/actions-demo-workspace.tsx",
+    );
+    const page = read(
+      "app/(app)/app/[organizationId]/actions/page.tsx",
+    );
 
     expect(banner).toContain(
       "Synthetic demonstration data — not live inventory",
@@ -33,7 +39,13 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     expect(banner).toContain('role="status"');
     expect(banner).toContain("sticky top-16");
     expect(banner).toContain("lg:top-0");
-    expect(banner).toContain("py-2");
+    expect(banner).toContain("py-1.5");
+    expect(banner).toContain("sm:py-2.5");
+    // Filter sticks under header+banner on <lg; static on desktop split.
+    expect(workspace).toContain("top-[7.5rem]");
+    expect(workspace).toContain("md:top-32");
+    expect(workspace).toContain("lg:static");
+    expect(page).not.toContain("-mt-2");
   });
 
   it("preserves sheet Esc, focus trap, restore focus, and reduced motion", () => {
@@ -94,11 +106,11 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
   });
 
   it("uses a single-column evidence grid on the narrowest phones", () => {
-    const workspace = read(
-      "components/actions-demo/actions-demo-workspace.tsx",
+    const briefPanel = read(
+      "components/actions-demo/decision-brief-panel.tsx",
     );
 
-    expect(workspace).toContain(
+    expect(briefPanel).toContain(
       "grid-cols-1 gap-2.5 min-[380px]:grid-cols-2 sm:grid-cols-3",
     );
   });
@@ -150,14 +162,14 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
   });
 
   it("surfaces merchant-friendly reason explanations before raw codes", () => {
-    const workspace = read(
-      "components/actions-demo/actions-demo-workspace.tsx",
+    const briefPanel = read(
+      "components/actions-demo/decision-brief-panel.tsx",
     );
 
-    expect(workspace).toContain("explainDemoReasonCode");
-    expect(workspace).toContain("Technical details");
-    expect(workspace).toContain("Raw reason codes");
-    expect(workspace).toContain("Key evidence");
+    expect(briefPanel).toContain("explainDemoReasonCode");
+    expect(briefPanel).toContain("Technical details");
+    expect(briefPanel).toContain("Raw reason codes");
+    expect(briefPanel).toContain("Key evidence");
 
     const root = getM7DecisionDemoFixtureRoot();
     for (const action of root.actions) {
@@ -173,6 +185,9 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     const workspace = read(
       "components/actions-demo/actions-demo-workspace.tsx",
     );
+    const briefPanel = read(
+      "components/actions-demo/decision-brief-panel.tsx",
+    );
     const banner = read(
       "components/actions-demo/demo-data-banner.tsx",
     );
@@ -180,7 +195,12 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
       "components/actions-demo/demo-approval-cluster.tsx",
     );
 
-    for (const source of [workspace, banner, cluster]) {
+    for (const source of [
+      workspace,
+      briefPanel,
+      banner,
+      cluster,
+    ]) {
       expect(source).not.toContain("dark:");
       expect(source).not.toContain("className=\"dark");
     }

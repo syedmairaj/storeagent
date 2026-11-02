@@ -186,12 +186,16 @@ describe("M7.4c demonstration approval architecture", () => {
     const workspace = read(
       "components/actions-demo/actions-demo-workspace.tsx",
     );
+    const briefPanel = read(
+      "components/actions-demo/decision-brief-panel.tsx",
+    );
 
     expect(cluster).toContain('role="status"');
     expect(cluster).toContain("aria-live");
     expect(cluster).toContain("motion-reduce:");
     expect(cluster).toContain("focus-visible:ring-2");
-    expect(workspace).toContain("DemoApprovalCluster");
+    expect(briefPanel).toContain("DemoApprovalCluster");
+    expect(workspace).toContain("DecisionBriefPanel");
     expect(workspace).toContain('event.key === "Escape"');
   });
 

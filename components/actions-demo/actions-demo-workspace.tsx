@@ -26,8 +26,8 @@ import {
 } from "@/components/actions-demo/action-type-presentation";
 
 import {
-  DemoApprovalCluster,
-} from "@/components/actions-demo/demo-approval-cluster";
+  DecisionBriefPanel,
+} from "@/components/actions-demo/decision-brief-panel";
 
 import type {
   OrganizationMemberRole,
@@ -42,11 +42,8 @@ import {
 } from "@/lib/demo/m7-decision-demo-fixtures";
 
 import {
-  explainDemoReasonCode,
   formatDemoConfidenceLabel,
-  formatDemoDataQualityScore,
   formatDemoPriorityLabel,
-  formatDemoUnknownNumber,
 } from "@/lib/demo/m7-decision-demo-format";
 
 type FilterKey =
@@ -390,8 +387,8 @@ export function ActionsDemoWorkspace({
         locationLabel={dataset.locationLabel}
       />
 
-      <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
-        <div className="min-w-0 max-w-2xl">
+      <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+        <div className="min-w-0 max-w-2xl scroll-mt-[9.5rem] md:scroll-mt-40 lg:scroll-mt-28">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-xs font-medium text-zinc-500 sm:text-sm">
               Actions
@@ -402,11 +399,11 @@ export function ActionsDemoWorkspace({
             </p>
           </div>
 
-          <h1 className="mt-0.5 text-[1.375rem] font-semibold leading-tight tracking-[-0.035em] sm:mt-2 sm:text-3xl xl:text-4xl">
+          <h1 className="mt-0.5 text-[1.25rem] font-semibold leading-tight tracking-[-0.035em] sm:mt-2 sm:text-3xl xl:text-4xl">
             Decision queue
           </h1>
 
-          <p className="mt-2 hidden max-w-xl text-sm leading-6 text-zinc-600 sm:block">
+          <p className="mt-1.5 hidden max-w-xl text-sm leading-6 text-zinc-600 sm:block">
             Review what StoreAgent would recommend next. Select a decision to inspect the evidence — demonstration only.
           </p>
         </div>
@@ -520,7 +517,7 @@ export function ActionsDemoWorkspace({
           aria-label="Evidence inspector"
           className="hidden min-w-0 xl:block"
         >
-          <div className="sticky top-24 max-h-[calc(100vh-7.5rem)]">
+          <div className="sticky top-28 max-h-[calc(100vh-8rem)]">
             {selectedAction ? (
               <ActionEvidenceInspector
                 action={selectedAction}
@@ -569,7 +566,7 @@ function StoreLocationContextBar({
   locationLabel: string;
 }) {
   return (
-    <div className="flex w-full min-w-0 max-w-full flex-row flex-wrap items-center gap-x-4 gap-y-1.5 rounded-2xl border border-zinc-200 bg-white px-3.5 py-2 shadow-sm sm:gap-6 sm:px-5 sm:py-3.5">
+    <div className="flex w-full min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 shadow-sm sm:gap-6 sm:rounded-2xl sm:px-5 sm:py-3.5">
       <div className="flex min-w-0 items-center gap-2 text-sm text-zinc-700">
         <Store
           className="size-4 shrink-0 text-zinc-500"
@@ -730,8 +727,10 @@ function ActionTypeFilter({
     ],
   );
 
+  // Sticky stack below lg: shell header (4rem) + compact synthetic banner.
+  // Keep filter clear of both without covering queue cards at 320–1024.
   return (
-    <div className="sticky top-[7.25rem] z-[5] w-full min-w-0 max-w-full bg-[#f7f8f7]/95 py-1 backdrop-blur-sm md:top-[7.75rem] lg:static lg:bg-transparent lg:py-0 lg:backdrop-blur-none">
+    <div className="sticky top-[7.5rem] z-[5] w-full min-w-0 max-w-full scroll-mt-[7.5rem] bg-[#f7f8f7]/95 py-1 backdrop-blur-sm md:top-32 lg:static lg:scroll-mt-0 lg:bg-transparent lg:py-0 lg:backdrop-blur-none">
       <div className="relative min-w-0 max-w-full">
         <div
           aria-hidden="true"
@@ -855,8 +854,8 @@ function ActionRow({
       aria-label={`${meta.label}: ${action.productTitle}, ${action.variantTitle}`}
       className={`group relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border text-left shadow-sm motion-safe:transition-[border-color,box-shadow,background-color] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
         compact
-          ? "px-4 py-3.5 sm:px-5"
-          : "px-4 py-3.5 sm:px-5 sm:py-4"
+          ? "px-3.5 py-3 sm:px-5 sm:py-3.5"
+          : "px-3.5 py-3 sm:px-5 sm:py-4"
       } ${
         selected
           ? "border-zinc-950 bg-white shadow-md ring-1 ring-zinc-950/10"
@@ -872,12 +871,12 @@ function ActionRow({
         }`}
       />
 
-      <div className="flex flex-wrap items-start justify-between gap-2.5">
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-1.5">
         <ActionTypeChip
           actionType={action.actionType}
         />
 
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex max-w-full flex-wrap items-center justify-end gap-1">
           <PriorityBadge
             priority={action.priority}
           />
@@ -887,7 +886,7 @@ function ActionRow({
         </div>
       </div>
 
-      <div className="mt-3 min-w-0">
+      <div className="mt-2 min-w-0 sm:mt-3">
         <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-zinc-950 sm:text-base">
           {action.productTitle}
         </p>
@@ -896,26 +895,26 @@ function ActionRow({
         </p>
       </div>
 
-      <p className="mt-2.5 line-clamp-2 text-sm leading-5 text-zinc-600">
-        {action.conciseReason}
-      </p>
+      {action.actionType === "WATCH" ? (
+        <p className="mt-2 flex items-center gap-2 text-xs font-medium leading-5 text-zinc-500 sm:mt-2.5">
+          <span
+            className="size-1.5 shrink-0 rounded-full bg-zinc-400"
+            aria-hidden="true"
+          />
+          Incomplete evidence — watch only
+        </p>
+      ) : (
+        <p className="mt-2 line-clamp-2 text-sm leading-5 text-zinc-600 sm:mt-2.5">
+          {action.conciseReason}
+        </p>
+      )}
 
       {showQty && (
-        <p className="mt-3 text-sm font-medium text-zinc-900">
+        <p className="mt-2 text-sm font-medium text-zinc-900 sm:mt-3">
           Qty{" "}
           <span className="tabular-nums">
             {action.recommendedQuantity}
           </span>
-        </p>
-      )}
-
-      {action.actionType === "WATCH" && (
-        <p className="mt-3 flex items-center gap-2 text-xs font-medium text-zinc-500">
-          <span
-            className="size-1.5 rounded-full bg-zinc-400"
-            aria-hidden="true"
-          />
-          Insufficient or conflicting evidence — no buy recommendation
         </p>
       )}
     </button>
@@ -928,7 +927,7 @@ function PriorityBadge({
   priority: DemoActionItem["priority"];
 }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-700">
+    <span className="inline-flex max-w-full items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-zinc-700 sm:px-2.5 sm:py-1 sm:text-[11px]">
       {formatDemoPriorityLabel(priority)}
     </span>
   );
@@ -940,9 +939,9 @@ function ConfidenceBadge({
   confidence: DemoActionItem["confidence"];
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-600">
+    <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-medium text-zinc-600 sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[11px]">
       <span
-        className={`size-1.5 rounded-full ${
+        className={`size-1.5 shrink-0 rounded-full ${
           confidence === "high"
             ? "bg-emerald-500"
             : confidence === "medium"
@@ -951,7 +950,12 @@ function ConfidenceBadge({
         }`}
         aria-hidden="true"
       />
-      {formatDemoConfidenceLabel(confidence)} confidence
+      <span className="truncate">
+        {formatDemoConfidenceLabel(confidence)}{" "}
+        <span className="hidden min-[380px]:inline">
+          confidence
+        </span>
+      </span>
     </span>
   );
 }
@@ -1037,8 +1041,8 @@ function InspectorEmptyState({
       </p>
       <p className="mt-3 max-w-sm text-sm leading-6 text-zinc-500">
         {healthyOnly
-          ? "Evidence inspection applies to REORDER, REDUCE, PROMOTE, and WATCH demonstration rows only."
-          : "Evidence for the selected recommendation appears here and stays connected as you move through the queue."}
+          ? "Decision briefs apply to REORDER, REDUCE, PROMOTE, and WATCH demonstration rows only."
+          : "The Decision Brief for the selected recommendation appears here and stays connected as you move through the queue."}
       </p>
     </div>
   );
@@ -1059,445 +1063,12 @@ function ActionEvidenceInspector({
     | "contained"
     | "flow";
 }) {
-  const meta =
-    getActionTypeMeta(
-      action.actionType,
-    );
-
-  const showQty =
-    demoActionShowsRecommendedQuantity(
-      action,
-    );
-
-  const keyFields =
-    getKeyEvidenceFields(
-      action,
-    );
-
-  const secondaryFields =
-    getSecondaryEvidenceFields(
-      action,
-    );
-
-  const contained =
-    heightMode === "contained";
-
   return (
-    <article
-      className={
-        contained
-          ? "flex max-h-[inherit] flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm motion-safe:transition-shadow motion-safe:duration-200"
-          : "rounded-3xl border border-zinc-200 bg-white shadow-sm"
-      }
-    >
-      <header className={`${contained ? "shrink-0 " : ""}border-b border-zinc-100 px-5 py-5 sm:px-7 sm:py-6`}>
-        <div className="flex flex-wrap items-center gap-2">
-          <ActionTypeChip
-            actionType={action.actionType}
-          />
-          <PriorityBadge
-            priority={action.priority}
-          />
-          <ConfidenceBadge
-            confidence={action.confidence}
-          />
-        </div>
-
-        <h2 className="mt-4 text-xl font-semibold tracking-[-0.03em] text-zinc-950 sm:text-2xl">
-          {action.productTitle}
-        </h2>
-        <p className="mt-1 text-sm text-zinc-500">
-          {action.variantTitle}
-        </p>
-
-        <p className="mt-3 text-sm leading-6 text-zinc-700">
-          {action.conciseReason}
-        </p>
-
-        <p className="mt-3 text-xs font-medium uppercase tracking-[0.12em] text-zinc-400">
-          {meta.shortWhy}
-        </p>
-
-        {showQty && (
-          <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3.5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-              Recommended quantity
-            </p>
-            <p className="mt-1 text-3xl font-semibold tracking-[-0.03em] tabular-nums text-zinc-950">
-              {action.recommendedQuantity}
-            </p>
-            {action.recommendedActionDate && (
-              <p className="mt-1.5 text-sm text-zinc-600">
-                Suggested by{" "}
-                <span className="font-medium text-zinc-800">
-                  {action.recommendedActionDate}
-                </span>
-              </p>
-            )}
-            <p className="mt-2 text-xs leading-5 text-zinc-500">
-              Quantity grounded in this synthetic fixture only.
-            </p>
-          </div>
-        )}
-
-        {action.actionType !== "REORDER" && (
-          <p className="mt-4 text-xs leading-5 text-zinc-500">
-            No recommended quantity for {meta.label} in this demonstration.
-          </p>
-        )}
-      </header>
-
-      <div
-        className={
-          contained
-            ? "min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7 sm:py-6"
-            : "px-5 py-5 sm:px-7 sm:py-6"
-        }
-      >
-        <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-          Key evidence
-        </h3>
-
-        <EvidenceGrid
-          fields={keyFields}
-        />
-
-        <ReasonExplanationList
-          codes={action.evidence.reasonCodes}
-          watch={
-            action.actionType === "WATCH"
-          }
-        />
-
-        <details className="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50/70 px-4 py-3 open:bg-white">
-          <summary className="cursor-pointer list-none rounded-xl text-sm font-medium text-zinc-800 marker:content-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
-            <span className="inline-flex min-h-11 items-center">
-              Technical details
-            </span>
-          </summary>
-
-          <div className="pb-2 pt-1">
-            {secondaryFields.length > 0 && (
-              <>
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                  Additional evidence
-                </h4>
-                <EvidenceGrid
-                  fields={secondaryFields}
-                />
-              </>
-            )}
-
-            <RawReasonCodeList
-              title="Raw reason codes"
-              codes={action.evidence.reasonCodes}
-            />
-
-            {action.confidenceReasonCodes.length >
-              0 && (
-              <div className="mt-4">
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                  Confidence notes
-                </h4>
-                <ul className="mt-2 space-y-2">
-                  {action.confidenceReasonCodes.map(
-                    (code) => (
-                      <li
-                        key={code}
-                        className="text-sm leading-5 text-zinc-600"
-                      >
-                        <span>
-                          {explainDemoReasonCode(code)}
-                        </span>
-                        <span className="mt-0.5 block font-mono text-[11px] text-zinc-400">
-                          {code}
-                        </span>
-                      </li>
-                    ),
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
-        </details>
-
-        <DemoApprovalCluster
-          key={action.id}
-          action={action}
-          role={role}
-        />
-      </div>
-    </article>
-  );
-}
-
-type EvidenceField = {
-  label: string;
-  value: string;
-};
-
-function getKeyEvidenceFields(
-  action: DemoActionItem,
-): EvidenceField[] {
-  const evidence =
-    action.evidence;
-
-  const fields: EvidenceField[] = [
-    {
-      label: "Available",
-      value: formatDemoUnknownNumber(
-        evidence.availableQuantity,
-      ),
-    },
-    {
-      label: "Incoming",
-      value: formatDemoUnknownNumber(
-        evidence.incomingQuantity,
-      ),
-    },
-    {
-      label: "Demand velocity",
-      value: formatDemoUnknownNumber(
-        evidence.demandVelocity,
-        {
-          digits: 1,
-          suffix: "/day",
-        },
-      ),
-    },
-    {
-      label: "Days of stock",
-      value: formatDemoUnknownNumber(
-        evidence.daysOfStock,
-        {
-          digits: 1,
-        },
-      ),
-    },
-    {
-      label: "Lead time",
-      value: formatDemoUnknownNumber(
-        evidence.leadTimeDays,
-        {
-          suffix: " days",
-        },
-      ),
-    },
-  ];
-
-  if (
-    action.actionType === "REORDER"
-  ) {
-    fields.push(
-      {
-        label: "Reorder point",
-        value: formatDemoUnknownNumber(
-          evidence.reorderPointUnits,
-        ),
-      },
-      {
-        label: "Target stock",
-        value: formatDemoUnknownNumber(
-          evidence.targetStockUnits,
-        ),
-      },
-    );
-  }
-
-  if (
-    action.actionType === "REDUCE" ||
-    action.actionType === "PROMOTE"
-  ) {
-    fields.push({
-      label: "Inventory age",
-      value: formatDemoUnknownNumber(
-        evidence.inventoryAgeDays,
-        {
-          suffix: " days",
-        },
-      ),
-    });
-  }
-
-  fields.push({
-    label: "Data quality",
-    value: formatDemoDataQualityScore(
-      evidence.dataQualityScore,
-    ),
-  });
-
-  return fields;
-}
-
-function getSecondaryEvidenceFields(
-  action: DemoActionItem,
-): EvidenceField[] {
-  const evidence =
-    action.evidence;
-
-  const fields: EvidenceField[] = [
-    {
-      label: "Safety stock",
-      value: formatDemoUnknownNumber(
-        evidence.safetyStockUnits,
-      ),
-    },
-  ];
-
-  if (
-    action.actionType !== "REORDER"
-  ) {
-    fields.push(
-      {
-        label: "Reorder point",
-        value: formatDemoUnknownNumber(
-          evidence.reorderPointUnits,
-        ),
-      },
-      {
-        label: "Target stock",
-        value: formatDemoUnknownNumber(
-          evidence.targetStockUnits,
-        ),
-      },
-    );
-  }
-
-  if (
-    action.actionType !== "REDUCE" &&
-    action.actionType !== "PROMOTE"
-  ) {
-    fields.push({
-      label: "Inventory age",
-      value: formatDemoUnknownNumber(
-        evidence.inventoryAgeDays,
-        {
-          suffix: " days",
-        },
-      ),
-    });
-  }
-
-  fields.push({
-    label: "Forecast demand",
-    value: formatDemoUnknownNumber(
-      evidence.forecastExpectedDemandUnits,
-    ),
-  });
-
-  return fields;
-}
-
-function EvidenceGrid({
-  fields,
-}: {
-  fields: EvidenceField[];
-}) {
-  return (
-    <dl className="mt-3 grid grid-cols-1 gap-2.5 min-[380px]:grid-cols-2 sm:grid-cols-3">
-      {fields.map(
-        ({
-          label,
-          value,
-        }) => (
-          <div
-            key={label}
-            className="min-w-0 rounded-2xl border border-zinc-100 bg-zinc-50/80 px-3.5 py-2.5"
-          >
-            <dt className="text-[11px] font-medium uppercase tracking-[0.1em] text-zinc-500">
-              {label}
-            </dt>
-            <dd
-              className={`mt-1 text-sm font-semibold tabular-nums tracking-[-0.01em] ${
-                value === "Unknown"
-                  ? "text-zinc-400"
-                  : "text-zinc-950"
-              }`}
-            >
-              {value}
-            </dd>
-          </div>
-        ),
-      )}
-    </dl>
-  );
-}
-
-function ReasonExplanationList({
-  codes,
-  watch,
-}: {
-  codes: string[];
-  watch: boolean;
-}) {
-  return (
-    <div className="mt-5">
-      <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-        {watch
-          ? "Why this is a watch"
-          : "Why this recommendation"}
-      </h3>
-
-      {watch && (
-        <p className="mt-2 text-sm leading-6 text-zinc-600">
-          Insufficient or conflicting evidence — StoreAgent is not recommending a buy, reduce, or promote on this SKU.
-        </p>
-      )}
-
-      {codes.length === 0 ? (
-        <p className="mt-3 text-sm text-zinc-400">
-          Unknown
-        </p>
-      ) : (
-        <ul className="mt-3 space-y-2.5">
-          {codes.map(
-            (code) => (
-              <li
-                key={code}
-                className="rounded-2xl border border-zinc-200 bg-white px-3.5 py-3 text-sm leading-5 text-zinc-700"
-              >
-                {explainDemoReasonCode(code)}
-              </li>
-            ),
-          )}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function RawReasonCodeList({
-  title,
-  codes,
-}: {
-  title: string;
-  codes: string[];
-}) {
-  return (
-    <div className="mt-4">
-      <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-        {title}
-      </h4>
-
-      {codes.length === 0 ? (
-        <p className="mt-2 text-sm text-zinc-400">
-          Unknown
-        </p>
-      ) : (
-        <ul className="mt-2 flex flex-wrap gap-2">
-          {codes.map(
-            (code) => (
-              <li
-                key={code}
-                className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 font-mono text-[11px] text-zinc-600"
-              >
-                {code}
-              </li>
-            ),
-          )}
-        </ul>
-      )}
-    </div>
+    <DecisionBriefPanel
+      action={action}
+      role={role}
+      heightMode={heightMode}
+    />
   );
 }
 
@@ -1639,7 +1210,7 @@ function ActionDetailSheet({
               id={titleId}
               className="text-sm font-semibold text-zinc-950"
             >
-              Decision detail
+              Decision brief
             </p>
 
             <button

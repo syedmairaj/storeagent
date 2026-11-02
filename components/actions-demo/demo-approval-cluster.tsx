@@ -175,7 +175,7 @@ export function DemoApprovalCluster({
   return (
     <section
       aria-label="Demonstration decision controls"
-      className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-4 py-4 sm:px-5 sm:py-5"
+      className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50/90 px-3.5 py-3.5 sm:mt-6 sm:px-5 sm:py-5"
     >
       <div className="flex items-start gap-2.5">
         <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-500 shadow-sm">
@@ -190,17 +190,10 @@ export function DemoApprovalCluster({
             Local demo controls
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
-            Production approvals are disabled. These buttons only teach the interaction — nothing is written.
+            Production approvals are disabled. These buttons only teach the interaction — nothing is written until you try a control.
           </p>
         </div>
       </div>
-
-      <p
-        role="status"
-        className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-950"
-      >
-        {DEMO_NO_SAVE_MESSAGE}
-      </p>
 
       {!canDecide ? (
         <p
