@@ -33,6 +33,10 @@ import type {
   OrganizationMemberRole,
 } from "@/lib/commerce-domain/types";
 
+import type {
+  DecisionBriefV1,
+} from "@/lib/decision-brief";
+
 import {
   demoActionShowsRecommendedQuantity,
   type DemoActionItem,
@@ -84,11 +88,19 @@ const FILTERS: {
 interface ActionsDemoWorkspaceProps {
   dataset: M7DecisionDemoFixtureRoot;
   role: OrganizationMemberRole;
+  /**
+   * Optional server-precomposed briefs keyed by action id (E3.3 soft-enable).
+   * When absent/empty, panels use local deterministic compose (E2 parity).
+   */
+  precomposedBriefsByActionId?: Readonly<
+    Record<string, DecisionBriefV1>
+  >;
 }
 
 export function ActionsDemoWorkspace({
   dataset,
   role,
+  precomposedBriefsByActionId,
 }: ActionsDemoWorkspaceProps) {
   const [
     filter,
@@ -492,6 +504,11 @@ export function ActionsDemoWorkspace({
                         action={selectedAction}
                         role={role}
                         heightMode="flow"
+                        precomposedBrief={
+                          precomposedBriefsByActionId?.[
+                            selectedAction.id
+                          ]
+                        }
                       />
                     </div>
                   )}
@@ -523,6 +540,11 @@ export function ActionsDemoWorkspace({
                 action={selectedAction}
                 role={role}
                 heightMode="contained"
+                precomposedBrief={
+                  precomposedBriefsByActionId?.[
+                    selectedAction.id
+                  ]
+                }
               />
             ) : (
               <InspectorEmptyState
@@ -542,6 +564,11 @@ export function ActionsDemoWorkspace({
             action={selectedAction}
             role={role}
             onClose={closeSheet}
+            precomposedBrief={
+              precomposedBriefsByActionId?.[
+                selectedAction.id
+              ]
+            }
           />
         )}
     </div>
@@ -1052,6 +1079,7 @@ function ActionEvidenceInspector({
   action,
   role,
   heightMode = "flow",
+  precomposedBrief,
 }: {
   action: DemoActionItem;
   role: OrganizationMemberRole;
@@ -1062,12 +1090,14 @@ function ActionEvidenceInspector({
   heightMode?:
     | "contained"
     | "flow";
+  precomposedBrief?: DecisionBriefV1;
 }) {
   return (
     <DecisionBriefPanel
       action={action}
       role={role}
       heightMode={heightMode}
+      precomposedBrief={precomposedBrief}
     />
   );
 }
@@ -1076,10 +1106,12 @@ function ActionDetailSheet({
   action,
   role,
   onClose,
+  precomposedBrief,
 }: {
   action: DemoActionItem;
   role: OrganizationMemberRole;
   onClose: () => void;
+  precomposedBrief?: DecisionBriefV1;
 }) {
   const titleId =
     useId();
@@ -1244,6 +1276,7 @@ function ActionDetailSheet({
             action={action}
             role={role}
             heightMode="flow"
+            precomposedBrief={precomposedBrief}
           />
         </div>
       </div>

@@ -23,9 +23,14 @@ import {
 } from "@/lib/decision-brief/ai/grounding-hash";
 
 import {
+  mintSemanticallyValidatedCandidate,
+} from "@/lib/decision-brief/ai/validated-candidate";
+
+import {
   AI_BRIEF_SEMANTIC_CLAIMS_VERSION,
   AI_EXPLANATION_ADAPTER_CONTRACT_VERSION,
   type AiExplanationCandidateV1,
+  type AiExplanationCandidateValidationResult,
   type CandidateShapeValidationResult,
   type DeterministicGroundingEnvelope,
 } from "@/lib/decision-brief/ai/types";
@@ -86,7 +91,12 @@ function isNonEmptyString(
 
 function unsupportedShape(
   detail: string,
-): CandidateShapeValidationResult {
+): Extract<
+  CandidateShapeValidationResult,
+  {
+    ok: false;
+  }
+> {
   return {
     ok: false,
     reasons: [
@@ -424,7 +434,7 @@ export function validateCandidateShape(
 export function validateAiExplanationCandidate(
   envelope: DeterministicGroundingEnvelope,
   candidate: unknown,
-): CandidateShapeValidationResult {
+): AiExplanationCandidateValidationResult {
   try {
     const shape =
       validateCandidateShape(
@@ -586,6 +596,10 @@ export function validateAiExplanationCandidate(
 
     return {
       ok: true,
+      validatedCandidate:
+        mintSemanticallyValidatedCandidate(
+          typed,
+        ),
     };
   } catch {
     return unsupportedShape(

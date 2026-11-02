@@ -15,6 +15,11 @@ import {
 } from "@/lib/auth/app-route";
 
 import {
+  composeAllDemoDecisionBriefsWithAi,
+  resolveServerAiExplanationEnablement,
+} from "@/lib/decision-brief/ai";
+
+import {
   getM7DecisionDemoFixtureRoot,
   loadM7DecisionDemoDataset,
 } from "@/lib/demo/m7-decision-demo-fixtures";
@@ -22,6 +27,10 @@ import {
 import {
   resolveServerOrganizationContext,
 } from "@/lib/tenancy/server-organization-context";
+
+import type {
+  DecisionBriefV1,
+} from "@/lib/decision-brief";
 
 export default async function OrganizationActionsDemoPage({
   params,
@@ -53,11 +62,41 @@ export default async function OrganizationActionsDemoPage({
     );
   }
 
-  // Fixtures are synthetic only — organizationId is unused for decision data.
+  // Fixtures are synthetic only — organizationId authorizes chrome/membership,
+  // not live inventory ownership of fixture rows.
   const loaded =
     loadM7DecisionDemoDataset(
       getM7DecisionDemoFixtureRoot(),
     );
+
+  // Trusted server-resolved soft-enable (default OFF / empty allowlist).
+  // Never reads client query/body flags.
+  const aiEnablement =
+    resolveServerAiExplanationEnablement(
+      organizationId,
+    );
+
+  let precomposedBriefsByActionId:
+    Record<string, DecisionBriefV1> |
+    undefined;
+
+  if (
+    loaded.ok &&
+    aiEnablement.aiExplanationEnabled &&
+    aiEnablement.allowlistMatch
+  ) {
+    const briefs =
+      await composeAllDemoDecisionBriefsWithAi({
+        role: resolution.context.role,
+        organizationId,
+        serverConfig: aiEnablement.config,
+      });
+
+    precomposedBriefsByActionId =
+      Object.fromEntries(
+        briefs.entries(),
+      );
+  }
 
   return (
     <div className="min-w-0 max-w-full space-y-3 sm:space-y-5 xl:space-y-6">
@@ -67,6 +106,9 @@ export default async function OrganizationActionsDemoPage({
         <ActionsDemoWorkspace
           dataset={loaded.dataset}
           role={resolution.context.role}
+          precomposedBriefsByActionId={
+            precomposedBriefsByActionId
+          }
         />
       ) : (
         <DemoAttestationError

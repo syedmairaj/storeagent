@@ -535,7 +535,9 @@ describe("M7.4e E3.1 flag-off E2 parity", () => {
     const stub =
       createOfflineStubAdapter();
 
-    const pretenders = [
+    // disabled_default must never attempt AI even if booleans look enabled.
+    // (server_resolved_config is trusted in E3.3 and is covered there.)
+    const result =
       await explainDecisionBriefFromGrounding(
         grounding,
         {
@@ -549,48 +551,28 @@ describe("M7.4e E3.1 flag-off E2 parity", () => {
           forceDeterministicFallback:
             E3_1_FORCE_DETERMINISTIC_FALLBACK,
         },
-      ),
-      await explainDecisionBriefFromGrounding(
-        grounding,
-        {
-          briefId: action.id,
-          role: "owner",
-          generatedAt: GENERATED_AT,
-          aiExplanationEnabled: true,
-          allowlistMatch: true,
-          enablementSource:
-            "server_resolved_config",
-          adapter: stub,
-          forceDeterministicFallback:
-            E3_1_FORCE_DETERMINISTIC_FALLBACK,
-        },
-      ),
-    ];
+      );
 
-    for (
-      const result of pretenders
+    expect(
+      result.ok,
+    ).toBe(true);
+
+    if (
+      !result.ok
     ) {
-      expect(
-        result.ok,
-      ).toBe(true);
-
-      if (
-        !result.ok
-      ) {
-        continue;
-      }
-
-      expect(
-        result.diagnostics.aiAttempted,
-      ).toBe(
-        false,
-      );
-      expect(
-        result.brief.generator,
-      ).toBe(
-        "deterministic_fallback",
-      );
+      return;
     }
+
+    expect(
+      result.diagnostics.aiAttempted,
+    ).toBe(
+      false,
+    );
+    expect(
+      result.brief.generator,
+    ).toBe(
+      "deterministic_fallback",
+    );
   });
 });
 

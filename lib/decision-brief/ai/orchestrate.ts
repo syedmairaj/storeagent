@@ -1,10 +1,12 @@
 /**
- * M7.4e E3.1 — fail-closed AI explanation orchestrator (fallback-only).
+ * M7.4e E3.3 — fail-closed AI explanation orchestrator.
  *
- * - Defaults / disabled_default → E1 fallback with E2 parity
- * - Test-injected enablement only for AI attempt in E3.1
- * - forceDeterministicFallback always true → never ai_validated
- * - Orchestrator-owned deadline; late / ignore-abort results discarded
+ * - disabled_default / not allowlisted → E1 fallback with E2 parity
+ * - test_injected or server_resolved_config may attempt AI
+ * - forceDeterministicFallback=true → never ai_validated (E3.1/E3.2)
+ * - forceDeterministicFallback=false under authorized conjunction →
+ *   may deliver ai_validated after full validation
+ * - Timeout / cost / late-result → fallback; late successes discarded
  * - Client/model enablement pretenders are never consulted here
  */
 
@@ -25,15 +27,24 @@ import {
 } from "@/lib/decision-brief/ai/envelope";
 
 import {
+  mergeAiValidatedBrief,
+  withRejectedUsedFallback,
+} from "@/lib/decision-brief/ai/merge-ai-brief";
+
+import {
   validateAiExplanationCandidate,
 } from "@/lib/decision-brief/ai/validate-candidate";
 
 import {
+  AI_EXPLANATION_DEFAULT_MAX_INPUT_TOKENS,
+  AI_EXPLANATION_DEFAULT_MAX_OUTPUT_TOKENS,
   AI_EXPLANATION_DEFAULT_TIMEOUT_MS,
   E3_1_FORCE_DETERMINISTIC_FALLBACK,
   type AiExplanationAdapter,
   type AiExplanationAdapterFailureReason,
   type AiExplanationAdapterResult,
+  type AiExplanationCandidateV1,
+  type DeterministicGroundingEnvelope,
   type ExplainDecisionBriefDiagnostics,
   type ExplainDecisionBriefOptions,
   type ExplainDecisionBriefResult,
@@ -42,12 +53,8 @@ import {
 import type {
   DecisionBriefGroundingInput,
   DecisionBriefRejectionCode,
+  DecisionBriefV1,
 } from "@/lib/decision-brief/types";
-
-const DEFAULT_MAX_INPUT_TOKENS =
-  2048;
-const DEFAULT_MAX_OUTPUT_TOKENS =
-  512;
 
 type AdapterRaceOutcome =
   | {
@@ -63,13 +70,13 @@ type AdapterRaceOutcome =
     };
 
 function emptyDiagnostics(
-  enablementSource: ExplainDecisionBriefOptions["enablementSource"],
+  options: ExplainDecisionBriefOptions,
 ): ExplainDecisionBriefDiagnostics {
   return {
     aiAttempted: false,
-    enablementSource,
+    enablementSource: options.enablementSource,
     forceDeterministicFallback:
-      E3_1_FORCE_DETERMINISTIC_FALLBACK,
+      options.forceDeterministicFallback === true,
     candidateReceived: false,
     candidateDiscarded: false,
     discardReasons: [],
@@ -87,10 +94,9 @@ function mayAttemptAi(
     return false;
   }
 
-  // E3.1: test_injected only. server_resolved_config is E3.3+.
-  // disabled_default never attempts.
   if (
-    options.enablementSource !== "test_injected"
+    options.enablementSource !== "test_injected" &&
+    options.enablementSource !== "server_resolved_config"
   ) {
     return false;
   }
@@ -113,14 +119,67 @@ function mayAttemptAi(
     return false;
   }
 
+  if (
+    options.adapter.adapterId !== "offline_stub" &&
+    options.adapter.adapterId !== "recorded_replay"
+  ) {
+    return false;
+  }
+
   return true;
+}
+
+function estimateTokensFromText(
+  text: string,
+): number {
+  // Rough deterministic budget proxy — not a provider tokenizer.
+  return Math.ceil(
+    text.length / 4,
+  );
+}
+
+function estimateEnvelopeInputTokens(
+  envelope: DeterministicGroundingEnvelope,
+): number {
+  return estimateTokensFromText(
+    JSON.stringify({
+      groundingHash: envelope.groundingHash,
+      actionType: envelope.grounding.actionType,
+      productTitle: envelope.grounding.productTitle,
+      reasonCodes: envelope.grounding.reasonCodes,
+      promptVersion: envelope.request.promptVersion,
+    }),
+  );
+}
+
+function estimateCandidateOutputTokens(
+  candidate: AiExplanationCandidateV1,
+): number {
+  const fromProse =
+    estimateTokensFromText(
+      [
+        candidate.prose.whyNowSummary,
+        candidate.prose.uncertaintySummary,
+        candidate.prose.nextStepSummary,
+      ].join("\n"),
+    );
+
+  const fromUsage =
+    typeof candidate.usage?.outputTokenEstimate === "number"
+      ? candidate.usage.outputTokenEstimate
+      : 0;
+
+  // Use the stricter of declared usage vs prose length so stubs cannot
+  // under-report (e.g. outputTokenEstimate: 0) to bypass cost caps.
+  return Math.max(
+    fromUsage,
+    fromProse,
+  );
 }
 
 async function raceAdapterWithDeadline(
   adapter: AiExplanationAdapter,
-  envelope: ReturnType<
-    typeof buildDeterministicGroundingEnvelope
-  >,
+  envelope: DeterministicGroundingEnvelope,
   timeoutMs: number,
   maxInputTokens: number,
   maxOutputTokens: number,
@@ -187,9 +246,6 @@ async function raceAdapterWithDeadline(
       deadlinePromise,
     ]);
 
-  // Always clear on early adapter settlement so a late timer cannot
-  // abort after success or leave dangling deadline work. Timeout,
-  // AbortSignal, and late-result discard paths are otherwise unchanged.
   if (
     deadlineTimer !== undefined
   ) {
@@ -201,7 +257,6 @@ async function raceAdapterWithDeadline(
   if (
     outcome.kind === "deadline"
   ) {
-    // Swallow late adapter settlement; never merge into delivery.
     void adapterPromise.then(
       () => undefined,
       () => undefined,
@@ -219,6 +274,33 @@ async function raceAdapterWithDeadline(
   };
 }
 
+function buildFallbackBrief(
+  grounding: DecisionBriefGroundingInput,
+  options: {
+    briefId: string;
+    role: OrganizationMemberRole;
+    generatedAt?: string;
+  },
+):
+  | {
+      ok: true;
+      brief: DecisionBriefV1;
+    }
+  | {
+      ok: false;
+      reasons: readonly DecisionBriefRejectionCode[];
+      detail: string;
+    } {
+  return buildDeterministicFallbackBrief(
+    grounding,
+    {
+      briefId: options.briefId,
+      role: options.role,
+      generatedAt: options.generatedAt,
+    },
+  );
+}
+
 function fallbackResult(
   grounding: DecisionBriefGroundingInput,
   options: {
@@ -227,15 +309,12 @@ function fallbackResult(
     generatedAt?: string;
   },
   diagnostics: ExplainDecisionBriefDiagnostics,
+  rejectedChrome: boolean,
 ): ExplainDecisionBriefResult {
   const built =
-    buildDeterministicFallbackBrief(
+    buildFallbackBrief(
       grounding,
-      {
-        briefId: options.briefId,
-        role: options.role,
-        generatedAt: options.generatedAt,
-      },
+      options,
     );
 
   if (
@@ -249,18 +328,53 @@ function fallbackResult(
     };
   }
 
+  // rejected_used_fallback is only for merchant soft-enable attempts that
+  // discard after attempting AI. forceDeterministicFallback paths keep E2
+  // accepted chrome while still recording discardReasons in diagnostics.
+  const brief =
+    rejectedChrome &&
+    diagnostics.discardReasons.length > 0
+      ? withRejectedUsedFallback(
+          built.brief,
+          diagnostics.discardReasons,
+          diagnostics.discardReasons.join(", "),
+        )
+      : built.brief;
+
   return {
     ok: true,
-    brief: built.brief,
+    brief,
     diagnostics,
   };
 }
 
+function mapAdapterFailureToRejection(
+  reason: AiExplanationAdapterFailureReason,
+): DecisionBriefRejectionCode {
+  switch (
+    reason
+  ) {
+    case "AI_TIMEOUT":
+      return "AI_TIMEOUT";
+    case "AI_UNSUPPORTED_SHAPE":
+      return "AI_UNSUPPORTED_SHAPE";
+    case "AI_PROMPT_INJECTION_SUSPECT":
+      return "AI_PROMPT_INJECTION_SUSPECT";
+    case "GROUNDING_HASH_MISMATCH":
+      return "CLAIM_EVIDENCE_UNTRACED";
+    case "COST_CAP_EXCEEDED":
+    case "AI_UNAVAILABLE":
+      return "AI_UNAVAILABLE";
+    default: {
+      const _exhaustive: never =
+        reason;
+      return _exhaustive;
+    }
+  }
+}
+
 /**
  * Explain a Decision Brief from validated grounding.
- *
- * E3.1 ALWAYS returns deterministic_fallback on success paths
- * (forceDeterministicFallback). Never returns generator=ai_validated.
  */
 export async function explainDecisionBriefFromGrounding(
   grounding: DecisionBriefGroundingInput,
@@ -268,19 +382,11 @@ export async function explainDecisionBriefFromGrounding(
 ): Promise<ExplainDecisionBriefResult> {
   const diagnostics =
     emptyDiagnostics(
-      options.enablementSource,
+      options,
     );
 
-  // E3.1 hard freeze — ignore any attempt to disable force-fallback.
-  if (
-    options.forceDeterministicFallback !== true
-  ) {
-    // Still deliver fallback; record that an illegal delivery request was ignored.
-    diagnostics.candidateDiscarded = true;
-    diagnostics.discardReasons = [
-      "AI_PROSE_SEMANTIC_VALIDATION_REQUIRED",
-    ];
-  }
+  const forceFallback =
+    options.forceDeterministicFallback === true;
 
   if (
     grounding.briefMode !== "synthetic_demo"
@@ -312,25 +418,30 @@ export async function explainDecisionBriefFromGrounding(
     };
   }
 
-  // Flag OFF / not allowlisted / wrong enablement source → E2-identical fallback.
   if (
     !mayAttemptAi(
       options,
     )
   ) {
+    // Flag OFF / not allowlisted / wrong source → exact E2 fallback chrome.
     return fallbackResult(
       grounding,
       options,
       diagnostics,
+      false,
     );
   }
 
   const adapter =
     options.adapter as AiExplanationAdapter;
 
+  // Soft-enable merchant chrome only when forceDeterministicFallback is lifted.
+  const softEnableDelivery =
+    !forceFallback;
+
   diagnostics.aiAttempted = true;
 
-  let envelope;
+  let envelope: DeterministicGroundingEnvelope;
 
   try {
     envelope =
@@ -351,6 +462,7 @@ export async function explainDecisionBriefFromGrounding(
       grounding,
       options,
       diagnostics,
+      softEnableDelivery,
     );
   }
 
@@ -362,10 +474,34 @@ export async function explainDecisionBriefFromGrounding(
     AI_EXPLANATION_DEFAULT_TIMEOUT_MS;
   const maxInputTokens =
     options.maxInputTokens ??
-    DEFAULT_MAX_INPUT_TOKENS;
+    AI_EXPLANATION_DEFAULT_MAX_INPUT_TOKENS;
   const maxOutputTokens =
     options.maxOutputTokens ??
-    DEFAULT_MAX_OUTPUT_TOKENS;
+    AI_EXPLANATION_DEFAULT_MAX_OUTPUT_TOKENS;
+
+  const inputEstimate =
+    estimateEnvelopeInputTokens(
+      envelope,
+    );
+
+  if (
+    inputEstimate > maxInputTokens
+  ) {
+    diagnostics.candidateDiscarded = true;
+    diagnostics.costCapExceeded = true;
+    diagnostics.adapterFailureReason =
+      "COST_CAP_EXCEEDED";
+    diagnostics.discardReasons = [
+      "AI_UNAVAILABLE",
+    ];
+
+    return fallbackResult(
+      grounding,
+      options,
+      diagnostics,
+      softEnableDelivery,
+    );
+  }
 
   const {
     outcome,
@@ -395,6 +531,7 @@ export async function explainDecisionBriefFromGrounding(
       grounding,
       options,
       diagnostics,
+      softEnableDelivery,
     );
   }
 
@@ -412,6 +549,7 @@ export async function explainDecisionBriefFromGrounding(
       grounding,
       options,
       diagnostics,
+      softEnableDelivery,
     );
   }
 
@@ -424,6 +562,8 @@ export async function explainDecisionBriefFromGrounding(
     diagnostics.candidateDiscarded = true;
     diagnostics.adapterFailureReason =
       adapterResult.reason;
+    diagnostics.costCapExceeded =
+      adapterResult.reason === "COST_CAP_EXCEEDED";
     diagnostics.discardReasons = [
       mapAdapterFailureToRejection(
         adapterResult.reason,
@@ -434,13 +574,39 @@ export async function explainDecisionBriefFromGrounding(
       grounding,
       options,
       diagnostics,
+      softEnableDelivery,
     );
   }
 
   diagnostics.candidateReceived = true;
 
-  // E3.1: ALWAYS discard candidate after optional validation exercise.
-  diagnostics.candidateDiscarded = true;
+  const outputEstimate =
+    estimateCandidateOutputTokens(
+      adapterResult.candidate,
+    );
+
+  if (
+    outputEstimate > maxOutputTokens ||
+    (
+      typeof adapterResult.candidate.usage?.inputTokenEstimate === "number" &&
+      adapterResult.candidate.usage.inputTokenEstimate > maxInputTokens
+    )
+  ) {
+    diagnostics.candidateDiscarded = true;
+    diagnostics.costCapExceeded = true;
+    diagnostics.adapterFailureReason =
+      "COST_CAP_EXCEEDED";
+    diagnostics.discardReasons = [
+      "AI_UNAVAILABLE",
+    ];
+
+    return fallbackResult(
+      grounding,
+      options,
+      diagnostics,
+      softEnableDelivery,
+    );
+  }
 
   let validation;
 
@@ -451,6 +617,7 @@ export async function explainDecisionBriefFromGrounding(
         adapterResult.candidate,
       );
   } catch {
+    diagnostics.candidateDiscarded = true;
     diagnostics.adapterFailureReason =
       "AI_UNSUPPORTED_SHAPE";
     diagnostics.discardReasons = [
@@ -461,12 +628,14 @@ export async function explainDecisionBriefFromGrounding(
       grounding,
       options,
       diagnostics,
+      softEnableDelivery,
     );
   }
 
   if (
     !validation.ok
   ) {
+    diagnostics.candidateDiscarded = true;
     diagnostics.discardReasons = [
       ...validation.reasons,
     ];
@@ -477,47 +646,70 @@ export async function explainDecisionBriefFromGrounding(
       diagnostics.adapterFailureReason =
         validation.adapterReason;
     }
-  } else {
-    // Candidate passed structured + semantic gates but E3.2 merchant
-    // delivery remains force-fallback (never ai_validated).
-    diagnostics.discardReasons = [];
+
+    return fallbackResult(
+      grounding,
+      options,
+      diagnostics,
+      softEnableDelivery,
+    );
   }
 
-  return fallbackResult(
-    grounding,
-    options,
-    diagnostics,
-  );
-}
-
-function mapAdapterFailureToRejection(
-  reason: AiExplanationAdapterFailureReason,
-): DecisionBriefRejectionCode {
-  switch (
-    reason
+  // Validation passed.
+  if (
+    forceFallback
   ) {
-    case "AI_TIMEOUT":
-      return "AI_TIMEOUT";
-    case "AI_UNSUPPORTED_SHAPE":
-      return "AI_UNSUPPORTED_SHAPE";
-    case "AI_PROMPT_INJECTION_SUSPECT":
-      return "AI_PROMPT_INJECTION_SUSPECT";
-    case "GROUNDING_HASH_MISMATCH":
-      return "CLAIM_EVIDENCE_UNTRACED";
-    case "COST_CAP_EXCEEDED":
-    case "AI_UNAVAILABLE":
-      return "AI_UNAVAILABLE";
-    default: {
-      const _exhaustive: never =
-        reason;
-      return _exhaustive;
-    }
+    // E3.1/E3.2: discard after successful validation exercise.
+    diagnostics.candidateDiscarded = true;
+    diagnostics.discardReasons = [];
+
+    return fallbackResult(
+      grounding,
+      options,
+      diagnostics,
+      false,
+    );
   }
+
+  // E3.3 delivery conjunction: merge only the minted validated candidate.
+  const merged =
+    mergeAiValidatedBrief(
+      grounding,
+      validation.validatedCandidate,
+      {
+        briefId: options.briefId,
+        role: options.role,
+        generatedAt: options.generatedAt,
+      },
+    );
+
+  if (
+    !merged.ok
+  ) {
+    diagnostics.candidateDiscarded = true;
+    diagnostics.discardReasons = [
+      ...merged.reasons,
+    ];
+
+    return fallbackResult(
+      grounding,
+      options,
+      diagnostics,
+      true,
+    );
+  }
+
+  diagnostics.candidateDiscarded = false;
+
+  return {
+    ok: true,
+    brief: merged.brief,
+    diagnostics,
+  };
 }
 
 /**
  * Disabled-default options helper for product / demo paths.
- * Never enables AI; always forceDeterministicFallback.
  */
 export function disabledAiExplanationOptions(
   input: {
@@ -539,7 +731,8 @@ export function disabledAiExplanationOptions(
 }
 
 /**
- * Test-only enablement helper. Must not be used from product UI paths.
+ * Test-only enablement helper. Defaults to forceDeterministicFallback=true
+ * (E3.1/E3.2). Pass false only in E3.3 harnesses that assert ai_validated.
  */
 export function testInjectedAiExplanationOptions(
   input: {
@@ -548,7 +741,10 @@ export function testInjectedAiExplanationOptions(
     generatedAt?: string;
     adapter: AiExplanationAdapter;
     timeoutMs?: number;
+    maxInputTokens?: number;
+    maxOutputTokens?: number;
     promptVersion?: string;
+    forceDeterministicFallback?: boolean;
   },
 ): ExplainDecisionBriefOptions {
   return {
@@ -560,8 +756,56 @@ export function testInjectedAiExplanationOptions(
     enablementSource: "test_injected",
     adapter: input.adapter,
     timeoutMs: input.timeoutMs,
+    maxInputTokens: input.maxInputTokens,
+    maxOutputTokens: input.maxOutputTokens,
     promptVersion: input.promptVersion,
     forceDeterministicFallback:
+      input.forceDeterministicFallback ??
       E3_1_FORCE_DETERMINISTIC_FALLBACK,
+  };
+}
+
+/**
+ * Trusted server-resolved soft-enable options (E3.3 product path).
+ * Callers must obtain enablement from resolveServerAiExplanationEnablement.
+ */
+export function serverResolvedAiExplanationOptions(
+  input: {
+    briefId: string;
+    role: OrganizationMemberRole;
+    generatedAt?: string;
+    adapter: AiExplanationAdapter;
+    aiExplanationEnabled: boolean;
+    allowlistMatch: boolean;
+    timeoutMs?: number;
+    maxInputTokens?: number;
+    maxOutputTokens?: number;
+    promptVersion?: string;
+  },
+): ExplainDecisionBriefOptions {
+  const softEnabled =
+    input.aiExplanationEnabled === true &&
+    input.allowlistMatch === true;
+
+  return {
+    briefId: input.briefId,
+    role: input.role,
+    generatedAt: input.generatedAt,
+    aiExplanationEnabled: input.aiExplanationEnabled,
+    allowlistMatch: input.allowlistMatch,
+    enablementSource: softEnabled
+      ? "server_resolved_config"
+      : (
+          input.aiExplanationEnabled ||
+          input.allowlistMatch
+            ? "server_resolved_config"
+            : "disabled_default"
+        ),
+    adapter: softEnabled ? input.adapter : undefined,
+    timeoutMs: input.timeoutMs,
+    maxInputTokens: input.maxInputTokens,
+    maxOutputTokens: input.maxOutputTokens,
+    promptVersion: input.promptVersion,
+    forceDeterministicFallback: !softEnabled,
   };
 }

@@ -1,10 +1,9 @@
 /**
- * M7.4e E3.1 — offline AI explanation adapter foundation.
+ * M7.4e E3.x — AI explanation adapter (server / test entry only).
  *
- * Server / test entry only. Client components must not import this module
- * (uses node:crypto; Actions UI stays on composeDemoDecisionBrief).
- *
- * No live providers. No ai_validated delivery in E3.1.
+ * Client components must not import this module (node:crypto + adapters).
+ * Default Actions UI uses composeDemoDecisionBrief; soft-enable passes
+ * server-precomposed briefs as props.
  */
 
 export {
@@ -13,6 +12,8 @@ export {
   AI_BRIEF_SEMANTIC_CLAIMS_VERSION,
   AI_NUMERIC_MUTATION_PROFILE_VERSION,
   AI_EXPLANATION_DEFAULT_TIMEOUT_MS,
+  AI_EXPLANATION_DEFAULT_MAX_INPUT_TOKENS,
+  AI_EXPLANATION_DEFAULT_MAX_OUTPUT_TOKENS,
   E3_1_FORCE_DETERMINISTIC_FALLBACK,
   GROUNDING_HASH_PREFIX,
   type AiExplanationAdapterContractVersion,
@@ -31,6 +32,8 @@ export {
   type ExplainDecisionBriefDiagnostics,
   type ExplainDecisionBriefResult,
   type CandidateShapeValidationResult,
+  type AiExplanationCandidateValidationResult,
+  type SemanticallyValidatedAiExplanationCandidateRef,
 } from "@/lib/decision-brief/ai/types";
 
 export {
@@ -63,7 +66,36 @@ export {
 } from "@/lib/decision-brief/ai/templated-stub-candidate";
 
 export {
+  createRecordedReplayAdapter,
+  type RecordedReplayAdapterOptions,
+} from "@/lib/decision-brief/ai/recorded-replay-adapter";
+
+export {
   explainDecisionBriefFromGrounding,
   disabledAiExplanationOptions,
   testInjectedAiExplanationOptions,
+  serverResolvedAiExplanationOptions,
 } from "@/lib/decision-brief/ai/orchestrate";
+
+export {
+  getDefaultServerAiExplanationConfig,
+  readServerAiExplanationConfig,
+  resolveServerAiExplanationEnablement,
+  type ServerAiExplanationConfig,
+  type ResolvedServerAiExplanationEnablement,
+} from "@/lib/decision-brief/ai/server-enablement";
+
+// mergeAiValidatedBrief / withRejectedUsedFallback are intentionally NOT
+// re-exported — only the orchestrator may produce ai_validated after mint.
+
+export {
+  toPrivacySafeAiExplanationLog,
+  type PrivacySafeAiExplanationLog,
+} from "@/lib/decision-brief/ai/privacy-safe-diagnostics";
+
+export {
+  composeDemoDecisionBriefWithAi,
+  composeAllDemoDecisionBriefsWithAi,
+  type ComposeDemoDecisionBriefWithAiOptions,
+  type ComposeDemoDecisionBriefWithAiResult,
+} from "@/lib/decision-brief/ai/compose-demo-ai-brief";

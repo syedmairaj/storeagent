@@ -51,29 +51,48 @@ interface DecisionBriefPanelProps {
   heightMode?:
     | "contained"
     | "flow";
+  /**
+   * Optional server-precomposed brief (E3.3 soft-enable). When omitted, the
+   * panel uses the local E1/E2 deterministic compose path. Never pass
+   * client-authored enablement — only server-resolved briefs.
+   */
+  precomposedBrief?: DecisionBriefV1;
 }
 
 /**
- * E2 Decision Brief inspector body.
- * Composes only via the E1 trusted synthetic fixture path.
+ * Decision Brief inspector body.
+ * Default: E1 trusted synthetic fixture path (E2 parity).
+ * Soft-enable: render server-precomposed brief (may be ai_validated).
  */
 export function DecisionBriefPanel({
   action,
   role,
   heightMode = "flow",
+  precomposedBrief,
 }: DecisionBriefPanelProps) {
   const composed =
     useMemo(
-      () =>
-        composeDemoDecisionBrief(
+      () => {
+        if (
+          precomposedBrief
+        ) {
+          return {
+            ok: true as const,
+            brief: precomposedBrief,
+          };
+        }
+
+        return composeDemoDecisionBrief(
           action,
           {
             role,
           },
-        ),
+        );
+      },
       [
         action,
         role,
+        precomposedBrief,
       ],
     );
 
@@ -461,6 +480,26 @@ function DecisionBriefView({
                 </dt>
                 <dd>{brief.validationStatus}</dd>
               </div>
+              {brief.rejection && (
+                <div className="flex flex-wrap gap-x-2">
+                  <dt className="font-medium text-zinc-500">
+                    Fallback reasons
+                  </dt>
+                  <dd className="font-mono text-[11px] text-zinc-500">
+                    {brief.rejection.reasons.join(", ")}
+                  </dd>
+                </div>
+              )}
+              {brief.provenance.ai && (
+                <div className="flex flex-wrap gap-x-2">
+                  <dt className="font-medium text-zinc-500">
+                    AI provenance
+                  </dt>
+                  <dd className="font-mono text-[11px] text-zinc-500">
+                    {brief.provenance.ai.provider}/{brief.provenance.ai.model}
+                  </dd>
+                </div>
+              )}
               <div className="flex flex-wrap gap-x-2">
                 <dt className="font-medium text-zinc-500">
                   Algorithm

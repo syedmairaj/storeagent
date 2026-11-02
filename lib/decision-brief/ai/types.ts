@@ -1,9 +1,9 @@
 /**
- * M7.4e E3.1 — provider-independent AI explanation adapter types.
+ * M7.4e E3.x — provider-independent AI explanation adapter types.
  *
- * Fallback-only delivery. No live providers. groundingHash is
- * reproducibility / golden binding ONLY — never authentication,
- * attestation, enablement, or tenant authorization.
+ * No live providers. groundingHash is reproducibility / golden binding ONLY —
+ * never authentication, attestation, enablement, or tenant authorization.
+ * E3.3 may deliver ai_validated only under server-resolved soft-enable.
  */
 
 import type {
@@ -35,9 +35,16 @@ export const AI_NUMERIC_MUTATION_PROFILE_VERSION =
 export const AI_EXPLANATION_DEFAULT_TIMEOUT_MS =
   2500 as const;
 
+export const AI_EXPLANATION_DEFAULT_MAX_INPUT_TOKENS =
+  2048 as const;
+
+export const AI_EXPLANATION_DEFAULT_MAX_OUTPUT_TOKENS =
+  512 as const;
+
 /**
- * E3.1 hard freeze: product/orchestrator builds always force fallback.
- * First possible ai_validated delivery is E3.2+.
+ * Legacy E3.1/E3.2 harness default: force deterministic fallback delivery.
+ * E3.3 soft-enable may set forceDeterministicFallback=false only under the
+ * authorized enablement conjunction.
  */
 export const E3_1_FORCE_DETERMINISTIC_FALLBACK =
   true as const;
@@ -184,26 +191,27 @@ export type ExplainDecisionBriefOptions = {
   maxOutputTokens?: number;
   promptVersion?: string;
   /**
-   * E3.1 hard freeze: always true in this slice. Candidates are discarded
-   * after optional harness validation; never returns generator=ai_validated.
+   * When true, discard candidates after validation exercise (E3.1/E3.2).
+   * When false (E3.3 soft-enable only), accepted candidates may merge as
+   * generator=ai_validated under the full delivery conjunction.
    */
   forceDeterministicFallback: boolean;
 };
 
 /**
- * Harness-only diagnostics. Must not drive merchant chrome in E3.1.
- * Prefer E2-identical accepted fallback on the returned brief.
+ * Privacy-safe harness / product diagnostics (no raw prose or secrets).
  */
 export type ExplainDecisionBriefDiagnostics = {
   aiAttempted: boolean;
   enablementSource: AiExplanationEnablementSource;
-  forceDeterministicFallback: true;
+  forceDeterministicFallback: boolean;
   candidateReceived: boolean;
   candidateDiscarded: boolean;
   discardReasons: readonly DecisionBriefRejectionCode[];
   adapterFailureReason?: AiExplanationAdapterFailureReason;
   groundingHash?: string;
   lateResultDiscarded: boolean;
+  costCapExceeded?: boolean;
 };
 
 export type ExplainDecisionBriefResult =
@@ -219,9 +227,35 @@ export type ExplainDecisionBriefResult =
       diagnostics: ExplainDecisionBriefDiagnostics;
     };
 
+/**
+ * Opaque validated-candidate token type (runtime-gated via WeakSet mint).
+ * Import the concrete type from validated-candidate.ts when merging.
+ */
+export type SemanticallyValidatedAiExplanationCandidateRef = {
+  readonly candidate: AiExplanationCandidateV1;
+};
+
+/**
+ * Shape / nesting gate result (no mint — intermediate only).
+ */
 export type CandidateShapeValidationResult =
   | {
       ok: true;
+    }
+  | {
+      ok: false;
+      reasons: readonly DecisionBriefRejectionCode[];
+      detail: string;
+      adapterReason?: AiExplanationAdapterFailureReason;
+    };
+
+/**
+ * Full candidate validation result. ok mints a merge-capable token.
+ */
+export type AiExplanationCandidateValidationResult =
+  | {
+      ok: true;
+      validatedCandidate: SemanticallyValidatedAiExplanationCandidateRef;
     }
   | {
       ok: false;
