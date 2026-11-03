@@ -256,12 +256,13 @@ export async function assertFilterTouchTargets(
 export async function selectQueueRowByType(
   page: Page,
   actionType: "REORDER" | "WATCH",
+  index = 0,
 ): Promise<Locator> {
   const typedRow = page
     .locator(
       `[data-actions-queue-row="true"][data-action-type="${actionType}"]`,
     )
-    .first();
+    .nth(index);
 
   await expect(typedRow).toBeVisible();
   await typedRow.click();

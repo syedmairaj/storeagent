@@ -36,10 +36,22 @@ import {
   formatDemoUnknownNumber,
 } from "@/lib/demo/m7-decision-demo-format";
 
+type EvidenceFieldState =
+  | "known"
+  | "unknown"
+  | "not_applicable";
+
 type EvidenceField = {
   label: string;
   value: string;
+  fieldState: EvidenceFieldState;
 };
+
+/** Fixture / brief codes that already encode stale evidence — never invent freshness. */
+const STALE_EVIDENCE_CODES = [
+  "stale_evidence",
+  "stale_inventory_observation",
+] as const;
 
 interface DecisionBriefPanelProps {
   action: DemoActionItem;
@@ -168,8 +180,14 @@ function DecisionBriefView({
         )
       : [];
 
+  const staleEvidenceCopy =
+    resolveStaleEvidenceCopy(
+      action,
+      brief,
+    );
+
   const recommendationBlock = (
-    <>
+    <div data-actions-brief-section="recommendation">
       <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
         <ActionTypeChip
           actionType={brief.recommendation.actionType}
@@ -182,19 +200,23 @@ function DecisionBriefView({
         />
       </div>
 
-      <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-1.5 sm:mt-3 sm:gap-2">
-        <span className="inline-flex max-w-full items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-950 sm:px-2.5 sm:py-1 sm:text-[11px]">
+      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-1.5 sm:mt-2.5 sm:gap-2">
+        <span
+          data-actions-brief-provenance="synthetic"
+          className="inline-flex max-w-full items-center rounded-full border border-amber-200/90 bg-amber-50/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-950 sm:px-2.5 sm:py-1 sm:text-[11px]"
+        >
           Synthetic demonstration
         </span>
         <span
           role="status"
+          data-actions-brief-provenance="generator"
           className="inline-flex max-w-full items-center rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-medium text-zinc-600 sm:px-2.5 sm:py-1 sm:text-[11px]"
         >
           {generatorLabel(brief)}
         </span>
       </div>
 
-      <h2 className="mt-2.5 text-lg font-semibold tracking-[-0.03em] text-zinc-950 sm:mt-3 sm:text-xl">
+      <h2 className="mt-3 text-lg font-semibold tracking-[-0.03em] text-zinc-950 sm:mt-3.5 sm:text-xl">
         {brief.recommendation.productTitle}
       </h2>
       <p className="mt-0.5 text-sm text-zinc-500">
@@ -202,11 +224,16 @@ function DecisionBriefView({
       </p>
 
       {showQuantity && (
-        <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 sm:px-4 sm:py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+        <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 sm:mt-3.5 sm:px-4 sm:py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
             Recommended quantity
           </p>
           <p
+            data-actions-brief-quantity={
+              isKnown(brief.recommendation.recommendedQuantity)
+                ? "known"
+                : "unknown"
+            }
             className={`mt-1 text-2xl font-semibold tracking-[-0.03em] tabular-nums sm:text-[1.75rem] ${
               isKnown(brief.recommendation.recommendedQuantity)
                 ? "text-zinc-950"
@@ -227,34 +254,40 @@ function DecisionBriefView({
       )}
 
       {!showQuantity && !isWatch && (
-        <p className="mt-2.5 text-xs leading-5 text-zinc-500">
+        <p className="mt-3 text-xs leading-5 text-zinc-500 sm:mt-3.5">
           No recommended quantity for{" "}
           {brief.recommendation.label} in this demonstration.
         </p>
       )}
 
       {isWatch && (
-        <div className="mt-3 rounded-xl border border-zinc-300 bg-zinc-100/80 px-3.5 py-2.5 sm:px-4 sm:py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-600">
+        <div
+          data-actions-brief-watch="uncertainty-first"
+          className="mt-3 rounded-xl border border-zinc-300 bg-zinc-50 px-3.5 py-2.5 sm:mt-3.5 sm:px-4 sm:py-3"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
             Uncertainty first
           </p>
           <p className="mt-1.5 text-sm leading-6 text-zinc-800">
             {brief.uncertainty.summary}
           </p>
-          <p className="mt-1 text-xs leading-5 text-zinc-500">
-            No buy, reduce, or promote recommendation on this SKU.
+          <p className="mt-1.5 text-xs leading-5 text-zinc-500">
+            Watch only. No buy, reduce, or promote recommendation on this SKU.
           </p>
         </div>
       )}
-    </>
+    </div>
   );
 
   const bodySections = (
-    <>
-      <section aria-labelledby={`why-now-${brief.briefId}`}>
+    <div className="space-y-3 sm:space-y-4">
+      <section
+        data-actions-brief-section="why"
+        aria-labelledby={`why-now-${brief.briefId}`}
+      >
         <h3
           id={`why-now-${brief.briefId}`}
-          className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500"
+          className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 sm:text-xs"
         >
           {isWatch
             ? "Grounded signals"
@@ -267,7 +300,7 @@ function DecisionBriefView({
                 (fact) => (
                   <li
                     key={fact}
-                    className="text-sm leading-5 text-zinc-700"
+                    className="text-sm leading-6 text-zinc-700"
                   >
                     {fact}
                   </li>
@@ -287,12 +320,12 @@ function DecisionBriefView({
       </section>
 
       <section
-        className="mt-3.5 sm:mt-4"
+        data-actions-brief-section="evidence"
         aria-labelledby={`key-evidence-${brief.briefId}`}
       >
         <h3
           id={`key-evidence-${brief.briefId}`}
-          className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500"
+          className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 sm:text-xs"
         >
           Key evidence
         </h3>
@@ -301,21 +334,36 @@ function DecisionBriefView({
             (fact) => ({
               label: fact.label,
               value: fact.display,
+              fieldState: fact.fieldState,
             }),
           )}
         />
       </section>
 
       <section
-        className="mt-3.5 sm:mt-4"
+        data-actions-brief-section="uncertainty"
         aria-labelledby={`confidence-uncertainty-${brief.briefId}`}
       >
         <h3
           id={`confidence-uncertainty-${brief.briefId}`}
-          className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500"
+          className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 sm:text-xs"
         >
           Confidence & uncertainty
         </h3>
+
+        {staleEvidenceCopy && (
+          <p
+            data-actions-stale-evidence="true"
+            className="mt-2 rounded-xl border border-zinc-300 bg-zinc-50 px-3.5 py-2.5 text-sm leading-6 text-zinc-700"
+          >
+            <span className="font-semibold text-zinc-800">
+              Stale evidence
+            </span>
+            <span className="mt-0.5 block text-zinc-600">
+              {staleEvidenceCopy}
+            </span>
+          </p>
+        )}
 
         <div className="mt-2 grid gap-2 sm:grid-cols-2 sm:gap-2.5">
           <div className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 sm:px-3.5 sm:py-3">
@@ -377,17 +425,22 @@ function DecisionBriefView({
                   : "No material uncertainty flagged."}
               </p>
             )}
+            {isWatch && (
+              <p className="mt-2 text-[11px] leading-5 text-zinc-500">
+                Incomplete evidence — watch only. Not actionable as a purchase.
+              </p>
+            )}
           </div>
         </div>
       </section>
 
       <section
-        className="mt-3.5 sm:mt-4"
+        data-actions-brief-section="next-step"
         aria-labelledby={`next-step-${brief.briefId}`}
       >
         <h3
           id={`next-step-${brief.briefId}`}
-          className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500"
+          className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 sm:text-xs"
         >
           Suggested next step
         </h3>
@@ -398,13 +451,18 @@ function DecisionBriefView({
 
       {/* Controls after next step for both height modes — must live inside the
           single scroll owner so REORDER editors stay reachable on short desktops. */}
-      <DemoApprovalCluster
-        key={action.id}
-        action={action}
-        role={role}
-      />
+      <div data-actions-brief-section="controls">
+        <DemoApprovalCluster
+          key={action.id}
+          action={action}
+          role={role}
+        />
+      </div>
 
-      <details className="mt-3.5 rounded-xl border border-zinc-200 bg-zinc-50/70 px-3.5 py-2 open:bg-white sm:mt-4 sm:px-4 sm:py-2.5">
+      <details
+        data-actions-brief-section="technical"
+        className="rounded-xl border border-zinc-200 bg-zinc-50/70 px-3.5 py-2 open:bg-white sm:px-4 sm:py-2.5"
+      >
         <summary className="cursor-pointer list-none rounded-xl text-sm font-medium text-zinc-800 marker:content-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
           <span className="inline-flex min-h-11 items-center">
             Technical details
@@ -532,16 +590,16 @@ function DecisionBriefView({
           </div>
         </div>
       </details>
-    </>
+    </div>
   );
 
   const briefInner = (
     <>
-      <header className="border-b border-zinc-100 px-4 py-3.5 sm:px-6 sm:py-5">
+      <header className="border-b border-zinc-100 px-4 py-3.5 sm:px-5 sm:py-5">
         {recommendationBlock}
       </header>
 
-      <div className="px-4 py-3.5 sm:px-6 sm:py-5">
+      <div className="px-4 py-3 sm:px-5 sm:py-4">
         {bodySections}
       </div>
     </>
@@ -675,6 +733,53 @@ function uniqueExplanationsForCodes(
   return explanations;
 }
 
+/**
+ * Surface stale evidence only when existing fixture/brief codes already say so.
+ * Never invents freshness timestamps or live-data claims.
+ */
+function resolveStaleEvidenceCopy(
+  action: DemoActionItem,
+  brief: DecisionBriefV1,
+): string | null {
+  const presentCodes = new Set<string>([
+    ...action.evidence.reasonCodes,
+    ...action.confidenceReasonCodes,
+    ...brief.uncertainty.codes,
+    ...brief.confidence.reasonCodes,
+  ]);
+
+  for (
+    const code of STALE_EVIDENCE_CODES
+  ) {
+    if (
+      presentCodes.has(code)
+    ) {
+      return explainDemoReasonCode(code);
+    }
+  }
+
+  return null;
+}
+
+function evidenceFieldStateFromDisplay(
+  value: string,
+): EvidenceFieldState {
+  return value === "Unknown"
+    ? "unknown"
+    : "known";
+}
+
+function secondaryEvidenceField(
+  label: string,
+  value: string,
+): EvidenceField {
+  return {
+    label,
+    value,
+    fieldState: evidenceFieldStateFromDisplay(value),
+  };
+}
+
 function RecommendedActionDate({
   field,
 }: {
@@ -741,30 +846,48 @@ function EvidenceGrid({
   fields: EvidenceField[];
 }) {
   return (
-    <dl className="mt-3 grid grid-cols-1 gap-2.5 min-[380px]:grid-cols-2 sm:grid-cols-3">
+    <dl className="mt-2.5 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:mt-3 sm:grid-cols-3 sm:gap-2.5">
       {fields.map(
         ({
           label,
           value,
-        }) => (
-          <div
-            key={label}
-            className="min-w-0 rounded-2xl border border-zinc-100 bg-zinc-50/80 px-3.5 py-2.5"
-          >
-            <dt className="text-[11px] font-medium uppercase tracking-[0.1em] text-zinc-500">
-              {label}
-            </dt>
-            <dd
-              className={`mt-1 text-sm font-semibold tabular-nums tracking-[-0.01em] ${
-                value === "Unknown"
-                  ? "text-zinc-400"
-                  : "text-zinc-950"
-              }`}
+          fieldState,
+        }) => {
+          const isUnknown =
+            fieldState === "unknown" ||
+            value === "Unknown";
+
+          return (
+            <div
+              key={label}
+              data-actions-evidence-cell={
+                isUnknown
+                  ? "unknown"
+                  : "known"
+              }
+              className={
+                isUnknown
+                  ? "min-w-0 rounded-xl border border-zinc-100 bg-zinc-50/60 px-3.5 py-2.5"
+                  : "min-w-0 rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5"
+              }
             >
-              {value}
-            </dd>
-          </div>
-        ),
+              <dt className="text-[11px] font-medium uppercase tracking-[0.1em] text-zinc-500">
+                {label}
+              </dt>
+              <dd
+                className={`mt-1 text-sm font-semibold tabular-nums tracking-[-0.01em] ${
+                  isUnknown
+                    ? "text-zinc-400"
+                    : "text-zinc-950"
+                }`}
+              >
+                {isUnknown
+                  ? "Unknown"
+                  : value}
+              </dd>
+            </div>
+          );
+        },
       )}
     </dl>
   );
@@ -821,73 +944,73 @@ function getSecondaryEvidenceFields(
     );
 
   const candidates: EvidenceField[] = [
-    {
-      label: "Safety stock",
-      value: formatDemoUnknownNumber(
+    secondaryEvidenceField(
+      "Safety stock",
+      formatDemoUnknownNumber(
         evidence.safetyStockUnits,
       ),
-    },
-    {
-      label: "Reorder point",
-      value: formatDemoUnknownNumber(
+    ),
+    secondaryEvidenceField(
+      "Reorder point",
+      formatDemoUnknownNumber(
         evidence.reorderPointUnits,
       ),
-    },
-    {
-      label: "Target stock",
-      value: formatDemoUnknownNumber(
+    ),
+    secondaryEvidenceField(
+      "Target stock",
+      formatDemoUnknownNumber(
         evidence.targetStockUnits,
       ),
-    },
-    {
-      label: "Inventory age",
-      value: formatDemoUnknownNumber(
+    ),
+    secondaryEvidenceField(
+      "Inventory age",
+      formatDemoUnknownNumber(
         evidence.inventoryAgeDays,
         {
           suffix: " days",
         },
       ),
-    },
-    {
-      label: "Forecast demand",
-      value: formatDemoUnknownNumber(
+    ),
+    secondaryEvidenceField(
+      "Forecast demand",
+      formatDemoUnknownNumber(
         evidence.forecastExpectedDemandUnits,
       ),
-    },
-    {
-      label: "Demand velocity",
-      value: formatDemoUnknownNumber(
+    ),
+    secondaryEvidenceField(
+      "Demand velocity",
+      formatDemoUnknownNumber(
         evidence.demandVelocity,
         {
           digits: 1,
           suffix: "/day",
         },
       ),
-    },
-    {
-      label: "Days of stock",
-      value: formatDemoUnknownNumber(
+    ),
+    secondaryEvidenceField(
+      "Days of stock",
+      formatDemoUnknownNumber(
         evidence.daysOfStock,
         {
           digits: 1,
         },
       ),
-    },
-    {
-      label: "Lead time",
-      value: formatDemoUnknownNumber(
+    ),
+    secondaryEvidenceField(
+      "Lead time",
+      formatDemoUnknownNumber(
         evidence.leadTimeDays,
         {
           suffix: " days",
         },
       ),
-    },
-    {
-      label: "Data quality",
-      value: formatDemoDataQualityScore(
+    ),
+    secondaryEvidenceField(
+      "Data quality",
+      formatDemoDataQualityScore(
         evidence.dataQualityScore,
       ),
-    },
+    ),
   ];
 
   return candidates.filter(

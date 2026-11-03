@@ -22,10 +22,10 @@ import {
 } from "./helpers/geometry";
 
 test.describe(
-  "Actions R1/R2.a acceptance",
+  "Actions R1/R2.a/R2.b acceptance",
   () => {
     test(
-      "responsive queue, filters, brief/sheet behaviors",
+      "responsive queue, filters, brief/sheet/evidence behaviors",
       async ({
         page,
       }, testInfo) => {
@@ -187,6 +187,21 @@ test.describe(
               /recommended quantity/i,
             ),
           ).toBeVisible();
+          await expect(
+            sheet.locator(
+              '[data-actions-brief-section="evidence"]',
+            ),
+          ).toBeVisible();
+          await expect(
+            sheet.locator(
+              '[data-actions-evidence-cell="known"]',
+            ).first(),
+          ).toBeVisible();
+          await expect(
+            sheet.getByText(
+              "Synthetic demonstration",
+            ).first(),
+          ).toBeVisible();
 
           await captureViewportShot(
             page,
@@ -258,20 +273,36 @@ test.describe(
             page.getByRole("dialog"),
           ).toHaveCount(0);
 
-          // WATCH sheet
+          // WATCH sheet — uncertainty-first + Unknown evidence
           const watchRow =
             await selectQueueRowByType(
               page,
               "WATCH",
             );
+          const watchSheet = page.getByRole(
+            "dialog",
+          );
+          await expect(watchSheet).toBeVisible();
           await expect(
-            page.getByRole("dialog"),
-          ).toBeVisible();
-          await expect(
-            page.getByRole("dialog").getByText(
+            watchSheet.getByText(
               /uncertainty|incomplete|watch/i,
             ).first(),
           ).toBeVisible();
+          await expect(
+            watchSheet.locator(
+              '[data-actions-brief-watch="uncertainty-first"]',
+            ),
+          ).toBeVisible();
+          await expect(
+            watchSheet.locator(
+              '[data-actions-evidence-cell="unknown"]',
+            ).first(),
+          ).toContainText("Unknown");
+          await expect(
+            watchSheet.getByText(
+              /buy now|order anyway|approve purchase/i,
+            ),
+          ).toHaveCount(0);
           await captureViewportShot(
             page,
             testInfo,
@@ -335,6 +366,16 @@ test.describe(
               /recommended quantity/i,
             ),
           ).toBeVisible();
+          await expect(
+            brief.locator(
+              '[data-actions-brief-section="evidence"]',
+            ),
+          ).toBeVisible();
+          await expect(
+            brief.locator(
+              '[data-actions-evidence-cell="known"]',
+            ).first(),
+          ).toBeVisible();
           await captureViewportShot(
             page,
             testInfo,
@@ -360,16 +401,24 @@ test.describe(
             page,
             "WATCH",
           );
+          const watchBrief = page
+            .getByRole("article", {
+              name: /decision brief/i,
+            })
+            .filter({
+              visible: true,
+            })
+            .first();
           await expect(
-            page
-              .getByRole("article", {
-                name: /decision brief/i,
-              })
-              .getByText(
-                /uncertainty|incomplete|watch/i,
-              )
-              .first(),
+            watchBrief.getByText(
+              /uncertainty|incomplete|watch/i,
+            ).first(),
           ).toBeVisible();
+          await expect(
+            watchBrief.locator(
+              '[data-actions-evidence-cell="unknown"]',
+            ).first(),
+          ).toContainText("Unknown");
           await captureViewportShot(
             page,
             testInfo,
@@ -403,6 +452,21 @@ test.describe(
           await expect(
             brief.getByText(
               /recommended quantity/i,
+            ),
+          ).toBeVisible();
+          await expect(
+            brief.locator(
+              '[data-actions-brief-section="evidence"]',
+            ),
+          ).toBeVisible();
+          await expect(
+            brief.locator(
+              '[data-actions-evidence-cell="known"]',
+            ).first(),
+          ).toBeVisible();
+          await expect(
+            brief.locator(
+              '[data-actions-brief-provenance="synthetic"]',
             ),
           ).toBeVisible();
 
@@ -488,6 +552,46 @@ test.describe(
               /uncertainty|incomplete|watch|grounded signals/i,
             ).first(),
           ).toBeVisible();
+          await expect(
+            brief.locator(
+              '[data-actions-brief-watch="uncertainty-first"]',
+            ),
+          ).toBeVisible();
+          await expect(
+            brief.locator(
+              '[data-actions-evidence-cell="unknown"]',
+            ).first(),
+          ).toContainText("Unknown");
+          await expect(
+            brief.getByText(
+              /buy now|order anyway|approve purchase/i,
+            ),
+          ).toHaveCount(0);
+
+          // Stale WATCH fixture surfaces existing stale evidence copy only
+          await selectQueueRowByType(
+            page,
+            "WATCH",
+            1,
+          );
+          await expect(
+            brief.locator(
+              '[data-actions-stale-evidence="true"]',
+            ),
+          ).toBeVisible();
+          await expect(
+            brief.locator(
+              '[data-actions-stale-evidence="true"]',
+            ),
+          ).toContainText(
+            /stale/i,
+          );
+          await expect(
+            brief.getByText(
+              /decisionAsOf|fresh live data/i,
+            ),
+          ).toHaveCount(0);
+
           await captureViewportShot(
             page,
             testInfo,

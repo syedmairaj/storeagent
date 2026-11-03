@@ -1,6 +1,6 @@
 # Actions Playwright E2E
 
-Bootstrap for R1/R2.a Actions acceptance. Synthetic demo only.
+Bootstrap for R1/R2.a/R2.b Actions acceptance. Synthetic demo only.
 
 ## Local Supabase ports (storeagent)
 

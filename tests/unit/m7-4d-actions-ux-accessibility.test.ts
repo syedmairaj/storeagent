@@ -116,7 +116,7 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     );
 
     expect(briefPanel).toContain(
-      "grid-cols-1 gap-2.5 min-[380px]:grid-cols-2 sm:grid-cols-3",
+      "grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:mt-3 sm:grid-cols-3 sm:gap-2.5",
     );
   });
 
