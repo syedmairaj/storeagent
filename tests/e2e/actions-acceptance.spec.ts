@@ -171,6 +171,23 @@ test.describe(
               '[data-actions-sheet-scroll="true"]',
             ),
           ).toBeVisible();
+          await expect(
+            sheet.locator(
+              '[data-actions-sheet-header="true"]',
+            ),
+          ).toContainText(/decision brief/i);
+          await expect(
+            sheet.locator(
+              '[data-actions-sheet-header="true"]',
+            ),
+          ).toContainText(
+            /atlas cold brew concentrate/i,
+          );
+          await expect(
+            sheet.locator(
+              '[data-actions-brief-chrome="sheet"]',
+            ).first(),
+          ).toBeVisible();
 
           const closeBtn = sheet
             .getByRole("button", {
@@ -199,7 +216,7 @@ test.describe(
           ).toBeVisible();
           await expect(
             sheet.getByText(
-              "Synthetic demonstration",
+              /synthetic demonstration data/i,
             ).first(),
           ).toBeVisible();
 
@@ -351,6 +368,22 @@ test.describe(
             })
             .first();
           await expect(brief).toBeVisible();
+          await expect(
+            page.locator(
+              '[data-actions-inline-brief="true"]',
+            ),
+          ).toBeVisible();
+          await expect(
+            brief.locator(
+              '[data-actions-brief-chrome="inline"]',
+            ).first(),
+          ).toBeVisible();
+          // Inline chrome keeps a compact text summary instead of repeating chips.
+          await expect(
+            brief.locator(
+              '[data-actions-brief-section="recommendation"]',
+            ),
+          ).toContainText(/·/);
 
           const shellBox =
             await desktopShell.boundingBox();

@@ -53,6 +53,11 @@ const STALE_EVIDENCE_CODES = [
   "stale_inventory_observation",
 ] as const;
 
+type DecisionBriefChrome =
+  | "standard"
+  | "sheet"
+  | "inline";
+
 interface DecisionBriefPanelProps {
   action: DemoActionItem;
   role: OrganizationMemberRole;
@@ -65,6 +70,14 @@ interface DecisionBriefPanelProps {
   heightMode?:
     | "contained"
     | "flow";
+  /**
+   * Visual density only (R2.d). Does not change decision truth.
+   * standard: full recommendation strip (desktop inspector).
+   * sheet: tighter mobile sheet composition; sheet shell already states synthetic.
+   * inline: tablet/laptop stack under a selected queue row — omit duplicated
+   * type/priority/confidence chrome already visible on the selected row.
+   */
+  chrome?: DecisionBriefChrome;
   /**
    * Optional server-precomposed brief (E3.3 soft-enable). When omitted, the
    * panel uses the local E1/E2 deterministic compose path. Never pass
@@ -82,6 +95,7 @@ export function DecisionBriefPanel({
   action,
   role,
   heightMode = "flow",
+  chrome = "standard",
   precomposedBrief,
 }: DecisionBriefPanelProps) {
   const composed =
@@ -128,6 +142,7 @@ export function DecisionBriefPanel({
       brief={composed.brief}
       role={role}
       heightMode={heightMode}
+      chrome={chrome}
     />
   );
 }
@@ -137,6 +152,7 @@ function DecisionBriefView({
   brief,
   role,
   heightMode,
+  chrome,
 }: {
   action: DemoActionItem;
   brief: DecisionBriefV1;
@@ -144,9 +160,16 @@ function DecisionBriefView({
   heightMode:
     | "contained"
     | "flow";
+  chrome: DecisionBriefChrome;
 }) {
   const contained =
     heightMode === "contained";
+
+  const isInline =
+    chrome === "inline";
+
+  const isSheet =
+    chrome === "sheet";
 
   const isWatch =
     brief.recommendation.actionType === "WATCH";
@@ -187,26 +210,49 @@ function DecisionBriefView({
     );
 
   const recommendationBlock = (
-    <div data-actions-brief-section="recommendation">
-      <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
-        <ActionTypeChip
-          actionType={brief.recommendation.actionType}
-        />
-        <PriorityBadge
-          priority={brief.recommendation.priority}
-        />
-        <ConfidenceBadge
-          confidence={brief.confidence.level}
-        />
-      </div>
-
-      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-1.5 sm:mt-2.5 sm:gap-2">
-        <span
-          data-actions-brief-provenance="synthetic"
-          className="inline-flex max-w-full items-center rounded-full border border-amber-200/90 bg-amber-50/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-950 sm:px-2.5 sm:py-1 sm:text-[11px]"
+    <div
+      data-actions-brief-section="recommendation"
+      data-actions-brief-chrome={chrome}
+    >
+      {/* Decision chips: omitted in inline stack — selected queue row already shows them. */}
+      {!isInline && (
+        <div
+          className={
+            isSheet
+              ? "flex min-w-0 flex-wrap items-center gap-1"
+              : "flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2"
+          }
         >
-          Synthetic demonstration
-        </span>
+          <ActionTypeChip
+            actionType={brief.recommendation.actionType}
+          />
+          <PriorityBadge
+            priority={brief.recommendation.priority}
+          />
+          <ConfidenceBadge
+            confidence={brief.confidence.level}
+          />
+        </div>
+      )}
+
+      <div
+        className={
+          isInline
+            ? "flex min-w-0 flex-wrap items-center gap-1.5"
+            : isSheet
+              ? "mt-2 flex min-w-0 flex-wrap items-center gap-1"
+              : "mt-2 flex min-w-0 flex-wrap items-center gap-1.5 sm:mt-2.5 sm:gap-2"
+        }
+      >
+        {/* Sheet shell already discloses synthetic data — keep a quiet badge only. */}
+        {!isSheet && (
+          <span
+            data-actions-brief-provenance="synthetic"
+            className="inline-flex max-w-full items-center rounded-full border border-amber-200/90 bg-amber-50/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-950 sm:px-2.5 sm:py-1 sm:text-[11px]"
+          >
+            Synthetic demonstration
+          </span>
+        )}
         <span
           role="status"
           data-actions-brief-provenance="generator"
@@ -214,17 +260,46 @@ function DecisionBriefView({
         >
           {generatorLabel(brief)}
         </span>
+        {isInline && (
+          <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-500">
+            {brief.recommendation.label}
+            {" · "}
+            {formatDemoPriorityLabel(brief.recommendation.priority)}
+            {" · "}
+            {formatDemoConfidenceLabel(brief.confidence.level)}
+          </span>
+        )}
       </div>
 
-      <h2 className="mt-3 text-lg font-semibold tracking-[-0.03em] text-zinc-950 sm:mt-3.5 sm:text-xl">
+      <h2
+        className={
+          isInline
+            ? "mt-2 text-base font-semibold tracking-[-0.02em] text-zinc-950 sm:text-lg"
+            : isSheet
+              ? "mt-2.5 text-[1.0625rem] font-semibold leading-snug tracking-[-0.03em] text-zinc-950 min-[390px]:text-lg"
+              : "mt-3 text-lg font-semibold tracking-[-0.03em] text-zinc-950 sm:mt-3.5 sm:text-xl"
+        }
+      >
         {brief.recommendation.productTitle}
       </h2>
-      <p className="mt-0.5 text-sm text-zinc-500">
+      <p
+        className={
+          isSheet
+            ? "mt-0.5 text-sm leading-5 text-zinc-500"
+            : "mt-0.5 text-sm text-zinc-500"
+        }
+      >
         {brief.recommendation.variantTitle}
       </p>
 
       {showQuantity && (
-        <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 sm:mt-3.5 sm:px-4 sm:py-3">
+        <div
+          className={
+            isSheet
+              ? "mt-2.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5"
+              : "mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 sm:mt-3.5 sm:px-4 sm:py-3"
+          }
+        >
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
             Recommended quantity
           </p>
@@ -263,7 +338,11 @@ function DecisionBriefView({
       {isWatch && (
         <div
           data-actions-brief-watch="uncertainty-first"
-          className="mt-3 rounded-xl border border-zinc-300 bg-zinc-50 px-3.5 py-2.5 sm:mt-3.5 sm:px-4 sm:py-3"
+          className={
+            isSheet
+              ? "mt-2.5 rounded-xl border border-zinc-300 bg-zinc-50 px-3.5 py-2.5"
+              : "mt-3 rounded-xl border border-zinc-300 bg-zinc-50 px-3.5 py-2.5 sm:mt-3.5 sm:px-4 sm:py-3"
+          }
         >
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
             Uncertainty first
@@ -593,13 +672,27 @@ function DecisionBriefView({
     </div>
   );
 
+  const headerPadding =
+    isSheet
+      ? "border-b border-zinc-100 px-3.5 py-3 sm:px-4 sm:py-3.5"
+      : isInline
+        ? "border-b border-zinc-100 px-4 py-3 sm:px-5 sm:py-3.5"
+        : "border-b border-zinc-100 px-4 py-3.5 sm:px-5 sm:py-4";
+
+  const bodyPadding =
+    isSheet
+      ? "px-3.5 py-3 sm:px-4 sm:py-3.5"
+      : isInline
+        ? "px-4 py-3 sm:px-5 sm:py-3.5"
+        : "px-4 py-3 sm:px-5 sm:py-4";
+
   const briefInner = (
     <>
-      <header className="border-b border-zinc-100 px-4 py-3.5 sm:px-5 sm:py-5">
+      <header className={headerPadding}>
         {recommendationBlock}
       </header>
 
-      <div className="px-4 py-3 sm:px-5 sm:py-4">
+      <div className={bodyPadding}>
         {bodySections}
       </div>
     </>
@@ -610,9 +703,12 @@ function DecisionBriefView({
       className={
         contained
           ? "flex h-full min-h-0 max-h-[inherit] flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm motion-safe:transition-shadow motion-safe:duration-200"
-          : "rounded-3xl border border-zinc-200 bg-white shadow-sm"
+          : isSheet
+            ? "rounded-2xl border border-zinc-200 bg-white shadow-sm"
+            : "rounded-3xl border border-zinc-200 bg-white shadow-sm"
       }
       aria-label="Decision brief"
+      data-actions-brief-chrome={chrome}
     >
       {contained ? (
         <div

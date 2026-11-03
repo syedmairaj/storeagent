@@ -513,12 +513,14 @@ export function ActionsDemoWorkspace({
                   selectedAction && (
                     <div
                       ref={tabletInspectorRef}
-                      className="min-w-0"
+                      className="min-w-0 pt-0.5"
+                      data-actions-inline-brief="true"
                     >
                       <ActionEvidenceInspector
                         action={selectedAction}
                         role={role}
                         heightMode="flow"
+                        chrome="inline"
                         precomposedBrief={
                           precomposedBriefsByActionId?.[
                             selectedAction.id
@@ -1151,6 +1153,7 @@ function ActionEvidenceInspector({
   action,
   role,
   heightMode = "flow",
+  chrome = "standard",
   precomposedBrief,
 }: {
   action: DemoActionItem;
@@ -1162,6 +1165,10 @@ function ActionEvidenceInspector({
   heightMode?:
     | "contained"
     | "flow";
+  chrome?:
+    | "standard"
+    | "sheet"
+    | "inline";
   precomposedBrief?: DecisionBriefV1;
 }) {
   return (
@@ -1169,6 +1176,7 @@ function ActionEvidenceInspector({
       action={action}
       role={role}
       heightMode={heightMode}
+      chrome={chrome}
       precomposedBrief={precomposedBrief}
     />
   );
@@ -1300,22 +1308,32 @@ function ActionDetailSheet({
         type="button"
         tabIndex={-1}
         aria-label="Close decision detail"
-        className="absolute inset-0 bg-zinc-950/40 motion-safe:transition-opacity motion-safe:duration-200 motion-reduce:transition-none"
+        className="absolute inset-0 bg-zinc-950/45 motion-safe:transition-opacity motion-safe:duration-200 motion-reduce:transition-none"
         onClick={onClose}
       />
 
       <div
         ref={panelRef}
-        className="absolute inset-x-0 bottom-0 flex max-h-[min(92dvh,100dvh)] flex-col overflow-hidden rounded-t-[1.75rem] bg-[#f7f8f7] shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 motion-reduce:animate-none"
+        className="absolute inset-x-0 bottom-0 flex max-h-[min(92dvh,100dvh)] flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-200 motion-reduce:animate-none"
       >
-        <div className="shrink-0 border-b border-zinc-200 bg-white">
-          <div className="flex items-center justify-between px-4 py-3">
-            <p
-              id={titleId}
-              className="text-sm font-semibold text-zinc-950"
-            >
-              Decision brief
-            </p>
+        <div
+          data-actions-sheet-header="true"
+          className="shrink-0 border-b border-zinc-200 bg-white"
+        >
+          <div className="flex items-start gap-3 px-3.5 py-2.5 min-[390px]:px-4 min-[390px]:py-3">
+            <div className="min-w-0 flex-1 pt-0.5">
+              <div id={titleId}>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                  Decision brief
+                </p>
+                <p className="mt-0.5 truncate text-sm font-semibold leading-snug tracking-[-0.02em] text-zinc-950 min-[390px]:text-[0.9375rem]">
+                  {action.productTitle}
+                </p>
+              </div>
+              <p className="mt-0.5 truncate text-xs leading-4 text-zinc-500">
+                {action.variantTitle}
+              </p>
+            </div>
 
             <button
               ref={closeRef}
@@ -1323,7 +1341,7 @@ function ActionDetailSheet({
               aria-label="Close decision detail"
               title="Close"
               onClick={onClose}
-              className="flex size-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 motion-safe:transition-[background-color] motion-safe:duration-150 motion-reduce:transition-none hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
+              className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 motion-safe:transition-[background-color] motion-safe:duration-150 motion-reduce:transition-none hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
             >
               <X
                 className="size-5"
@@ -1334,7 +1352,7 @@ function ActionDetailSheet({
 
           <p
             role="status"
-            className="border-t border-amber-100 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-950"
+            className="border-t border-amber-100 bg-amber-50 px-3.5 py-1.5 text-[11px] font-medium leading-4 text-amber-950 min-[390px]:px-4 min-[390px]:text-xs"
           >
             Synthetic demonstration data — not live inventory
           </p>
@@ -1342,12 +1360,13 @@ function ActionDetailSheet({
 
         <div
           data-actions-sheet-scroll="true"
-          className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain p-4 pb-[max(2rem,env(safe-area-inset-bottom))] sm:p-5 [-webkit-overflow-scrolling:touch]"
+          className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain p-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] min-[390px]:p-4 sm:p-5 [-webkit-overflow-scrolling:touch]"
         >
           <ActionEvidenceInspector
             action={action}
             role={role}
             heightMode="flow"
+            chrome="sheet"
             precomposedBrief={precomposedBrief}
           />
         </div>

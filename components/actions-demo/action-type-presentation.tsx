@@ -67,13 +67,15 @@ export function ActionTypeChip({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${meta.chipClassName}`}
+      className={`inline-flex max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[11px] ${meta.chipClassName}`}
     >
       <Icon
-        className="size-3"
+        className="size-3 shrink-0"
         aria-hidden="true"
       />
-      {meta.label}
+      <span className="truncate">
+        {meta.label}
+      </span>
     </span>
   );
 }
