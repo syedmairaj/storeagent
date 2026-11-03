@@ -45,8 +45,10 @@ interface DecisionBriefPanelProps {
   action: DemoActionItem;
   role: OrganizationMemberRole;
   /**
-   * contained: desktop sticky panel — one internal scroller under an explicit max-height.
-   * flow: sheet/tablet — grow with content; parent owns scrolling (avoids iOS nested-scroll traps).
+   * contained: desktop sticky shell — ONE scroll owner wraps the full brief
+   * (decision → evidence → controls → technical). Never pin a tall non-scrolling
+   * header that can clip quantity editors or Technical details.
+   * flow: sheet/tablet — grow with content; parent owns scrolling.
    */
   heightMode?:
     | "contained"
@@ -192,20 +194,20 @@ function DecisionBriefView({
         </span>
       </div>
 
-      <h2 className="mt-3 text-lg font-semibold tracking-[-0.03em] text-zinc-950 sm:mt-4 sm:text-2xl">
+      <h2 className="mt-2.5 text-lg font-semibold tracking-[-0.03em] text-zinc-950 sm:mt-3 sm:text-xl">
         {brief.recommendation.productTitle}
       </h2>
-      <p className="mt-0.5 text-sm text-zinc-500 sm:mt-1">
+      <p className="mt-0.5 text-sm text-zinc-500">
         {brief.recommendation.variantTitle}
       </p>
 
       {showQuantity && (
-        <div className="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3.5 py-3 sm:mt-4 sm:px-4 sm:py-3.5">
+        <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 sm:px-4 sm:py-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
             Recommended quantity
           </p>
           <p
-            className={`mt-1 text-2xl font-semibold tracking-[-0.03em] tabular-nums sm:text-3xl ${
+            className={`mt-1 text-2xl font-semibold tracking-[-0.03em] tabular-nums sm:text-[1.75rem] ${
               isKnown(brief.recommendation.recommendedQuantity)
                 ? "text-zinc-950"
                 : "text-zinc-400"
@@ -218,28 +220,28 @@ function DecisionBriefView({
           <RecommendedActionDate
             field={brief.recommendation.recommendedActionDate}
           />
-          <p className="mt-1.5 text-xs leading-5 text-zinc-500 sm:mt-2">
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
             Quantity grounded in this synthetic fixture only.
           </p>
         </div>
       )}
 
       {!showQuantity && !isWatch && (
-        <p className="mt-3 text-xs leading-5 text-zinc-500 sm:mt-4">
+        <p className="mt-2.5 text-xs leading-5 text-zinc-500">
           No recommended quantity for{" "}
           {brief.recommendation.label} in this demonstration.
         </p>
       )}
 
       {isWatch && (
-        <div className="mt-3 rounded-2xl border border-zinc-300 bg-zinc-100/80 px-3.5 py-3 sm:mt-4 sm:px-4 sm:py-3.5">
+        <div className="mt-3 rounded-xl border border-zinc-300 bg-zinc-100/80 px-3.5 py-2.5 sm:px-4 sm:py-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-600">
             Uncertainty first
           </p>
           <p className="mt-1.5 text-sm leading-6 text-zinc-800">
             {brief.uncertainty.summary}
           </p>
-          <p className="mt-1.5 text-xs leading-5 text-zinc-500">
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
             No buy, reduce, or promote recommendation on this SKU.
           </p>
         </div>
@@ -285,7 +287,7 @@ function DecisionBriefView({
       </section>
 
       <section
-        className="mt-4 sm:mt-5"
+        className="mt-3.5 sm:mt-4"
         aria-labelledby={`key-evidence-${brief.briefId}`}
       >
         <h3
@@ -305,7 +307,7 @@ function DecisionBriefView({
       </section>
 
       <section
-        className="mt-4 sm:mt-5"
+        className="mt-3.5 sm:mt-4"
         aria-labelledby={`confidence-uncertainty-${brief.briefId}`}
       >
         <h3
@@ -315,16 +317,16 @@ function DecisionBriefView({
           Confidence & uncertainty
         </h3>
 
-        <div className="mt-2.5 grid gap-2.5 sm:mt-3 sm:grid-cols-2 sm:gap-3">
-          <div className="rounded-2xl border border-zinc-200 bg-white px-3.5 py-3 sm:px-4 sm:py-3.5">
+        <div className="mt-2 grid gap-2 sm:grid-cols-2 sm:gap-2.5">
+          <div className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 sm:px-3.5 sm:py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
               Confidence
             </p>
-            <p className="mt-1 text-sm font-semibold text-zinc-900 sm:mt-1.5">
+            <p className="mt-1 text-sm font-semibold text-zinc-900">
               {formatDemoConfidenceLabel(brief.confidence.level)}
             </p>
             {brief.confidence.displayNotes.length > 0 && (
-              <ul className="mt-1.5 space-y-1 sm:mt-2 sm:space-y-1.5">
+              <ul className="mt-1.5 space-y-1">
                 {brief.confidence.displayNotes.slice(0, 2).map(
                   (note) => (
                     <li
@@ -342,8 +344,8 @@ function DecisionBriefView({
           <div
             className={
               isWatch || brief.uncertainty.hasMaterialUncertainty
-                ? "rounded-2xl border border-zinc-300 bg-zinc-50 px-3.5 py-3 sm:px-4 sm:py-3.5"
-                : "rounded-2xl border border-zinc-200 bg-white px-3.5 py-3 sm:px-4 sm:py-3.5"
+                ? "rounded-xl border border-zinc-300 bg-zinc-50 px-3.5 py-2.5 sm:px-3.5 sm:py-3"
+                : "rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 sm:px-3.5 sm:py-3"
             }
           >
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
@@ -380,7 +382,7 @@ function DecisionBriefView({
       </section>
 
       <section
-        className="mt-4 sm:mt-5"
+        className="mt-3.5 sm:mt-4"
         aria-labelledby={`next-step-${brief.briefId}`}
       >
         <h3
@@ -389,20 +391,20 @@ function DecisionBriefView({
         >
           Suggested next step
         </h3>
-        <p className="mt-2 text-sm leading-6 text-zinc-700">
+        <p className="mt-1.5 text-sm leading-6 text-zinc-700">
           {brief.suggestedNextStep.summary}
         </p>
       </section>
 
-      {!contained && (
-        <DemoApprovalCluster
-          key={action.id}
-          action={action}
-          role={role}
-        />
-      )}
+      {/* Controls after next step for both height modes — must live inside the
+          single scroll owner so REORDER editors stay reachable on short desktops. */}
+      <DemoApprovalCluster
+        key={action.id}
+        action={action}
+        role={role}
+      />
 
-      <details className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50/70 px-3.5 py-2.5 open:bg-white sm:mt-5 sm:px-4 sm:py-3">
+      <details className="mt-3.5 rounded-xl border border-zinc-200 bg-zinc-50/70 px-3.5 py-2 open:bg-white sm:mt-4 sm:px-4 sm:py-2.5">
         <summary className="cursor-pointer list-none rounded-xl text-sm font-medium text-zinc-800 marker:content-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
           <span className="inline-flex min-h-11 items-center">
             Technical details
@@ -533,40 +535,37 @@ function DecisionBriefView({
     </>
   );
 
+  const briefInner = (
+    <>
+      <header className="border-b border-zinc-100 px-4 py-3.5 sm:px-6 sm:py-5">
+        {recommendationBlock}
+      </header>
+
+      <div className="px-4 py-3.5 sm:px-6 sm:py-5">
+        {bodySections}
+      </div>
+    </>
+  );
+
   return (
     <article
       className={
         contained
-          ? "flex max-h-[inherit] flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm motion-safe:transition-shadow motion-safe:duration-200"
+          ? "flex h-full min-h-0 max-h-[inherit] flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm motion-safe:transition-shadow motion-safe:duration-200"
           : "rounded-3xl border border-zinc-200 bg-white shadow-sm"
       }
       aria-label="Decision brief"
     >
-      <header
-        className={`${contained ? "shrink-0 " : ""}border-b border-zinc-100 px-4 py-4 sm:px-7 sm:py-6`}
-      >
-        {recommendationBlock}
-
-        {contained && (
-          <div className="mt-4 border-t border-zinc-100 pt-3 sm:mt-5 sm:pt-4">
-            <DemoApprovalCluster
-              key={action.id}
-              action={action}
-              role={role}
-            />
-          </div>
-        )}
-      </header>
-
-      <div
-        className={
-          contained
-            ? "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-7 sm:py-6"
-            : "px-4 py-4 sm:px-7 sm:py-6"
-        }
-      >
-        {bodySections}
-      </div>
+      {contained ? (
+        <div
+          data-actions-brief-scroll="true"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]"
+        >
+          {briefInner}
+        </div>
+      ) : (
+        briefInner
+      )}
     </article>
   );
 }
@@ -589,7 +588,7 @@ function BriefCompositionError({
     <article
       className={
         contained
-          ? "flex max-h-[inherit] flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm"
+          ? "flex h-full min-h-0 max-h-[inherit] flex-1 flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm"
           : "rounded-3xl border border-zinc-200 bg-white shadow-sm"
       }
       role="alert"

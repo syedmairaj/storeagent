@@ -140,6 +140,11 @@ export function ActionsDemoWorkspace({
       null,
     );
 
+  const desktopInspectorScrollRef =
+    useRef<HTMLDivElement>(
+      null,
+    );
+
   const isDesktopSplit =
     viewportLayout === "desktop";
 
@@ -330,6 +335,18 @@ export function ActionsDemoWorkspace({
         inline: "nearest",
         behavior,
       });
+
+      // Reset inspector scroll owner to top on selection — do not trap page scroll.
+      const briefScroll =
+        desktopInspectorScrollRef.current?.querySelector(
+          '[data-actions-brief-scroll="true"]',
+        );
+
+      if (
+        briefScroll instanceof HTMLElement
+      ) {
+        briefScroll.scrollTop = 0;
+      }
     },
     [
       filter,
@@ -393,14 +410,14 @@ export function ActionsDemoWorkspace({
   }
 
   return (
-    <div className="min-w-0 max-w-full space-y-2.5 sm:space-y-5 xl:space-y-6">
+    <div className="min-w-0 max-w-full space-y-2.5 sm:space-y-4 xl:space-y-5">
       <StoreLocationContextBar
         storeLabel={dataset.storeLabel}
         locationLabel={dataset.locationLabel}
       />
 
       <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
-        <div className="min-w-0 max-w-2xl scroll-mt-[9.5rem] md:scroll-mt-40 lg:scroll-mt-28">
+        <div className="min-w-0 max-w-2xl scroll-mt-[9.5rem] md:scroll-mt-40 lg:scroll-mt-24">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-xs font-medium text-zinc-500 sm:text-sm">
               Actions
@@ -411,12 +428,12 @@ export function ActionsDemoWorkspace({
             </p>
           </div>
 
-          <h1 className="mt-0.5 text-[1.25rem] font-semibold leading-tight tracking-[-0.035em] sm:mt-2 sm:text-3xl xl:text-4xl">
+          <h1 className="mt-0.5 text-[1.25rem] font-semibold leading-tight tracking-[-0.035em] sm:mt-1.5 sm:text-2xl xl:text-3xl">
             Decision queue
           </h1>
 
-          <p className="mt-1.5 hidden max-w-xl text-sm leading-6 text-zinc-600 sm:block">
-            Review what StoreAgent would recommend next. Select a decision to inspect the evidence — demonstration only.
+          <p className="mt-1 hidden max-w-xl text-sm leading-6 text-zinc-600 sm:block">
+            Select a decision to inspect why StoreAgent recommends it — demonstration only.
           </p>
         </div>
 
@@ -534,7 +551,17 @@ export function ActionsDemoWorkspace({
           aria-label="Evidence inspector"
           className="hidden min-w-0 xl:block"
         >
-          <div className="sticky top-28 max-h-[calc(100vh-8rem)]">
+          {/*
+            Single scroll owner for the desktop inspector.
+            Sticky top clears the synthetic banner (lg:top-0, ~3–3.5rem tall).
+            Definite max-height + flex + overflow-hidden so the brief's internal
+            scroller can reach quantity editors, controls, and Technical details.
+          */}
+          <div
+            ref={desktopInspectorScrollRef}
+            data-actions-inspector-shell="true"
+            className="sticky top-[4.25rem] z-10 flex h-[calc(100dvh-5rem)] max-h-[calc(100dvh-5rem)] min-h-0 flex-col overflow-hidden"
+          >
             {selectedAction ? (
               <ActionEvidenceInspector
                 action={selectedAction}
@@ -756,8 +783,26 @@ function ActionTypeFilter({
 
   // Sticky stack below lg: shell header (4rem) + compact synthetic banner.
   // Keep filter clear of both without covering queue cards at 320–1024.
+  const showSwipeHint =
+    overflow.left ||
+    overflow.right;
+
   return (
     <div className="sticky top-[7.5rem] z-[5] w-full min-w-0 max-w-full scroll-mt-[7.5rem] bg-[#f7f8f7]/95 py-1 backdrop-blur-sm md:top-32 lg:static lg:scroll-mt-0 lg:bg-transparent lg:py-0 lg:backdrop-blur-none">
+      <div className="mb-1 flex items-center justify-between gap-2 px-0.5 lg:hidden">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          Filters
+        </p>
+        {showSwipeHint ? (
+          <p
+            className="text-[11px] font-medium text-zinc-500"
+            aria-hidden="true"
+          >
+            Swipe for more
+          </p>
+        ) : null}
+      </div>
+
       <div className="relative min-w-0 max-w-full">
         <div
           aria-hidden="true"
@@ -778,16 +823,17 @@ function ActionTypeFilter({
 
         <div
           ref={scrollerRef}
-          className="max-w-full min-w-0 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:overflow-visible"
+          data-actions-filter-scroll="true"
+          className="max-w-full min-w-0 overflow-x-auto overscroll-x-contain [scrollbar-width:thin] lg:overflow-visible lg:[scrollbar-width:auto]"
         >
           <div
             role="toolbar"
             aria-label="Filter decisions by type"
-            className="flex w-max max-w-none gap-2 pr-1 sm:w-full sm:max-w-full sm:flex-wrap"
+            className="flex w-max max-w-none gap-2 pr-3 sm:w-full sm:max-w-full sm:flex-wrap sm:pr-0"
           >
             <span className="sr-only">
               <Filter aria-hidden="true" />
-              {overflow.right || overflow.left
+              {showSwipeHint
                 ? "More filters available. Swipe or use arrow keys when focused."
                 : null}
             </span>
@@ -819,7 +865,9 @@ function ActionTypeFilter({
                         : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
                     }`}
                   >
-                    {label}
+                    <span className="whitespace-nowrap">
+                      {label}
+                    </span>
                     <span
                       className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${
                         active
@@ -1060,16 +1108,16 @@ function InspectorEmptyState({
   healthyOnly: boolean;
 }) {
   return (
-    <div className="rounded-3xl border border-zinc-200 bg-white px-7 py-12 shadow-sm">
+    <div className="flex h-full min-h-[12rem] flex-1 flex-col justify-center rounded-3xl border border-zinc-200 bg-white px-6 py-10 shadow-sm sm:px-7">
       <p className="text-sm font-semibold text-zinc-900">
         {healthyOnly
           ? "Healthy items are not actions"
           : "Select a decision"}
       </p>
-      <p className="mt-3 max-w-sm text-sm leading-6 text-zinc-500">
+      <p className="mt-2 max-w-sm text-sm leading-6 text-zinc-500">
         {healthyOnly
           ? "Decision briefs apply to REORDER, REDUCE, PROMOTE, and WATCH demonstration rows only."
-          : "The Decision Brief for the selected recommendation appears here and stays connected as you move through the queue."}
+          : "The Decision Brief for the selected recommendation appears here."}
       </p>
     </div>
   );
@@ -1084,8 +1132,8 @@ function ActionEvidenceInspector({
   action: DemoActionItem;
   role: OrganizationMemberRole;
   /**
-   * contained: desktop sticky panel — one internal scroller under an explicit max-height.
-   * flow: sheet/tablet — grow with content; parent owns scrolling (avoids iOS nested-scroll traps).
+   * contained: desktop sticky shell provides definite height; panel owns one scroller.
+   * flow: sheet/tablet — parent owns scrolling.
    */
   heightMode?:
     | "contained"

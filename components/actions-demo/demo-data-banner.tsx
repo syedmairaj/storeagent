@@ -4,16 +4,20 @@ import {
 
 /**
  * Sticky synthetic disclosure for Actions.
- * Height is intentionally compact below lg so filter sticky offsets stay reliable
- * at 320–1024 without hiding the safety warning.
+ *
+ * Mobile/tablet: sticks below the shell header (top-16).
+ * Desktop (lg+): sticks at viewport top. The desktop Decision Brief inspector
+ * must use a sticky top ≥ this banner's occupied height so brief content is
+ * never painted underneath the disclosure.
  */
 export function DemoDataBanner() {
   return (
     <div
       role="status"
-      className="sticky top-16 z-[15] flex w-full min-w-0 max-w-full items-start gap-2 rounded-xl border border-amber-200/90 bg-amber-50/95 px-3 py-1.5 text-amber-950 shadow-sm backdrop-blur-sm sm:items-center sm:gap-2.5 sm:rounded-2xl sm:px-4 sm:py-2.5 lg:top-0 lg:px-5 lg:py-3.5"
+      data-actions-synthetic-banner="true"
+      className="sticky top-16 z-[15] flex w-full min-w-0 max-w-full items-start gap-2 rounded-xl border border-amber-200/90 bg-amber-50 px-3 py-1.5 text-amber-950 shadow-sm sm:items-center sm:gap-2.5 sm:rounded-2xl sm:px-4 sm:py-2 lg:top-0 lg:z-20 lg:px-4 lg:py-2.5"
     >
-      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-800 sm:mt-0 sm:size-8 sm:rounded-xl lg:size-9">
+      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-800 sm:mt-0 sm:size-8">
         <TriangleAlert
           className="size-3.5 sm:size-4"
           aria-hidden="true"
@@ -25,7 +29,7 @@ export function DemoDataBanner() {
           Synthetic demonstration data — not live inventory
         </p>
 
-        <p className="mt-0.5 text-[11px] leading-4 text-amber-900/75 sm:leading-5">
+        <p className="mt-0.5 text-[11px] leading-4 text-amber-900/80 sm:leading-5">
           Fixture recommendations only — not live inventory, forecasts, or approvals.
         </p>
       </div>

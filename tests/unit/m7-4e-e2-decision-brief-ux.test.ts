@@ -328,6 +328,105 @@ describe("M7.4e E2 Decision Brief UX integration", () => {
     );
   });
 
+  it("establishes a single desktop inspector scroll owner that clears the synthetic banner", () => {
+    const workspace = read(
+      "components/actions-demo/actions-demo-workspace.tsx",
+    );
+    const panel = read(
+      "components/actions-demo/decision-brief-panel.tsx",
+    );
+    const banner = read(
+      "components/actions-demo/demo-data-banner.tsx",
+    );
+
+    expect(banner).toContain(
+      'data-actions-synthetic-banner="true"',
+    );
+    expect(banner).toContain(
+      "lg:top-0",
+    );
+    expect(banner).toContain(
+      "lg:z-20",
+    );
+
+    expect(workspace).toContain(
+      'data-actions-inspector-shell="true"',
+    );
+    expect(workspace).toContain(
+      "top-[4.25rem]",
+    );
+    expect(workspace).toContain(
+      "max-h-[calc(100dvh-5rem)]",
+    );
+    expect(workspace).toContain(
+      "h-[calc(100dvh-5rem)]",
+    );
+    expect(workspace).toContain(
+      "overflow-hidden",
+    );
+    expect(workspace).toContain(
+      'data-actions-filter-scroll="true"',
+    );
+    expect(workspace).toContain(
+      "Swipe for more",
+    );
+
+    // Decision switch resets the brief scroll owner (not the page).
+    expect(workspace).toContain(
+      "desktopInspectorScrollRef",
+    );
+    expect(workspace).toContain(
+      'data-actions-brief-scroll="true"',
+    );
+    expect(workspace).toContain(
+      "briefScroll.scrollTop = 0",
+    );
+
+    // Brief scroll owner wraps recommendation + controls + technical details.
+    expect(panel).toContain(
+      'data-actions-brief-scroll="true"',
+    );
+    expect(panel).toContain(
+      "overflow-y-auto",
+    );
+
+    // Contained mode must not pin DemoApprovalCluster outside the scroller.
+    const containedHeaderPin =
+      /contained[\s\S]*?shrink-0[\s\S]*?DemoApprovalCluster/;
+    expect(panel).not.toMatch(
+      containedHeaderPin,
+    );
+
+    // Merchant hierarchy in the render tree: next step → controls → technical.
+    const nextStepIndex =
+      panel.indexOf(
+        "Suggested next step",
+      );
+    const controlsIndex =
+      panel.indexOf(
+        "<DemoApprovalCluster",
+      );
+    const technicalSummaryIndex =
+      panel.indexOf(
+        "inline-flex min-h-11 items-center",
+      );
+
+    expect(nextStepIndex).toBeGreaterThan(
+      -1,
+    );
+    expect(controlsIndex).toBeGreaterThan(
+      nextStepIndex,
+    );
+    expect(
+      technicalSummaryIndex,
+    ).toBeGreaterThan(
+      controlsIndex,
+    );
+    expect(panel).toContain(
+      "Technical details",
+    );
+  });
+
   it("fail-closes the brief UI path when composition is unavailable", () => {
     const panel = read(
       "components/actions-demo/decision-brief-panel.tsx",

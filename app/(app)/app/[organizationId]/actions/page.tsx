@@ -99,7 +99,7 @@ export default async function OrganizationActionsDemoPage({
   }
 
   return (
-    <div className="min-w-0 max-w-full space-y-3 sm:space-y-5 xl:space-y-6">
+    <div className="min-w-0 max-w-full space-y-2.5 sm:space-y-4 xl:space-y-5">
       <DemoDataBanner />
 
       {loaded.ok ? (

@@ -39,8 +39,11 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     expect(banner).toContain('role="status"');
     expect(banner).toContain("sticky top-16");
     expect(banner).toContain("lg:top-0");
+    expect(banner).toContain("lg:z-20");
     expect(banner).toContain("py-1.5");
-    expect(banner).toContain("sm:py-2.5");
+    // R1: compact sm/lg padding so desktop inspector sticky top clears the banner.
+    expect(banner).toContain("sm:py-2");
+    expect(banner).toContain("lg:py-2.5");
     // Filter sticks under header+banner on <lg; static on desktop split.
     expect(workspace).toContain("top-[7.5rem]");
     expect(workspace).toContain("md:top-32");
@@ -88,13 +91,15 @@ describe("M7.4d Actions UX accessibility and responsive gate", () => {
     expect(sheetSlice).not.toContain('heightMode="contained"');
   });
 
-  it("hides mobile filter scrollbars while keeping overflow affordances", () => {
+  it("keeps mobile filter overflow discoverable with thin scrollbar and edge fades", () => {
     const workspace = read(
       "components/actions-demo/actions-demo-workspace.tsx",
     );
 
-    expect(workspace).toContain("[scrollbar-width:none]");
-    expect(workspace).toContain("[&::-webkit-scrollbar]:hidden");
+    // R1: thin scrollbar (not hidden) + swipe hint + edge fades for 320–390 discoverability.
+    expect(workspace).toContain('data-actions-filter-scroll="true"');
+    expect(workspace).toContain("[scrollbar-width:thin]");
+    expect(workspace).toContain("Swipe for more");
     expect(workspace).toContain("scrollIntoView");
     expect(workspace).toContain("bg-gradient-to-r");
     expect(workspace).toContain("bg-gradient-to-l");
