@@ -31,6 +31,11 @@ coverage/
 # Playwright
 playwright-report/
 test-results/
+playwright/.auth/
+tests/e2e/.auth/
+tests/e2e/artifacts/
+blob-report/
+playwright/.cache/
 
 # Supabase local
 supabase/.branches/
