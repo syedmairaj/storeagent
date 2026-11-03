@@ -1,7 +1,8 @@
 # E3.3-R2 — Enterprise Merchant UX Contract (Actions)
 
-**Status:** FROZEN for subsequent R2 implementation slices (docs only until separately approved)
-**Baseline verified:** `main` @ `293c67c` — `fix(actions): improve decision brief scrolling and responsive UX`
+**Status:** FROZEN contract; **R2.e functional acceptance CLOSED** (2026-11-04) — see `docs/E3_3_R2_E_ACCEPTANCE_CLOSEOUT.md`
+**Baseline verified (R1 freeze):** `main` @ `293c67c` — `fix(actions): improve decision brief scrolling and responsive UX`
+**Acceptance baseline (R2.e):** `main` @ `c5ac721` — `style(actions): refine responsive decision brief chrome`
 **Authority when docs conflict:**
 
 | Concern | Authority |
@@ -319,63 +320,65 @@ Positive benchmarks to emulate in **quality**, not UI clone: clear replenishment
 
 Capture authenticated (or local) Actions demo at each viewport. **PASS** requires all bullets for that width.
 
+**R2.e functional sign-off (2026-11-04):** Operator ran `PLAYWRIGHT_REUSE_AUTH=1 npm run test:e2e:actions` outside Cursor sandbox → **6 passed (12.5s)** on `main` @ `c5ac721`. Full record: `docs/E3_3_R2_E_ACCEPTANCE_CLOSEOUT.md`. Checkboxes below mark **functional** verification only.
+
 ### 9.1 Shared (all viewports)
 
-- [ ] Synthetic banner visible; copy states not live inventory
-- [ ] No horizontal overflow / page-level sideways scroll
-- [ ] Touch/click targets ≥44px for filters, rows, sheet close, demo controls
-- [ ] Unknown values render as “Unknown” (muted), never as `0` fill
-- [ ] WATCH never shows purchase CTA language
-- [ ] Demo controls show no-save / demonstration messaging
-- [ ] `productionApprovalEligible` not implied true
-- [ ] Color not the only status encoding
-- [ ] Visual quality ≥9/10 vs `docs/DESIGN_SYSTEM.md` bar (human review)
+- [x] Synthetic banner visible; copy states not live inventory
+- [x] No horizontal overflow / page-level sideways scroll
+- [x] Touch/click targets ≥44px for filters, rows, sheet close, demo controls
+- [x] Unknown values render as “Unknown” (muted), never as `0` fill
+- [x] WATCH never shows purchase CTA language
+- [x] Demo controls show no-save / demonstration messaging
+- [x] `productionApprovalEligible` not implied true
+- [x] Color not the only status encoding
+- [ ] Visual quality ≥9/10 vs `docs/DESIGN_SYSTEM.md` bar (human review) — **not independently certified by R2.e; remains separate human judgment**
 
 ### 9.2 320× (mobile S)
 
-- [ ] Filters sticky; “Filters” + swipe affordance when overflow
-- [ ] Queue rows show priority → action → (qty if grounded) → why/uncertainty
-- [ ] Opening a row shows sheet; single sheet scroller; all brief sections reachable including Technical details
-- [ ] Esc / backdrop / close restore focus to row
-- [ ] Banner does not permanently obscure first queue row after scroll settle
+- [x] Filters sticky; “Filters” + swipe affordance when overflow
+- [x] Queue rows show priority → action → (qty if grounded) → why/uncertainty
+- [x] Opening a row shows sheet; single sheet scroller; all brief sections reachable including Technical details
+- [x] Esc / backdrop / close restore focus to row
+- [x] Banner does not permanently obscure first queue row after scroll settle
 
 ### 9.3 390× (mobile M)
 
-- [ ] Same as 320 with improved why readability (fewer truncations)
-- [ ] Confidence pill readable; product title not colliding with badges
+- [x] Same as 320 with improved why readability (fewer truncations)
+- [x] Confidence pill readable; product title not colliding with badges
 
 ### 9.4 768× (tablet)
 
-- [ ] No desktop split
-- [ ] Selecting a row shows **inline** brief under that row
-- [ ] Full brief reachable via page scroll (flow mode; no nested trap)
-- [ ] Filters usable; Healthy skim reachable
+- [x] No desktop split
+- [x] Selecting a row shows **inline** brief under that row
+- [x] Full brief reachable via page scroll (flow mode; no nested trap)
+- [x] Filters usable; Healthy skim reachable
 
 ### 9.5 1024×
 
-- [ ] Still **stacked** (no `xl` split)
-- [ ] Brief readable; evidence grid ≥2 columns where `min-[380px]` applies
-- [ ] No inspector sticky shell (desktop shell is `xl` only)
+- [x] Still **stacked** (no `xl` split)
+- [x] Brief readable; evidence grid ≥2 columns where `min-[380px]` applies
+- [x] No inspector sticky shell (desktop shell is `xl` only)
 
 ### 9.6 1280×800 (desktop short)
 
-- [ ] Split queue | brief visible
-- [ ] Banner never covers brief content
-- [ ] One brief scroll owner; can reach qty editor (REORDER), demo controls, Technical details
-- [ ] Switching decisions resets brief scroll to top
-- [ ] Queue remains scannable without oversized empty gaps
+- [x] Split queue | brief visible
+- [x] Banner never covers brief content
+- [x] One brief scroll owner; can reach qty editor (REORDER), demo controls, Technical details
+- [x] Switching decisions resets brief scroll to top
+- [x] Queue remains scannable without oversized empty gaps
 
 ### 9.7 1440×900
 
-- [ ] Same as 1280 with comfortable evidence density (not sparse emptiness)
-- [ ] Optional micro-evidence chip (if implemented) does not clutter row hierarchy
+- [x] Same as 1280 with comfortable evidence density (not sparse emptiness)
+- [x] Optional micro-evidence chip (if implemented) does not clutter row hierarchy
 
 ### 9.8 Automated gates (every R2 slice)
 
-- Focused E1/E2/E3.1–E3.3 + M7.4d a11y/responsive architecture tests PASS
-- R1 scroll/banner/sheet contract tests still PASS
-- `npm run typecheck` / `lint` / `build` PASS
-- `git diff --check` clean on touched files
+- [x] Focused E1/E2/E3.1–E3.3 + M7.4d a11y/responsive architecture tests PASS (134 focused tests at R2.e closeout)
+- [x] R1 scroll/banner/sheet contract tests still PASS
+- [x] `npm run typecheck` / `lint` / `build` PASS
+- [x] `git diff --check` clean on touched files
 
 ---
 
@@ -383,21 +386,24 @@ Capture authenticated (or local) Actions demo at each viewport. **PASS** require
 
 Slices are **narrow UI/docs/tests only**. Each requires explicit approval before coding.
 
-| Slice | Scope | Out of scope | Exit GO when |
-|---|---|---|---|
-| **R2.0 Contract freeze** | This document | Any code | Stakeholder accepts §0–§11 |
-| **R2.a Queue density** | Compact `ActionRow` hierarchy, spacing, selected states, copy trim | Search/sort; evidence micro-chips; AI changes | Screenshot PASS 320/390/768/1024/1280/1440 for queue; tests green; R1 preserved |
-| **R2.b Brief evidence chrome** | Unknown/stale emphasis, evidence value readability, section spacing, provenance badge consistency | New evidence fields; freshness invention; AI | Brief screenshot PASS; Unknown/WATCH cases PASS; R1 scroll reachability PASS |
-| **R2.c Queue tools (optional)** | Client search and/or priority/type sort on fixture fields | Server search; new fixture fields; impact sort | Filter+search/sort correctness tests; empty states honest |
-| **R2.d Token polish** | CSS variables / spacing rhythm / typography tweaks on Actions surfaces | Global redesign; new fonts/deps; dark mode | ≥9/10 human review; no a11y regressions |
-| **R2.e Acceptance closeout** | Update architecture tests for R2 contracts; manual screenshot checklist signed | Hosted ops; live data | All §9 checklists + automated gates PASS |
+| Slice | Scope | Out of scope | Exit GO when | R2.e status |
+|---|---|---|---|---|
+| **R2.0 Contract freeze** | This document | Any code | Stakeholder accepts §0–§11 | **DONE** |
+| **R2.a Queue density** | Compact `ActionRow` hierarchy, spacing, selected states, copy trim | Search/sort; evidence micro-chips; AI changes | Screenshot PASS 320/390/768/1024/1280/1440 for queue; tests green; R1 preserved | **DONE** (`c5ac721`) |
+| **R2.b Brief evidence chrome** | Unknown/stale emphasis, evidence value readability, section spacing, provenance badge consistency | New evidence fields; freshness invention; AI | Brief screenshot PASS; Unknown/WATCH cases PASS; R1 scroll reachability PASS | **DONE** (`c5ac721`) |
+| **R2.c Queue tools (optional)** | Client search and/or priority/type sort on fixture fields | Server search; new fixture fields; impact sort | Filter+search/sort correctness tests; empty states honest | **DEFERRED** |
+| **R2.d Token polish** | CSS variables / spacing rhythm / typography tweaks on Actions surfaces | Global redesign; new fonts/deps; dark mode | ≥9/10 human review; no a11y regressions | **DONE** code (`c5ac721`); human ≥9/10 **separate** |
+| **R2.e Acceptance closeout** | Record §9 functional sign-off + automated gates; docs closeout | Hosted ops; live data; claiming independent visual certification | Functional §9 + automated gates PASS | **CLOSED** — `docs/E3_3_R2_E_ACCEPTANCE_CLOSEOUT.md` |
 
 ### Slice gate table
 
 | Action | Verdict |
 |---|---|
 | Freeze R2.0 (this doc) | **GO** |
-| Implement R2.a–R2.e under this contract after per-slice approval | **GO** |
+| Implement R2.a–R2.d under this contract after per-slice approval | **GO** (shipped on `c5ac721`) |
+| R2.e functional acceptance closeout | **CLOSED** (2026-11-04) |
+| R2.c search/sort | **DEFERRED** |
+| Independent visual ≥9/10 certification | **NOT PART OF R2.e closeout** |
 | Start R2 before R1 behaviors present | **NO-GO** |
 | Alter E0–E3.3 validators, AI soft-enable semantics, or M5–M7 math | **NO-GO** |
 | Add live metrics/KPI wallpaper / buying / M7.3 wiring | **NO-GO** |
@@ -437,6 +443,7 @@ These are **not** silently assumed. Resolve in R2.a–R2.c slice approvals:
 
 ## 13. References
 
+- `docs/E3_3_R2_E_ACCEPTANCE_CLOSEOUT.md` (R2.e functional closeout record)
 - `docs/COMPETITIVE_UX_MERCHANT_PAIN_POINT_ROADMAP.md`
 - `docs/M7_4A_DECISION_FIRST_UX_CONTRACT.md`
 - `docs/M7_4E_AI_NATIVE_DECISION_BRIEF_CONTRACT.md`
@@ -449,4 +456,4 @@ These are **not** silently assumed. Resolve in R2.a–R2.c slice approvals:
 
 ---
 
-**End of E3.3-R2 contract.** Implementation requires a separate explicit slice approval. STOP.
+**End of E3.3-R2 contract.** R2.e functional acceptance is recorded in `docs/E3_3_R2_E_ACCEPTANCE_CLOSEOUT.md`. Further product work still requires separate explicit approval. STOP.
