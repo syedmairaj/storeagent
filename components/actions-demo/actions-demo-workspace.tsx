@@ -410,13 +410,13 @@ export function ActionsDemoWorkspace({
   }
 
   return (
-    <div className="min-w-0 max-w-full space-y-2.5 sm:space-y-4 xl:space-y-5">
+    <div className="min-w-0 max-w-full space-y-2 sm:space-y-3.5 xl:space-y-4">
       <StoreLocationContextBar
         storeLabel={dataset.storeLabel}
         locationLabel={dataset.locationLabel}
       />
 
-      <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+      <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
         <div className="min-w-0 max-w-2xl scroll-mt-[9.5rem] md:scroll-mt-40 lg:scroll-mt-24">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-xs font-medium text-zinc-500 sm:text-sm">
@@ -428,11 +428,11 @@ export function ActionsDemoWorkspace({
             </p>
           </div>
 
-          <h1 className="mt-0.5 text-[1.25rem] font-semibold leading-tight tracking-[-0.035em] sm:mt-1.5 sm:text-2xl xl:text-3xl">
+          <h1 className="mt-0.5 text-[1.25rem] font-semibold leading-tight tracking-[-0.035em] sm:mt-1 sm:text-2xl xl:text-[1.75rem]">
             Decision queue
           </h1>
 
-          <p className="mt-1 hidden max-w-xl text-sm leading-6 text-zinc-600 sm:block">
+          <p className="mt-0.5 hidden max-w-xl text-sm leading-5 text-zinc-600 sm:block">
             Select a decision to inspect why StoreAgent recommends it — demonstration only.
           </p>
         </div>
@@ -455,10 +455,11 @@ export function ActionsDemoWorkspace({
         }}
       />
 
-      <div className="grid min-w-0 gap-4 md:gap-5 xl:grid-cols-[minmax(18rem,0.42fr)_minmax(0,0.58fr)] xl:items-start xl:gap-7">
+      <div className="grid min-w-0 gap-3 md:gap-4 xl:grid-cols-[minmax(18rem,0.42fr)_minmax(0,0.58fr)] xl:items-start xl:gap-6">
         <section
           aria-label="Decision queue"
-          className="min-w-0 space-y-2.5"
+          data-actions-decision-queue="true"
+          className="min-w-0 space-y-2"
         >
           {filter !== "ALL" &&
             filter !== "HEALTHY" && (
@@ -478,7 +479,7 @@ export function ActionsDemoWorkspace({
             (action) => (
               <div
                 key={action.id}
-                className="min-w-0 space-y-2.5"
+                className="min-w-0 space-y-2"
               >
                 <ActionRow
                   action={action}
@@ -487,9 +488,6 @@ export function ActionsDemoWorkspace({
                     (isDesktopSplit ||
                       isTabletStack ||
                       sheetOpen)
-                  }
-                  compact={
-                    filteredActions.length === 1
                   }
                   onSelect={() =>
                     selectAction(action.id)
@@ -891,13 +889,11 @@ function ActionTypeFilter({
 function ActionRow({
   action,
   selected,
-  compact,
   onSelect,
   rowRef,
 }: {
   action: DemoActionItem;
   selected: boolean;
-  compact?: boolean;
   onSelect: () => void;
   rowRef: (node: HTMLButtonElement | null) => void;
 }) {
@@ -911,10 +907,35 @@ function ActionRow({
       action,
     );
 
+  const isWatch =
+    action.actionType === "WATCH";
+
+  const priorityAccent =
+    action.priority === "critical"
+      ? "bg-zinc-950"
+      : action.priority === "high"
+        ? "bg-zinc-700"
+        : action.priority === "medium"
+          ? "bg-zinc-400"
+          : "bg-zinc-300";
+
+  const ariaQty =
+    showQty
+      ? `, quantity ${action.recommendedQuantity}`
+      : "";
+
+  const ariaWatch =
+    isWatch
+      ? ", incomplete evidence — watch only"
+      : "";
+
   return (
     <button
       ref={rowRef}
       type="button"
+      data-actions-queue-row="true"
+      data-action-type={action.actionType}
+      data-priority={action.priority}
       onClick={onSelect}
       onKeyDown={(event) => {
         if (
@@ -926,12 +947,8 @@ function ActionRow({
         }
       }}
       aria-pressed={selected}
-      aria-label={`${meta.label}: ${action.productTitle}, ${action.variantTitle}`}
-      className={`group relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border text-left shadow-sm motion-safe:transition-[border-color,box-shadow,background-color] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
-        compact
-          ? "px-3.5 py-3 sm:px-5 sm:py-3.5"
-          : "px-3.5 py-3 sm:px-5 sm:py-4"
-      } ${
+      aria-label={`${formatDemoPriorityLabel(action.priority)} priority, ${meta.label}: ${action.productTitle}, ${action.variantTitle}${ariaQty}${ariaWatch}`}
+      className={`group relative w-full min-h-11 min-w-0 max-w-full overflow-hidden rounded-xl border pl-3.5 pr-3 py-3 text-left shadow-sm motion-safe:transition-[border-color,box-shadow,background-color] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 sm:rounded-2xl sm:pl-4 sm:pr-3.5 sm:py-3.5 ${
         selected
           ? "border-zinc-950 bg-white shadow-md ring-1 ring-zinc-950/10"
           : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50/80"
@@ -939,39 +956,54 @@ function ActionRow({
     >
       <span
         aria-hidden="true"
-        className={`absolute inset-y-0 left-0 w-1 motion-safe:transition-colors motion-safe:duration-200 motion-reduce:transition-none ${
+        className={`absolute inset-y-0 left-0 w-0.5 motion-safe:transition-colors motion-safe:duration-200 motion-reduce:transition-none ${
           selected
             ? "bg-zinc-950"
-            : "bg-transparent group-hover:bg-zinc-300"
+            : priorityAccent
         }`}
       />
 
-      <div className="flex min-w-0 flex-wrap items-start justify-between gap-1.5">
+      {/* Merchant scan order: priority → action → confidence */}
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        <PriorityBadge
+          priority={action.priority}
+        />
         <ActionTypeChip
           actionType={action.actionType}
         />
-
-        <div className="flex max-w-full flex-wrap items-center justify-end gap-1">
-          <PriorityBadge
-            priority={action.priority}
-          />
+        <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-1">
           <ConfidenceBadge
             confidence={action.confidence}
           />
         </div>
       </div>
 
-      <div className="mt-2 min-w-0 sm:mt-3">
-        <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-zinc-950 sm:text-base">
+      <div className="mt-1.5 min-w-0 sm:mt-2">
+        <p className="truncate text-[15px] font-semibold leading-snug tracking-[-0.02em] text-zinc-950 sm:text-base">
           {action.productTitle}
         </p>
-        <p className="mt-0.5 truncate text-sm text-zinc-500">
+        <p className="mt-0.5 truncate text-sm leading-snug text-zinc-500">
           {action.variantTitle}
         </p>
       </div>
 
-      {action.actionType === "WATCH" ? (
-        <p className="mt-2 flex items-center gap-2 text-xs font-medium leading-5 text-zinc-500 sm:mt-2.5">
+      {showQty ? (
+        <p
+          data-actions-queue-qty="true"
+          className="mt-1.5 text-sm font-semibold tabular-nums tracking-[-0.02em] text-zinc-950 sm:mt-2"
+        >
+          Qty{" "}
+          <span>
+            {action.recommendedQuantity}
+          </span>
+        </p>
+      ) : null}
+
+      {isWatch ? (
+        <p
+          data-actions-queue-watch="true"
+          className="mt-1.5 flex items-center gap-2 text-xs font-medium leading-5 text-zinc-600 sm:mt-2"
+        >
           <span
             className="size-1.5 shrink-0 rounded-full bg-zinc-400"
             aria-hidden="true"
@@ -979,17 +1011,8 @@ function ActionRow({
           Incomplete evidence — watch only
         </p>
       ) : (
-        <p className="mt-2 line-clamp-2 text-sm leading-5 text-zinc-600 sm:mt-2.5">
+        <p className="mt-1.5 line-clamp-2 text-sm leading-5 text-zinc-600 sm:mt-2">
           {action.conciseReason}
-        </p>
-      )}
-
-      {showQty && (
-        <p className="mt-2 text-sm font-medium text-zinc-900 sm:mt-3">
-          Qty{" "}
-          <span className="tabular-nums">
-            {action.recommendedQuantity}
-          </span>
         </p>
       )}
     </button>
@@ -1049,7 +1072,8 @@ function HealthySkimSection({
   return (
     <section
       aria-label="Healthy inventory — non-action"
-      className="mt-2 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/80 px-4 py-5 sm:px-5"
+      data-actions-healthy-skim="true"
+      className="mt-2 rounded-xl border border-dashed border-zinc-300 bg-zinc-50/80 px-3.5 py-3.5 sm:rounded-2xl sm:px-4 sm:py-4"
     >
       <div className="flex items-center gap-2">
         <CheckCircle2
@@ -1061,16 +1085,16 @@ function HealthySkimSection({
         </h2>
       </div>
 
-      <p className="mt-2 text-xs leading-5 text-zinc-500">
+      <p className="mt-1.5 text-xs leading-5 text-zinc-500">
         Demonstration skim only. Healthy items are not inventory actions and cannot be approved.
       </p>
 
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-3 space-y-2">
         {items.map(
           (item) => (
             <li
               key={item.id}
-              className="rounded-xl border border-zinc-200 bg-white px-4 py-3"
+              className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5"
             >
               <p className="text-sm font-medium text-zinc-900">
                 {item.productTitle}
@@ -1078,7 +1102,7 @@ function HealthySkimSection({
               <p className="mt-0.5 text-xs text-zinc-500">
                 {item.variantTitle}
               </p>
-              <p className="mt-2 text-xs leading-5 text-zinc-600">
+              <p className="mt-1.5 text-xs leading-5 text-zinc-600">
                 {item.note}
               </p>
             </li>
