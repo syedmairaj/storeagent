@@ -1,8 +1,9 @@
-import type {
-  ClaimedMetricRecompute,
-  MetricRecomputeExecutor,
-  MetricRecomputeQueue,
-  MetricRecomputeQueueStats,
+import {
+  metricRecomputeOrganizationIdsEqual,
+  type ClaimedMetricRecompute,
+  type MetricRecomputeExecutor,
+  type MetricRecomputeQueue,
+  type MetricRecomputeQueueStats,
 } from "@/lib/persistence/metric-recompute-queue";
 
 import {
@@ -30,10 +31,14 @@ import type {
 } from "./types";
 
 /**
- * M5.6C metric recompute tick.
+ * M5.6C metric recompute tick (M5-HR1.a org-scoped HTTP path).
  *
  * Order: consume source events, recover expired leases, claim, then for
  * each claim start -> frozen M5.5 recompute -> complete or fail.
+ *
+ * Requires a trusted non-null organizationId for every consume / recover /
+ * claim. There is no global-null fallback in this tick. Foreign claimed
+ * rows are rejected before start/complete/fail.
  *
  * Durable correctness lives in PostgreSQL: the claim lock, lease tokens,
  * lease expiry at the database clock, and generation checks. Timers here
@@ -133,6 +138,13 @@ export interface MetricRecomputeTickDependencies {
    * Infrastructure worker identity for this tick. Not tenant identity.
    */
   ownerId: string;
+
+  /**
+   * Trusted organization scope for this tick (M5-HR1.a). Required.
+   * Must already be a validated UUID from server env; never from the
+   * HTTP caller. Passed non-null to consume, recover, and claim.
+   */
+  organizationId: string;
 
   /**
    * Milliseconds since epoch. Used for the local budget and telemetry
@@ -236,6 +248,8 @@ export async function runMetricRecomputeTick(
     deps.now() - startedAt;
   const result =
     emptyResult();
+  const trustedOrganizationId =
+    deps.organizationId;
 
   const emit = (
     level: WorkerTelemetryLevel,
@@ -283,6 +297,7 @@ export async function runMetricRecomputeTick(
       const consumed =
         await deps.queue.consume(
           settings.consumeBatchSize,
+          trustedOrganizationId,
         );
       result.consumedEvents += consumed;
 
@@ -299,6 +314,27 @@ export async function runMetricRecomputeTick(
     claim: ClaimedMetricRecompute,
   ): Promise<void> => {
     emit("info", "job_claimed", claim, claim.attemptCount, null, null);
+
+    if (
+      !metricRecomputeOrganizationIdsEqual(
+        claim.organizationId,
+        trustedOrganizationId,
+      )
+    ) {
+      // Defense in depth: do not start/complete/fail/acknowledge a
+      // foreign claim. Leave the lease to expire; later org-scoped
+      // recover will not touch foreign leases.
+      emit(
+        "error",
+        "scope_denied",
+        claim,
+        claim.attemptCount,
+        "ORG_SCOPE_MISMATCH",
+        null,
+      );
+      result.queueErrors += 1;
+      return;
+    }
 
     try {
       assertWorkerExecutionScope({
@@ -495,11 +531,14 @@ export async function runMetricRecomputeTick(
 
     try {
       const recovered =
-        await deps.queue.recover({
-          maxAttempts: retryPolicy.maxAttempts,
-          baseDelaySeconds: retryPolicy.baseDelaySeconds,
-          maxDelaySeconds: retryPolicy.maxDelaySeconds,
-        });
+        await deps.queue.recover(
+          {
+            maxAttempts: retryPolicy.maxAttempts,
+            baseDelaySeconds: retryPolicy.baseDelaySeconds,
+            maxDelaySeconds: retryPolicy.maxDelaySeconds,
+          },
+          trustedOrganizationId,
+        );
       result.recoveredRequeued += recovered.requeued;
       result.recoveredRetryScheduled += recovered.retryScheduled;
       result.recoveredFailed += recovered.failed;
@@ -510,6 +549,7 @@ export async function runMetricRecomputeTick(
           limit: settings.claimLimit,
           leaseSeconds: settings.leaseSeconds,
           maxActive: settings.maxActive,
+          organizationId: trustedOrganizationId,
         });
     } catch {
       result.queueErrors += 1;

@@ -16,7 +16,7 @@ import {
 import {
   createMetricRecomputeQueue,
   createSkuDailyMetricRecomputeExecutor,
-  isAuthorizedMetricRecomputeRequest,
+  evaluateMetricRecomputeHttpGate,
   MetricRecomputeWorkerConfigError,
   readMetricRecomputeWorkerConfig,
 } from "@/lib/persistence/metric-recompute-queue";
@@ -36,15 +36,21 @@ import type {
 } from "@/workers/types";
 
 /**
- * M5.6C internal trigger for one bounded metric recompute tick.
+ * M5.6C / M5-HR1.a internal trigger for one bounded metric recompute tick.
  *
  * Disabled unless METRIC_RECOMPUTE_WORKER_ENABLED is exactly "1".
  * Requires a dedicated bearer secret of at least 32 characters, compared
- * in constant time. Accepts no organization, store, or grain input: work
- * comes only from durable request rows. The response carries counts only.
+ * in constant time. When enabled, requires server-only
+ * METRIC_RECOMPUTE_ORGANIZATION_ID (one UUID). Tenant scope is never taken
+ * from the request body, query, or headers. Bearer authenticates the route
+ * only. Missing/invalid org → 503 with zero queue RPCs (no global fallback).
+ * The response carries counts only. No scheduler is configured.
+ *
+ * Gate errors (via evaluateMetricRecomputeHttpGate): not_found,
+ * unauthorized, worker_not_configured, organization_scope_required.
  *
  * M5.7 Phase 5B: concurrency defaults to maxActive=1 / claimLimit=1 via
- * readMetricRecomputeWorkerConfig. No scheduler is configured.
+ * readMetricRecomputeWorkerConfig.
  */
 
 export const runtime = "nodejs";
@@ -139,26 +145,15 @@ export async function POST(
     throw error;
   }
 
-  if (!config.enabled) {
-    return respond(404, requestId, {
-      error: "not_found",
-    });
-  }
-
-  if (config.secret === null) {
-    return respond(503, requestId, {
-      error: "worker_not_configured",
-    });
-  }
-
-  if (
-    !isAuthorizedMetricRecomputeRequest(
+  const gate =
+    evaluateMetricRecomputeHttpGate(
+      config,
       request.headers.get("authorization"),
-      config.secret,
-    )
-  ) {
-    return respond(401, requestId, {
-      error: "unauthorized",
+    );
+
+  if (!gate.ok) {
+    return respond(gate.status, requestId, {
+      error: gate.error,
     });
   }
 
@@ -166,8 +161,8 @@ export async function POST(
     const settings =
       validateMetricRecomputeWorkerSettings({
         ...METRIC_RECOMPUTE_WORKER_SETTINGS,
-        maxActive: config.maxActive,
-        claimLimit: config.claimLimit,
+        maxActive: gate.maxActive,
+        claimLimit: gate.claimLimit,
       });
     const admin =
       createSupabaseAdminClient();
@@ -176,6 +171,7 @@ export async function POST(
         queue: createMetricRecomputeQueue(admin),
         execute: createSkuDailyMetricRecomputeExecutor(admin),
         ownerId: `metric-recompute:${randomUUID()}`,
+        organizationId: gate.organizationId,
         now: () => Date.now(),
         emit: emitTelemetry,
         settings,

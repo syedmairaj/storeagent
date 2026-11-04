@@ -303,6 +303,7 @@ describe("M5.6C tick orchestration", () => {
       queue,
       execute,
       ownerId: "metric-recompute:test",
+      organizationId: CLAIM.organizationId,
       now: clock(),
       emit: (event) => events.push(event),
     });
@@ -316,6 +317,16 @@ describe("M5.6C tick orchestration", () => {
       "recover",
       "claim",
     ]);
+    expect(queue.consume).toHaveBeenCalledWith(500, CLAIM.organizationId);
+    expect(queue.recover).toHaveBeenCalledWith(
+      expect.objectContaining({ maxAttempts: 5 }),
+      CLAIM.organizationId,
+    );
+    expect(queue.claim).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: CLAIM.organizationId,
+      }),
+    );
     expect(execute).toHaveBeenCalledWith(CLAIM, 40_000);
     expect(result).toMatchObject({
       claimed: 1,
@@ -344,6 +355,7 @@ describe("M5.6C tick orchestration", () => {
       queue,
       execute,
       ownerId: "metric-recompute:test",
+      organizationId: CLAIM.organizationId,
       now: clock(),
       emit: () => undefined,
     });
@@ -364,6 +376,7 @@ describe("M5.6C tick orchestration", () => {
       queue,
       execute: async () => ({ ok: true }),
       ownerId: "metric-recompute:test",
+      organizationId: CLAIM.organizationId,
       now: clock(),
       emit: () => undefined,
     });
@@ -384,6 +397,7 @@ describe("M5.6C tick orchestration", () => {
       queue,
       execute: async () => ({ ok: false, failure }),
       ownerId: "metric-recompute:test",
+      organizationId: CLAIM.organizationId,
       now: clock(),
       emit: () => undefined,
     });
@@ -404,6 +418,7 @@ describe("M5.6C tick orchestration", () => {
       queue,
       execute: async () => ({ ok: true }),
       ownerId: "metric-recompute:test",
+      organizationId: CLAIM.organizationId,
       now: clock(),
       emit: () => undefined,
     });
@@ -419,6 +434,7 @@ describe("M5.6C tick orchestration", () => {
       queue,
       execute: async () => ({ ok: true }),
       ownerId: "metric-recompute:test",
+      organizationId: CLAIM.organizationId,
       now: clock(4_000),
       emit: () => undefined,
     });
@@ -437,6 +453,7 @@ describe("M5.6C tick orchestration", () => {
       queue,
       execute: async () => ({ ok: true }),
       ownerId: "metric-recompute:test",
+      organizationId: CLAIM.organizationId,
       now: clock(),
       emit: () => undefined,
     });
@@ -456,6 +473,7 @@ describe("M5.6C tick orchestration", () => {
       queue,
       execute: async () => ({ ok: true }),
       ownerId: "metric-recompute:test",
+      organizationId: CLAIM.organizationId,
       now: clock(),
       emit: () => undefined,
     });
@@ -737,6 +755,7 @@ describe("M5.6C trigger configuration", () => {
       secret: null,
       maxActive: 1,
       claimLimit: 1,
+      organizationId: null,
     });
     expect(
       readMetricRecomputeWorkerConfig({
@@ -754,6 +773,7 @@ describe("M5.6C trigger configuration", () => {
       secret: null,
       maxActive: 1,
       claimLimit: 1,
+      organizationId: null,
     });
   });
 

@@ -54,10 +54,23 @@ describe("M5.6E.3 org-scoped claim/recover architecture", () => {
     );
   });
 
-  it("exposes optional organizationId on TS claim/recover without changing routes", () => {
+  it("exposes optional organizationId on TS claim/recover/consume for non-HTTP callers", () => {
     expect(QUEUE).toContain("organizationId?: string | null");
     expect(QUEUE).toContain("p_organization_id: scopedOrganizationId");
-    expect(ROUTE).not.toContain("organizationId");
-    expect(ROUTE).toContain('METRIC_RECOMPUTE_WORKER_ENABLED');
+    expect(QUEUE).toContain("scopedOrganizationArg");
+  });
+
+  it("keeps HTTP tenant scope server-env-only and fail-closed when enabled (M5-HR1.a)", () => {
+    expect(ROUTE).toContain("METRIC_RECOMPUTE_WORKER_ENABLED");
+    expect(ROUTE).toContain("METRIC_RECOMPUTE_ORGANIZATION_ID");
+    expect(ROUTE).toContain("evaluateMetricRecomputeHttpGate");
+    expect(ROUTE).toContain("organizationId: gate.organizationId");
+    expect(ROUTE).not.toMatch(/request\.(json|text)\s*\(/);
+    expect(ROUTE).not.toContain("searchParams");
+    expect(ROUTE).not.toMatch(
+      /headers\.get\(\s*["'](?:x-organization-id|organization-id|organizationId)["']\s*\)/,
+    );
+    expect(QUEUE).toContain('error: "organization_scope_required"');
+    expect(QUEUE).toContain("parseMetricRecomputeOrganizationId");
   });
 });

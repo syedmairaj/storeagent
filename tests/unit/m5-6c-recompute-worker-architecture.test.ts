@@ -87,7 +87,8 @@ describe("M5.6C recompute worker architecture", () => {
   it("protects the internal trigger and returns counts only", () => {
     expect(ROUTE).toContain('export const runtime = "nodejs"');
     expect(ROUTE).toContain("readMetricRecomputeWorkerConfig(process.env)");
-    expect(ROUTE).toContain("isAuthorizedMetricRecomputeRequest(");
+    expect(ROUTE).toContain("evaluateMetricRecomputeHttpGate");
+    expect(QUEUE).toContain("isAuthorizedMetricRecomputeRequest(");
     expect(ROUTE).toContain("export async function POST(");
     expect(ROUTE).not.toMatch(/export async function (GET|PUT|PATCH|DELETE)/);
     expect(ROUTE).not.toContain("request.json(");
@@ -102,8 +103,8 @@ describe("M5.6C recompute worker architecture", () => {
     expect(QUEUE).toContain("METRIC_RECOMPUTE_MAX_ACTIVE");
     expect(QUEUE).toContain("METRIC_RECOMPUTE_CLAIM_LIMIT");
     expect(QUEUE).toContain("MetricRecomputeWorkerConfigError");
-    expect(ROUTE).toContain("maxActive: config.maxActive");
-    expect(ROUTE).toContain("claimLimit: config.claimLimit");
+    expect(ROUTE).toContain("maxActive: gate.maxActive");
+    expect(ROUTE).toContain("claimLimit: gate.claimLimit");
     expect(ROUTE).toContain("worker_misconfigured");
     expect(ROUTE).toContain('eventType: "tick_summary"');
     expect(ROUTE).toContain("activeLeases");

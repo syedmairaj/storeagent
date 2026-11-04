@@ -83,7 +83,15 @@ export type MetricRecomputeQueueStats =
   Record<string, number>;
 
 export interface MetricRecomputeQueue {
-  consume(limit: number): Promise<number>;
+  /**
+   * Optional organization scope (M5.6B / M5-HR1.a). Null/omitted keeps
+   * the historical global consume path for non-HTTP library callers.
+   * The enabled HTTP tick must always pass a validated non-null UUID.
+   */
+  consume(
+    limit: number,
+    organizationId?: string | null,
+  ): Promise<number>;
   recover(
     retry: MetricRecomputeRetrySettings,
     organizationId?: string | null,
@@ -95,7 +103,8 @@ export interface MetricRecomputeQueue {
     maxActive: number;
     /**
      * Optional organization scope (M5.6E.3). Null/omitted keeps the
-     * historical global claim path used by production workers.
+     * historical global claim path for non-HTTP library callers.
+     * The enabled HTTP tick must always pass a validated non-null UUID.
      */
     organizationId?: string | null;
   }): Promise<ClaimedMetricRecompute[]>;
@@ -280,11 +289,24 @@ function rows(
     : [data];
 }
 
+function scopedOrganizationArg(
+  organizationId: string | null | undefined,
+): string | null {
+  if (organizationId === undefined || organizationId === null) {
+    return null;
+  }
+
+  return uuid.parse(organizationId);
+}
+
 export function createMetricRecomputeQueue(
   client: MetricRecomputeRpcClient,
 ): MetricRecomputeQueue {
   return {
-    async consume(limit) {
+    async consume(limit, organizationId = null) {
+      const scopedOrganizationId =
+        scopedOrganizationArg(organizationId);
+
       const data =
         await callRpc(
           client,
@@ -292,7 +314,7 @@ export function createMetricRecomputeQueue(
           "consume_sku_daily_metric_source_events",
           {
             p_limit: limit,
-            p_organization_id: null,
+            p_organization_id: scopedOrganizationId,
           },
         );
 
@@ -301,9 +323,7 @@ export function createMetricRecomputeQueue(
 
     async recover(retry, organizationId = null) {
       const scopedOrganizationId =
-        organizationId === undefined || organizationId === null
-          ? null
-          : uuid.parse(organizationId);
+        scopedOrganizationArg(organizationId);
 
       const data =
         await callRpc(
@@ -331,9 +351,7 @@ export function createMetricRecomputeQueue(
 
     async claim(input) {
       const scopedOrganizationId =
-        input.organizationId === undefined || input.organizationId === null
-          ? null
-          : uuid.parse(input.organizationId);
+        scopedOrganizationArg(input.organizationId);
 
       const data =
         await callRpc(
@@ -577,6 +595,11 @@ export function createSkuDailyMetricRecomputeExecutor(
  * "1". A secret shorter than 32 characters counts as absent, so the
  * trigger fails closed.
  *
+ * M5-HR1.a: when enabled, METRIC_RECOMPUTE_ORGANIZATION_ID must be exactly
+ * one UUID (server env only). Missing/invalid scope is null here; the HTTP
+ * route returns 503 and performs zero queue RPCs. There is no global
+ * fallback on the enabled HTTP path.
+ *
  * M5.7 Phase 5B F2 containment: maxActive and claimLimit default to 1.
  * Optional METRIC_RECOMPUTE_MAX_ACTIVE / METRIC_RECOMPUTE_CLAIM_LIMIT
  * must be exact integers in 1..4 when set. Malformed values throw;
@@ -599,6 +622,11 @@ export interface MetricRecomputeWorkerConfig {
   secret: string | null;
   maxActive: number;
   claimLimit: number;
+  /**
+   * Trusted tenant for the enabled HTTP tick. Null when absent/invalid.
+   * Normalized to lowercase hex. Never taken from the HTTP caller.
+   */
+  organizationId: string | null;
 }
 
 /**
@@ -624,6 +652,53 @@ export function parseMetricRecomputeConcurrencyBound(
   return Number(raw);
 }
 
+/**
+ * Server-only organization scope for the enabled recompute HTTP tick.
+ * Rejects absent, empty, whitespace-padded, multi-value, or non-UUID
+ * input. Does not throw: invalid → null (route maps to 503 when enabled).
+ */
+export function parseMetricRecomputeOrganizationId(
+  raw: string | undefined,
+): string | null {
+  if (raw === undefined || raw === "") {
+    return null;
+  }
+
+  if (raw !== raw.trim() || /[\s,;]/.test(raw)) {
+    return null;
+  }
+
+  const parsed =
+    uuid.safeParse(raw);
+
+  if (!parsed.success) {
+    return null;
+  }
+
+  return parsed.data.toLowerCase();
+}
+
+export function metricRecomputeOrganizationIdsEqual(
+  left: string,
+  right: string,
+): boolean {
+  return left.toLowerCase() === right.toLowerCase();
+}
+
+export type MetricRecomputeHttpGateResult =
+  | {
+      ok: true;
+      organizationId: string;
+      secret: string;
+      maxActive: number;
+      claimLimit: number;
+    }
+  | {
+      ok: false;
+      status: 404 | 401 | 503;
+      error: string;
+    };
+
 export function readMetricRecomputeWorkerConfig(
   env: Readonly<Record<string, string | undefined>>,
 ): MetricRecomputeWorkerConfig {
@@ -648,6 +723,10 @@ export function readMetricRecomputeWorkerConfig(
         env.METRIC_RECOMPUTE_CLAIM_LIMIT,
         "claimLimit",
         METRIC_RECOMPUTE_DEFAULT_CLAIM_LIMIT,
+      ),
+    organizationId:
+      parseMetricRecomputeOrganizationId(
+        env.METRIC_RECOMPUTE_ORGANIZATION_ID,
       ),
   };
 }
@@ -685,4 +764,58 @@ export function isAuthorizedMetricRecomputeRequest(
     sha256(presented),
     sha256(secret),
   );
+}
+
+/**
+ * Ordered HTTP gate from docs/M5_HR1_A_ORG_SCOPED_RECOMPUTE_CONTRACT.md §2.2.
+ * Callers must not perform queue RPCs unless ok === true.
+ */
+export function evaluateMetricRecomputeHttpGate(
+  config: MetricRecomputeWorkerConfig,
+  authorization: string | null,
+): MetricRecomputeHttpGateResult {
+  if (!config.enabled) {
+    return {
+      ok: false,
+      status: 404,
+      error: "not_found",
+    };
+  }
+
+  if (config.secret === null) {
+    return {
+      ok: false,
+      status: 503,
+      error: "worker_not_configured",
+    };
+  }
+
+  if (
+    !isAuthorizedMetricRecomputeRequest(
+      authorization,
+      config.secret,
+    )
+  ) {
+    return {
+      ok: false,
+      status: 401,
+      error: "unauthorized",
+    };
+  }
+
+  if (config.organizationId === null) {
+    return {
+      ok: false,
+      status: 503,
+      error: "organization_scope_required",
+    };
+  }
+
+  return {
+    ok: true,
+    organizationId: config.organizationId,
+    secret: config.secret,
+    maxActive: config.maxActive,
+    claimLimit: config.claimLimit,
+  };
 }
