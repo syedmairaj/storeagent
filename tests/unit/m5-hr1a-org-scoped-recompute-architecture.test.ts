@@ -45,7 +45,8 @@ describe("M5-HR1.a org-scoped recompute architecture", () => {
     expect(ENV).toMatch(/METRIC_RECOMPUTE_WORKER_ENABLED=\s*$/m);
     expect(ENV).toMatch(/METRIC_RECOMPUTE_ORGANIZATION_ID=\s*$/m);
     expect(ENV).toContain("zero queue RPCs");
-    expect(QUEUE).toContain('METRIC_RECOMPUTE_WORKER_ENABLED === "1"');
+    expect(QUEUE).toContain("isMetricWorkerEnvEnabled");
+    expect(QUEUE).toContain("METRIC_RECOMPUTE_WORKER_ENABLED");
     expect(QUEUE).toContain('error: "organization_scope_required"');
   });
 

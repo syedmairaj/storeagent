@@ -9,6 +9,10 @@ import {
   z,
 } from "zod";
 
+import {
+  isMetricWorkerEnvEnabled,
+} from "@/lib/persistence/metric-worker-runtime-env";
+
 /**
  * M5.6D service-role orchestration for store-local daily metric rollover.
  *
@@ -169,6 +173,10 @@ export function createMetricRolloverQueue(
  * route returns 503 and performs zero enqueue RPCs. There is no global
  * fallback on the enabled HTTP path. Does not read the recompute-worker
  * organization env as a substitute scope.
+ *
+ * M5-HR3.2a: when `VERCEL_ENV` is exactly `preview`, `enabled` is forced
+ * false regardless of METRIC_ROLLOVER_WORKER_ENABLED (see
+ * `isMetricWorkerEnvEnabled`).
  */
 export const METRIC_ROLLOVER_MIN_SECRET_LENGTH = 32;
 
@@ -216,7 +224,10 @@ export function readMetricRolloverWorkerConfig(
 
   return {
     enabled:
-      env.METRIC_ROLLOVER_WORKER_ENABLED === "1",
+      isMetricWorkerEnvEnabled(
+        env,
+        env.METRIC_ROLLOVER_WORKER_ENABLED,
+      ),
     secret:
       secret.length >= METRIC_ROLLOVER_MIN_SECRET_LENGTH
         ? secret

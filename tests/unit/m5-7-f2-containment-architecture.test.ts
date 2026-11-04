@@ -39,7 +39,8 @@ describe("M5.7 Phase 5B F2 containment architecture", () => {
   });
 
   it("preserves activation gates and does not enable workers", () => {
-    expect(QUEUE).toContain('METRIC_RECOMPUTE_WORKER_ENABLED === "1"');
+    expect(QUEUE).toContain("isMetricWorkerEnvEnabled");
+    expect(QUEUE).toContain("METRIC_RECOMPUTE_WORKER_ENABLED");
     expect(ROUTE).toContain("worker_not_configured");
     expect(ROUTE).toContain("not_found");
     expect(ROUTE).toContain("unauthorized");

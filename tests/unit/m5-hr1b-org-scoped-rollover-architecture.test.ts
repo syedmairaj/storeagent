@@ -51,7 +51,8 @@ describe("M5-HR1.b org-scoped rollover architecture", () => {
     expect(ENV).toMatch(/METRIC_ROLLOVER_WORKER_ENABLED=\s*$/m);
     expect(ENV).toMatch(/METRIC_ROLLOVER_ORGANIZATION_ID=\s*$/m);
     expect(ENV).toContain("zero enqueue RPCs");
-    expect(QUEUE).toContain('METRIC_ROLLOVER_WORKER_ENABLED === "1"');
+    expect(QUEUE).toContain("isMetricWorkerEnvEnabled");
+    expect(QUEUE).toContain("METRIC_ROLLOVER_WORKER_ENABLED");
     expect(QUEUE).toContain('error: "organization_scope_required"');
   });
 

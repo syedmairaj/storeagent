@@ -10,6 +10,10 @@ import {
 } from "zod";
 
 import {
+  isMetricWorkerEnvEnabled,
+} from "@/lib/persistence/metric-worker-runtime-env";
+
+import {
   recomputeSkuDailyMetric,
 } from "@/lib/persistence/recompute-sku-daily-metric";
 
@@ -604,6 +608,10 @@ export function createSkuDailyMetricRecomputeExecutor(
  * Optional METRIC_RECOMPUTE_MAX_ACTIVE / METRIC_RECOMPUTE_CLAIM_LIMIT
  * must be exact integers in 1..4 when set. Malformed values throw;
  * they never silently fall back to higher concurrency.
+ *
+ * M5-HR3.2a: when `VERCEL_ENV` is exactly `preview`, `enabled` is forced
+ * false regardless of METRIC_RECOMPUTE_WORKER_ENABLED (see
+ * `isMetricWorkerEnvEnabled`).
  */
 export const METRIC_RECOMPUTE_WORKER_MIN_SECRET_LENGTH = 32;
 
@@ -707,7 +715,10 @@ export function readMetricRecomputeWorkerConfig(
 
   return {
     enabled:
-      env.METRIC_RECOMPUTE_WORKER_ENABLED === "1",
+      isMetricWorkerEnvEnabled(
+        env,
+        env.METRIC_RECOMPUTE_WORKER_ENABLED,
+      ),
     secret:
       secret.length >= METRIC_RECOMPUTE_WORKER_MIN_SECRET_LENGTH
         ? secret
