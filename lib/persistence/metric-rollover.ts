@@ -159,11 +159,53 @@ export function createMetricRolloverQueue(
   };
 }
 
+/**
+ * Worker trigger configuration. Disabled unless explicitly enabled with
+ * "1". A secret shorter than 32 characters counts as absent, so the
+ * trigger fails closed.
+ *
+ * M5-HR1.b: when enabled, METRIC_ROLLOVER_ORGANIZATION_ID must be exactly
+ * one UUID (server env only). Missing/invalid scope is null here; the HTTP
+ * route returns 503 and performs zero enqueue RPCs. There is no global
+ * fallback on the enabled HTTP path. Does not read the recompute-worker
+ * organization env as a substitute scope.
+ */
 export const METRIC_ROLLOVER_MIN_SECRET_LENGTH = 32;
 
 export interface MetricRolloverWorkerConfig {
   enabled: boolean;
   secret: string | null;
+  /**
+   * Trusted tenant for the enabled HTTP tick. Null when absent/invalid.
+   * Normalized to lowercase hex. Never taken from the HTTP caller.
+   */
+  organizationId: string | null;
+}
+
+/**
+ * Server-only organization scope for the enabled rollover HTTP tick.
+ * Rejects absent, empty, whitespace-padded, multi-value, or non-UUID
+ * input. Does not throw: invalid → null (route maps to 503 when enabled).
+ */
+export function parseMetricRolloverOrganizationId(
+  raw: string | undefined,
+): string | null {
+  if (raw === undefined || raw === "") {
+    return null;
+  }
+
+  if (raw !== raw.trim() || /[\s,;]/.test(raw)) {
+    return null;
+  }
+
+  const parsed =
+    uuid.safeParse(raw);
+
+  if (!parsed.success) {
+    return null;
+  }
+
+  return parsed.data.toLowerCase();
 }
 
 export function readMetricRolloverWorkerConfig(
@@ -179,6 +221,10 @@ export function readMetricRolloverWorkerConfig(
       secret.length >= METRIC_ROLLOVER_MIN_SECRET_LENGTH
         ? secret
         : null,
+    organizationId:
+      parseMetricRolloverOrganizationId(
+        env.METRIC_ROLLOVER_ORGANIZATION_ID,
+      ),
   };
 }
 
@@ -190,6 +236,10 @@ function sha256(
     .digest();
 }
 
+/**
+ * Constant-time bearer check. Both sides are hashed first, so length
+ * differences do not short-circuit the comparison.
+ */
 export function isAuthorizedMetricRolloverRequest(
   authorization: string | null,
   secret: string,
@@ -211,4 +261,68 @@ export function isAuthorizedMetricRolloverRequest(
     sha256(presented),
     sha256(secret),
   );
+}
+
+export type MetricRolloverHttpGateResult =
+  | {
+      ok: true;
+      organizationId: string;
+      secret: string;
+    }
+  | {
+      ok: false;
+      status: 404 | 401 | 503;
+      error: string;
+    };
+
+/**
+ * Ordered HTTP gate from docs/M5_HR1_B_ORG_SCOPED_ROLLOVER_CONTRACT.md §4.2.
+ * Callers must not perform enqueue/stats RPCs unless ok === true.
+ */
+export function evaluateMetricRolloverHttpGate(
+  config: MetricRolloverWorkerConfig,
+  authorization: string | null,
+): MetricRolloverHttpGateResult {
+  if (!config.enabled) {
+    return {
+      ok: false,
+      status: 404,
+      error: "not_found",
+    };
+  }
+
+  if (config.secret === null) {
+    return {
+      ok: false,
+      status: 503,
+      error: "worker_not_configured",
+    };
+  }
+
+  if (
+    !isAuthorizedMetricRolloverRequest(
+      authorization,
+      config.secret,
+    )
+  ) {
+    return {
+      ok: false,
+      status: 401,
+      error: "unauthorized",
+    };
+  }
+
+  if (config.organizationId === null) {
+    return {
+      ok: false,
+      status: 503,
+      error: "organization_scope_required",
+    };
+  }
+
+  return {
+    ok: true,
+    organizationId: config.organizationId,
+    secret: config.secret,
+  };
 }

@@ -74,13 +74,15 @@ describe("M5.6D metric rollover architecture", () => {
   it("protects the internal trigger and returns counts only", () => {
     expect(ROUTE).toContain('export const runtime = "nodejs"');
     expect(ROUTE).toContain("readMetricRolloverWorkerConfig(process.env)");
-    expect(ROUTE).toContain("isAuthorizedMetricRolloverRequest(");
+    expect(ROUTE).toContain("evaluateMetricRolloverHttpGate(");
+    expect(ROUTE).toContain("organizationId: gate.organizationId");
     expect(ROUTE).toContain("export async function POST(");
     expect(ROUTE).not.toMatch(/export async function (GET|PUT|PATCH|DELETE)/);
     expect(ROUTE).not.toContain("request.json(");
     expect(ROUTE).not.toContain("searchParams");
     expect(QUEUE).toContain("timingSafeEqual(");
     expect(QUEUE).toContain('=== "1"');
+    expect(QUEUE).toContain("isAuthorizedMetricRolloverRequest(");
   });
 
   it("does not configure a scheduler", () => {

@@ -66,7 +66,32 @@ describe("M5.6D metric rollover queue wrapper", () => {
 
     expect(config.enabled).toBe(true);
     expect(config.secret).toBeNull();
+    expect(config.organizationId).toBeNull();
     expect(METRIC_ROLLOVER_MIN_SECRET_LENGTH).toBe(32);
+  });
+
+  it("preserves library null enqueue for non-HTTP callers", async () => {
+    const client = clientWith({
+      storesSelected: 0,
+      runsOpened: 0,
+      runsResumed: 0,
+      runsCompleted: 0,
+      runsFailed: 0,
+      grainsEnrolled: 0,
+    });
+    const queue = createMetricRolloverQueue(client);
+
+    await queue.enqueue();
+
+    expect(client.rpc).toHaveBeenCalledWith(
+      "enqueue_sku_daily_metric_daily_rollover",
+      {
+        p_limit: 100,
+        p_max_stores: 4,
+        p_organization_id: null,
+        p_as_of: null,
+      },
+    );
   });
 
   it("compares bearer secrets in constant time", () => {

@@ -11,7 +11,7 @@ import {
 
 import {
   createMetricRolloverQueue,
-  isAuthorizedMetricRolloverRequest,
+  evaluateMetricRolloverHttpGate,
   readMetricRolloverWorkerConfig,
 } from "@/lib/persistence/metric-rollover";
 
@@ -20,15 +20,19 @@ import {
 } from "@/lib/supabase/admin";
 
 /**
- * M5.6D internal trigger for one bounded daily metric rollover tick.
+ * M5.6D / M5-HR1.b internal trigger for one bounded daily metric rollover tick.
  *
  * Disabled unless METRIC_ROLLOVER_WORKER_ENABLED is exactly "1".
  * Requires a dedicated bearer secret of at least 32 characters, compared
- * in constant time. Accepts no organization, store, or grain input from
- * the caller: eligible work is selected inside the security-definer RPC
- * from durable store rows. The response carries counts only.
+ * in constant time. When enabled, requires server-only
+ * METRIC_ROLLOVER_ORGANIZATION_ID (one UUID). Tenant scope is never taken
+ * from the request body, query, or headers, and never from the
+ * recompute-worker organization env. Bearer authenticates the route only.
+ * Missing/invalid org → 503 with zero enqueue RPCs (no global fallback).
+ * The response carries counts only. No scheduler is configured.
  *
- * No scheduler is configured by this milestone.
+ * Gate errors (via evaluateMetricRolloverHttpGate): not_found,
+ * unauthorized, worker_not_configured, organization_scope_required.
  */
 
 export const runtime = "nodejs";
@@ -66,26 +70,15 @@ export async function POST(
   const config =
     readMetricRolloverWorkerConfig(process.env);
 
-  if (!config.enabled) {
-    return respond(404, requestId, {
-      error: "not_found",
-    });
-  }
-
-  if (config.secret === null) {
-    return respond(503, requestId, {
-      error: "worker_not_configured",
-    });
-  }
-
-  if (
-    !isAuthorizedMetricRolloverRequest(
+  const gate =
+    evaluateMetricRolloverHttpGate(
+      config,
       request.headers.get("authorization"),
-      config.secret,
-    )
-  ) {
-    return respond(401, requestId, {
-      error: "unauthorized",
+    );
+
+  if (!gate.ok) {
+    return respond(gate.status, requestId, {
+      error: gate.error,
     });
   }
 
@@ -95,7 +88,9 @@ export async function POST(
     const queue =
       createMetricRolloverQueue(admin);
     const result =
-      await queue.enqueue();
+      await queue.enqueue({
+        organizationId: gate.organizationId,
+      });
 
     return respond(200, requestId, {
       result,
