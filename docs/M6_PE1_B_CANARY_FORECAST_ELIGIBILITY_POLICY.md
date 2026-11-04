@@ -3,16 +3,19 @@
 **Mode:** AUDIT + CONTRACT ONLY. No implementation, SQL, migrations, hosted queries, forecast publication, canary runs, workers/cron, Vercel deployment, E4, M7.3, AI, purchasing, or inventory mutation.
 **As-of:** 2026-11-04
 **Repo:** `/Users/syedmairaj/Documents/storeagent`
-**Baseline requested:** `main` @ `e557b2a`
-**Verified HEAD:** `e557b2acf49e6a6109d5abf6fb32d2091f3d78fd` — `feat(forecast): add fail-closed published forecast evidence binder`
-**Dirty tree:** Preserved untouched except creation of **this** file.
+**Baseline requested (original freeze):** `main` @ `e557b2a`
+**Verified HEAD (original freeze):** `e557b2acf49e6a6109d5abf6fb32d2091f3d78fd` — `feat(forecast): add fail-closed published forecast evidence binder`
+**Reconciliation (docs only):** 2026-11-04 against `main` @ `debb032` + PE1.b.1 implementation + `docs/M6_PE1_B2_POLICY_CONSISTENCY_AND_DECISIONS.md` contradictions **C1, C3, C4, C5**. No new policy approvals, numeric thresholds, UUID selection, or production activation.
+**Dirty tree:** Unrelated dirty files preserved; this reconciliation edits **this** file only among PE1.b authority docs (plus PE1.b.2 status update).
 **Parents / authority:**
 - `docs/M6_PE1_FORECAST_ELIGIBILITY_READINESS.md` (PE1 sequencing; PE1.b defined as policy + SELECT pack)
 - `lib/decision-engine/published-forecast-eligibility.ts` (PE1.a structural binder — always ineligible)
+- `lib/decision-engine/canary-forecast-eligibility-policy.ts` (PE1.b.1 fail-closed policy evaluator — **implemented**; production attestation inactive)
+- `docs/M6_PE1_B2_POLICY_CONSISTENCY_AND_DECISIONS.md` (precedence / contradiction catalog)
 - M6 P3/P4 publish / fresh-reader / evaluation contracts + SQL
 - M5 metrics freshness / coverage / source-token contracts + M5 canary allowlist patterns
 - `docs/M7_PB1_TRUSTED_METRIC_DECISION_BINDING_CONTRACT.md`, `docs/M7_0_CONTRACT_ADDENDUM.md` §D, `docs/M7_2A_IMMUTABLE_DECISION_PERSISTENCE_CONTRACT.md`
-**Authority when docs conflict:** this freeze for **PE1.b canary eligibility policy shape, fail-closed states, attestation boundaries, hosted SELECT pack, and GO/NO-GO only**. Frozen M5/M6/M7 math, SQL `m7_eligible=false` CHECK, PB1 hard-false gates, and PE1.a always-ineligible semantics must not be altered by this document or by any follow-on slice without separate explicit approval.
+**Authority when docs conflict:** this freeze for **PE1.b canary eligibility policy shape, fail-closed states, attestation boundaries, hosted SELECT pack, and GO/NO-GO only**, as reconciled below with PE1.b.1. Frozen M5/M6/M7 math, SQL `m7_eligible=false` CHECK, PB1 hard-false gates, and PE1.a always-ineligible semantics must not be altered by this document or by any follow-on slice without separate explicit approval.
 
 ---
 
@@ -84,17 +87,17 @@ Exactly **one** active entry permitted for the first canary. Empty allowlist ⇒
 |---|---|---|---|
 | **DB fresh-reader RPC** `read_fresh_published_sku_forecast` | Check-time pointer + `source_token` identity + publication numeric gates at statement time | Post-return freshness; forecast age; production eligibility; algorithm approval | `20261030160000`; `lib/persistence/read-fresh-published-sku-forecast.ts` |
 | **PE1.a binder** `bindPublishedForecastEvidence` | Structural shape of a fresh-reader-**shaped** payload; mints WeakSet-gated success objects | Authenticated DB/RPC issuance; post-return freshness; production eligibility | `lib/decision-engine/published-forecast-eligibility.ts` |
-| **PE1.b policy evaluator** (future) | Allowlist + age + algorithm-pin + attestation gates on **trusted attestation-wrapped** evidence | Merchant approval; M7.2 create; CHECK flip | **This document** (contract only) |
+| **PE1.b policy evaluator** (PE1.b.1 **implemented**; production activation **blocked**) | Allowlist + age + algorithm-pin + attestation gates on PE1.a-minted evidence under hard-false envelope | Merchant approval; M7.2 create; CHECK flip; authenticated DB provenance; production eligibility | `lib/decision-engine/canary-forecast-eligibility-policy.ts` + **this document** |
 
 ### 2.1 Normative authenticity classes
 
 | `evidenceAuthenticity` | Meaning | May unlock technical canary numeric signal? | May unlock production M7 fields? |
 |---|---|---|---|
-| `fresh_reader_shaped_structural_only` (PE1.a today) | Caller-shaped; structurally checked | Observe only | **Never** |
-| `db_rpc_fresh_reader_v1` (future PE1) | Evidence obtained via service-role call to `read_fresh_published_sku_forecast` under pinned project URL + attested grain | Required for any future canary numeric path | **Still no** until separate production attestation + schema path |
-| `caller_forged` / unknown | Reject | No | No |
+| `fresh_reader_shaped_structural_only` (PE1.a / PE1.b.1 today) | Caller-shaped; structurally checked | Observe only (still production-ineligible) | **Never** |
+| `db_rpc_fresh_reader_v1` (future authenticated path) | Evidence obtained via service-role call to `read_fresh_published_sku_forecast` under pinned project URL + attested grain | Required for any future canary numeric path that claims DB provenance | **Still no** until separate production attestation + schema path |
+| `caller_forged` / unknown / PE1.b.1 forged `db_rpc_fresh_reader_v1` label | **Reject** (`ok:false`, code `AUTHENTICITY_CLASS_INSUFFICIENT`) | No | No |
 
-**PE1.a remains valid preparation.** PE1.b **must not** treat PE1.a success as authenticated DB provenance. Future evaluators that accept PE1.a mint alone may only emit **policy-ineligible** outcomes (same as today).
+**PE1.a remains valid preparation.** PE1.b **must not** treat PE1.a success as authenticated DB provenance. PE1.b.1 accepts PE1.a mint + structural authenticity **only** for policy-ineligible observation outcomes and **rejects** caller-forged DB authenticity claims with `ok:false` (does not emit an `ineligible_*` success for that case).
 
 ### 2.2 Trusted attestation authority — `POLICY_DECISION_REQUIRED`
 
@@ -279,7 +282,8 @@ Fail-closed matrix (normative for future PE1.b evaluator; mirrors M6):
 | Forged freshness / age claim | reject | `rejected_freshness_claim` | `FRESHNESS_CLAIM_REJECTED` / `AGE_POLICY_NOT_APPROVED` |
 | Production trust claim true | reject | `rejected_trust_claim` | `PRODUCTION_TRUST_CLAIM_REJECTED` |
 | Missing required identities | reject | `rejected_identity` | `IDENTITY_INVALID` / `EVIDENCE_MALFORMED` |
-| Technically eligible + inactive production attestation | observe technical | `ineligible_production_unapproved` | `FORECAST_FORCED_INELIGIBLE` + `M6_PRODUCTION_FORECAST_ELIGIBILITY_APPROVED` blocked |
+| Technically eligible + Age-D (age unapproved) | observe technical | `ineligible_age_unapproved` | `AGE_POLICY_NOT_APPROVED` + `ALGORITHM_PIN_MISS` + `FORECAST_FORCED_INELIGIBLE`; production attestation still blocked |
+| Technically eligible + age+alg approved + inactive production attestation | observe technical | `ineligible_production_unapproved` | `FORECAST_FORCED_INELIGIBLE` + `M6_PRODUCTION_FORECAST_ELIGIBILITY_APPROVED` blocked |
 
 Publish soft withholds (`MODE_UNAVAILABLE`, `NULL_DEMAND`, `INSUFFICIENT_EVIDENCE`, `OLDER_AS_OF_THAN_CURRENT`, `OLDER_SOURCE_VERSION`) never create an eligible pointer advance for M7; PE1.b treats absence of eligible current pointer as `ineligible_absent` / unavailable.
 
@@ -363,11 +367,15 @@ Revoke must **not** require dropping SQL CHECK or rewriting historical publicati
 | `ineligible_confidence` | Low/none confidence | same (+ `FORECAST_CONFIDENCE_LOW`) |
 | `ineligible_unavailable` | Mode/sufficiency/demand gates | same |
 | `ineligible_allowlist` | Grain not on canary allowlist | same |
-| `ineligible_age_unapproved` | Age SLA missing or failed | same |
-| `ineligible_algorithm_unapproved` | Algorithm pin miss / unapproved | same |
-| `ineligible_production_unapproved` | Technical OK; production attestation inactive | same — **default success path under PE1.b** |
-| `technical_numeric_observed` | Annotation only when fresh-reader eligible | Still production-ineligible fields |
+| `ineligible_age_unapproved` | Age SLA missing or failed (Age-D) | same — **PE1.b.1 / Age-D default for technical+allowlisted** |
+| `ineligible_algorithm_unapproved` | Algorithm pin miss / unapproved | same — only after age gate is approved |
+| `ineligible_production_unapproved` | Technical OK; age+alg approved; production attestation inactive | same — reachable only after age+algorithm gates clear |
+| `technical_numeric_observed` | Annotation only when fresh-reader eligible | Still production-ineligible fields (not a primary PE1.b.1 `decisionState`) |
 | `production_eligible` | Reserved | **FORBIDDEN under PE1.b** — must not be emitted by any PE1.b-authorized code |
+
+**Precedence (normative; strictest wins; do not mask):**
+invalid/allowlist → miss dispositions → **age** unapproved → **algorithm** unapproved → **production** unapproved.
+Under Age-D + unapproved algorithm pin (PE1.b.1 envelope), technical+allowlisted emits `ineligible_age_unapproved`, **not** `ineligible_production_unapproved`.
 
 ### 9.2 Stable reason / note codes
 
@@ -376,22 +384,28 @@ Revoke must **not** require dropping SQL CHECK or rewriting historical publicati
 **PE1.a mapping notes (reuse):**
 `FORECAST_FORCED_INELIGIBLE`, `TECHNICAL_NUMERIC_SIGNAL_OBSERVED`, `TECHNICAL_NUMERIC_SIGNAL_ABSENT`, `AGE_POLICY_NOT_APPROVED`, `CHECK_TIME_FRESHNESS_ONLY`, `OBSERVED_DEMAND_NOT_DECISION_INPUT`, disposition notes.
 
-**PE1.b additional policy notes (proposed; inactive):**
+**PE1.b additional policy notes (PE1.b.1 emits on success paths where applicable):**
 `CANARY_ALLOWLIST_MISS`, `CANARY_ALLOWLIST_REVOKED`, `ALGORITHM_PIN_MISS`, `AUTHENTICITY_CLASS_INSUFFICIENT`, `HOSTED_SELECT_PACK_UNVERIFIED`, `KILL_SWITCH_ACTIVE`, `PRODUCTION_ATTESTATION_INACTIVE`.
+
+**Machine-readable blockers (mandatory on PE1.b.1 `ok:true` successes; not optional prose):**
+`AGE_POLICY_NOT_APPROVED`, `ALGORITHM_PIN_MISS` (plus `PRODUCTION_ATTESTATION_INACTIVE` / `HOSTED_SELECT_PACK_UNVERIFIED` while those remain inactive/unverified). Primary `decisionState` names the strictest gate; **all still-applicable blockers remain in `mappingNotes`**.
 
 **Binding failure codes (PE1.a; reuse):**
 `BINDING_ATTESTATION_INVALID`, `PRODUCTION_TRUST_CLAIM_REJECTED`, `GRAIN_MISMATCH`, `EVIDENCE_MALFORMED`, `EVIDENCE_UNTRUSTED`, `FRESHNESS_CLAIM_REJECTED`, `IDENTITY_INVALID`, `CONFLICTING_EVIDENCE`, `CROSS_GRAIN_AGGREGATION_FORBIDDEN`.
+
+**PE1.b.1 policy failure codes (also on `ok:false`):**
+`POLICY_ATTESTATION_INVALID`, `AUTHENTICITY_CLASS_INSUFFICIENT`, `AGE_POLICY_REJECTED`, `ALGORITHM_PIN_POLICY_REJECTED` (and allowlist note codes when used as failure vocabulary).
 
 ### 9.3 Failure matrix (summary)
 
 ```
 invalid envelope/trust/age-claim     → rejected_* (ok:false)
 grain ∉ allowlist / revoked          → ineligible_allowlist
-authenticity ≠ required class        → ineligible_* + AUTHENTICITY_CLASS_INSUFFICIENT
+authenticity forged/insufficient     → ok:false + AUTHENTICITY_CLASS_INSUFFICIENT
 fresh-reader miss dispositions       → mapped ineligible_* (§6)
-technical eligible + age undecided   → ineligible_age_unapproved (Age-D default)
-technical eligible + alg unapproved  → ineligible_algorithm_unapproved
-technical eligible + prod inactive   → ineligible_production_unapproved  ★ PE1.b steady state
+technical eligible + age undecided   → ineligible_age_unapproved (Age-D default) ★ PE1.b.1 steady
+technical eligible + age OK + alg unapproved → ineligible_algorithm_unapproved
+technical eligible + age+alg OK + prod inactive → ineligible_production_unapproved
 any path claiming production_eligible→ FORBIDDEN / architecture fail
 ```
 
@@ -521,12 +535,13 @@ Future CHECK relaxation (if ever) requires a **separate** explicit migration app
 
 ---
 
-## 14. Future policy evaluator — exact I/O contract
+## 14. Policy evaluator — exact I/O contract
 
-### 14.1 Proposed module (not authorized to implement)
+### 14.1 Module status
 
-Suggested path: `lib/decision-engine/canary-forecast-eligibility-policy.ts`
+Path: `lib/decision-engine/canary-forecast-eligibility-policy.ts`
 Version: `m6-pe1b-canary-eligibility-policy-v1`
+**Status:** PE1.b.1 **implemented** (pure TS + tests). Production eligibility activation, attestation satisfaction, algorithm approval, numeric age SLA, canary UUID selection, publish/persist callers, and PE1.c remain **NO-GO** / `POLICY_DECISION_REQUIRED` as listed in §19.
 
 ### 14.2 Input
 
@@ -538,12 +553,14 @@ Pe1bCanaryPolicyEvaluateRequest = {
   /**
    * Prefer: PE1.a trusted binding success minted by bindPublishedForecastEvidence
    * plus authenticity class. Structural-only authenticity must not unlock
-   * anything beyond ineligible_production_unapproved observation.
+   * production eligibility. Under Age-D it may observe technical numeric
+   * signal only while emitting ineligible_age_unapproved (or a stricter miss),
+   * never production_eligible / m7Eligible=true.
    */
   binding: Pe1aPublishedForecastBindingSuccess; // runtime-gated via isPe1aTrusted…
   evidenceAuthenticity:
     | "fresh_reader_shaped_structural_only"
-    | "db_rpc_fresh_reader_v1";
+    | "db_rpc_fresh_reader_v1"; // forged claim without authenticated path → ok:false
   canaryAllowlist: Pe1bCanaryAllowlistEntryV1[]; // empty ⇒ miss
   // Hard-false required:
   claimsMerchantFacing: false;
@@ -598,8 +615,10 @@ Pe1bCanaryPolicyEvaluateResult =
 
 ### 14.4 Fail-closed default
 
-**Default outcome for every grain under PE1.b:**
-`decisionState = ineligible_production_unapproved` (or stricter miss) with `forecastEligibility="ineligible"`, units `null`, confidence `"low"`, and `M6_PRODUCTION_FORECAST_ELIGIBILITY_APPROVED` listed in `productionCreateBlockedUntil`.
+**Default outcome under PE1.b / Age-D (PE1.b.1 steady technical+allowlisted path):**
+`decisionState = ineligible_age_unapproved` (or a stricter miss: invalid/`ok:false`, allowlist, or disposition `ineligible_*`) with `forecastEligibility="ineligible"`, units `null`, confidence `"low"`, `M6_PRODUCTION_FORECAST_ELIGIBILITY_APPROVED` listed in `productionCreateBlockedUntil`, and machine-readable mappingNotes including at least `AGE_POLICY_NOT_APPROVED` and `ALGORITHM_PIN_MISS`.
+
+`ineligible_production_unapproved` is **not** the Age-D default; it applies only after age and algorithm gates are approved while production attestation remains inactive.
 
 Emitting `production_eligible` or `m7Eligible: true` is an architecture defect.
 
@@ -624,7 +643,7 @@ Emitting `production_eligible` or `m7Eligible: true` is an architecture defect.
 
 | ID | Gap | Class |
 |---|---|---|
-| PE1B-P1-1 | Policy evaluator module + architecture tests (slice below) | missing impl |
+| PE1B-P1-1 | Policy evaluator module + architecture tests | **CLEARED by PE1.b.1** (`canary-forecast-eligibility-policy.ts` + tests); production activation still NO-GO |
 | PE1B-P1-2 | Algorithm pin policy (Alg-A/B/C) | `POLICY_DECISION_REQUIRED` |
 | PE1B-P1-3 | Eval-A vs Eval-B evidence bar | `POLICY_DECISION_REQUIRED` |
 | PE1B-P1-4 | Cov-A vs Cov-B production coverage bar | `POLICY_DECISION_REQUIRED` |
@@ -638,51 +657,53 @@ Emitting `production_eligible` or `m7Eligible: true` is an architecture defect.
 
 ## 16. Minimum tests required before any future implementation
 
-Gate any PE1.b **code** slice (not authorized here) behind:
+Gate any PE1.b **code** slice behind (PE1.b.1 satisfied these; retain for regressions):
 
 1. **Allowlist miss / revoke** → `ineligible_allowlist`; no units invented
 2. **Empty allowlist** → all grains ineligible
-3. **PE1.a technical eligible + structural authenticity** → still `ineligible_production_unapproved`; units null
-4. **Age policy `unapproved`** → never production-eligible; note `AGE_POLICY_NOT_APPROVED`
+3. **PE1.a technical eligible + structural authenticity** → `ineligible_age_unapproved` under Age-D; units null; still production-ineligible
+4. **Age policy `unapproved`** → never production-eligible; decisionState `ineligible_age_unapproved` when technical+allowlisted; note `AGE_POLICY_NOT_APPROVED`
 5. **Freshness claim true / wrong limitation string** → reject
 6. **Production trust claims true** → reject
 7. **Grain mismatch / cross-grain array** → reject
 8. **Miss dispositions** map to §6 states + reason codes
 9. **Architecture:** no publish/persist imports; no `m7_eligible = true`; no `production_eligible` emission; no PB1 hard-false weakening; no SQL/migration edits in the slice
-10. **Algorithm pin unapproved** → cannot emit production-eligible
-11. **typecheck + focused unit/architecture tests green**
+10. **Algorithm pin unapproved** → cannot emit production-eligible; note `ALGORITHM_PIN_MISS`
+11. **Forged `db_rpc_fresh_reader_v1` / insufficient authenticity** → `ok:false` + `AUTHENTICITY_CLASS_INSUFFICIENT`
+12. **typecheck + focused unit/architecture tests green**
 
 Hosted SELECT pack is an **ops** gate, not a unit test — still P0 for PE1.c.
 
 ---
 
-## 17. Smallest next implementation slice
+## 17. Implementation slice status
 
 ### Name
 
-**M6-PE1.b.1 — Fail-closed canary policy evaluator (pure TS + tests)**
+**M6-PE1.b.1 — Fail-closed canary policy evaluator (pure TS + tests)** — **IMPLEMENTED** on `main` @ `debb032`
 
-### In scope
+### Delivered (historical)
 
-- New pure module implementing §14 with:
-  - empty/inactive allowlist
-  - `forecastAgePolicy: "unapproved"`
+- Pure module implementing §14 with:
+  - empty/inactive allowlist fail-closed
+  - `forecastAgePolicy: "unapproved"` → `ineligible_age_unapproved` for technical+allowlisted
   - `productionEligibilityAttestation: null`
-  - authenticity `fresh_reader_shaped_structural_only` accepted only for ineligible observation
-- Unit + architecture tests from §16
-- Optional: document-only operator SELECT checklist already in §11 (no live run)
+  - authenticity `fresh_reader_shaped_structural_only` accepted only for ineligible observation; forged DB class → `ok:false`
+- Unit + architecture tests from §16 (as reconciled)
+- Mandatory machine-readable `AGE_POLICY_NOT_APPROVED` + `ALGORITHM_PIN_MISS` on success paths
 
-### Out of scope (hard)
+### Still out of scope / blocked (unchanged)
 
 - SQL / CHECK / PB1 / PE1.a semantic changes
 - Hosted SELECT execution, publish/persist callers, workers, cron
 - Choosing canary UUIDs or setting approval phrases true
 - Algorithm approval, age threshold numbers, M7.2/M7.3 flips
 - Clearing `M6_PRODUCTION_FORECAST_ELIGIBILITY_APPROVED`
+- Any production eligibility activation
 
-### After PE1.b.1 (separate approvals)
+### After PE1.b.1 (separate approvals; unchanged checklist)
 
-1. Resolve `POLICY_DECISION_REQUIRED` items (age, alg, eval, coverage, authority, UUID)
+1. Resolve remaining `POLICY_DECISION_REQUIRED` items (age beyond Age-D default, alg, eval, coverage, authority, UUID) — §19
 2. Operator SELECT pack pass
 3. **M6-PE1.c** — controlled single-grain persist→publish under workers-OFF (still merchant/M7.2 **NO-GO**)
 
@@ -692,9 +713,10 @@ Hosted SELECT pack is an **ops** gate, not a unit test — still P0 for PE1.c.
 
 | Action | Decision |
 |---|---|
-| Accept this PE1.b policy contract (docs only) | **GO** |
+| Accept this PE1.b policy contract (docs only), including C1/C3/C4/C5 reconciliation | **GO** |
 | Claim production forecast eligibility / M7 forecast consumption | **NO-GO** |
-| Implement PE1.b.1 policy evaluator | **NO-GO** until separate explicit approval |
+| PE1.b.1 policy evaluator module (pure offline) | **IMPLEMENTED** — production activation still **NO-GO** |
+| Activate production attestation / clear `M6_PRODUCTION_FORECAST_ELIGIBILITY_APPROVED` | **NO-GO** |
 | Relax `m7_eligible=false` CHECK / set true | **NO-GO** |
 | Wire production persist/publish/eval callers | **NO-GO** |
 | Run hosted SELECT pack / canary / publish | **NO-GO** under this approval (pack may be run later under ops approval) |
@@ -724,23 +746,24 @@ Hosted SELECT pack is an **ops** gate, not a unit test — still P0 for PE1.c.
 
 ## Freeze checklist
 
-- [x] HEAD `e557b2a` verified; dirty tree preserved aside from this file
+- [x] HEAD `e557b2a` verified at original freeze; dirty tree preserved aside from this file
 - [x] Canary grain = exact org/store/location/variant; UUID selection deferred
 - [x] DB-read provenance vs PE1.a structural evidence separated
-- [x] Age SLA marked `POLICY_DECISION_REQUIRED` with options; default fail-closed Age-D
+- [x] Age SLA marked `POLICY_DECISION_REQUIRED` with options; default fail-closed Age-D → `ineligible_age_unapproved`
 - [x] Technical coverage/confidence/sufficiency reused; production bars deferred
 - [x] Algorithm explicitly **not** approved; pin options listed
 - [x] Pending/stale/conflict/missing rejection matrix frozen
 - [x] Source-token + replay rules referenced
 - [x] Allowlist / authz / revoke / kill-switch requirements frozen
-- [x] Decision states + reason codes + failure matrix defined
+- [x] Decision states + reason codes + failure matrix defined (precedence: invalid/allowlist → age → algorithm → production)
 - [x] Planes A/B/C separated from M7 merchant eligibility
 - [x] Hosted SELECT-only pack specified (not executed)
 - [x] Audit / rollback / kill-switch requirements recorded
 - [x] SQL CHECK + PB1/M7 hard-false coexistence stated as preserve-only
-- [x] Future evaluator I/O contract + fail-closed default specified
-- [x] P0/P1, minimum tests, smallest slice, GO/NO-GO recorded
+- [x] Evaluator I/O contract specified; PE1.b.1 implemented; fail-closed Age-D default recorded
+- [x] P0/P1, minimum tests, slice status, GO/NO-GO recorded
+- [x] Docs reconciliation C1/C3/C4/C5 applied (2026-11-04 @ `debb032`); §19 unresolved decisions preserved
 - [ ] Production forecast eligibility / publication / canary execution — **not authorized**
 
-**PE1.b policy freeze COMPLETE (docs only).**
-**STOP before implementation.** No forecast publication, eligibility loosening, SQL, hosted queries, or activation under this approval.
+**PE1.b policy freeze COMPLETE (docs only), with PE1.b.1 implementation reconciled.**
+**STOP.** No forecast publication, eligibility loosening, SQL, hosted queries, or activation under this approval. Remaining §19 items stay `POLICY_DECISION_REQUIRED`.
