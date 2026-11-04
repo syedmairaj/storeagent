@@ -5,8 +5,13 @@
  * merchant approval, E4, workers, or forecast invention.
  *
  * Authority: docs/M7_PB1_TRUSTED_METRIC_DECISION_BINDING_CONTRACT.md
+ *
+ * PB1.b offline diagnostic evaluation consumes only WeakSet-minted success
+ * results from this module (see metric-decision-diagnostic.ts). This mapper
+ * never invokes the decision engine.
  */
 
+import type { InventoryActionEvidence } from "@/lib/commerce-domain/types";
 import {
   calculateOverstockRisk,
   calculateRecommendedOrderQuantity,
@@ -14,7 +19,16 @@ import {
 } from "@/lib/metrics/inventory-math";
 import { SKU_DAILY_METRIC_ALGORITHM_VERSION } from "@/lib/metrics/sku-daily-metric-record";
 
-import type { InventoryDecisionInput } from "./types";
+import type {
+  InventoryDecisionInput,
+  InventoryDecisionResult,
+} from "./types";
+
+/**
+ * Opaque mint gate: only bindMetricToDecisionInput may register successes.
+ * PB1.b refuses forged plain objects that merely look like a success result.
+ */
+const mintedTrustedBindingSuccesses = new WeakSet<object>();
 
 export const M7_PB1_METRIC_DECISION_BINDING_VERSION_V1 =
   "m7-pb1-metric-decision-binding-v1" as const;
@@ -188,6 +202,12 @@ export interface Pb1MetricDecisionBindingSuccess {
   metricSourceWatermark: string;
   decisionInput: InventoryDecisionInput;
   mappingNotes: readonly Pb1MappingNoteCode[];
+  /**
+   * Present only after PB1.b offline diagnostic evaluation.
+   * Must not be fed to production persist/UI approval paths.
+   */
+  diagnosticDecision?: InventoryDecisionResult;
+  diagnosticEvidence?: InventoryActionEvidence;
   provenance: Pb1HardFalseProvenance;
   warnings: readonly [
     "m5_metric_bound_preparation_only",
@@ -537,7 +557,7 @@ export function bindMetricToDecisionInput(
     dataQualityScore: null,
   });
 
-  return Object.freeze({
+  const success = Object.freeze({
     ok: true as const,
     bindingVersion: M7_PB1_METRIC_DECISION_BINDING_VERSION_V1,
     grain: Object.freeze(grain),
@@ -555,6 +575,29 @@ export function bindMetricToDecisionInput(
     warnings: WARNINGS,
     productionCreateBlockedUntil: PRODUCTION_CREATE_GATES,
   });
+
+  return mintTrustedBindingSuccess(success);
+}
+
+/**
+ * Runtime gate used by PB1.b — forged plain objects fail closed.
+ */
+export function isPb1TrustedMetricBindingSuccess(
+  value: unknown,
+): value is Pb1MetricDecisionBindingSuccess {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    mintedTrustedBindingSuccesses.has(value) &&
+    (value as { ok?: unknown }).ok === true
+  );
+}
+
+function mintTrustedBindingSuccess(
+  success: Pb1MetricDecisionBindingSuccess,
+): Pb1MetricDecisionBindingSuccess {
+  mintedTrustedBindingSuccesses.add(success);
+  return success;
 }
 
 export function buildMetricSourceWatermark(parts: {
