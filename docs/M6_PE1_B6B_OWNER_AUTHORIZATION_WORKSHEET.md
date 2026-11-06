@@ -1,9 +1,9 @@
 # M6-PE1.b.6b — Owner Authorization Worksheet
 
-**Mode:** OFFLINE DOCS ONLY — A3 proposed identities recorded (not approved). No agent hosted/local DB requests, logins, SQL, tokens, migrations, backups/restores, subscription/project changes, account/provisioning, JWT minting, production activation, commit/push. No J1–J13 this session.
-**As-of:** 2026-11-06 (A3 proposed designation — exclusivity evidence incomplete; A3 NOT APPROVED)
+**Mode:** OFFLINE DOCS ONLY — A3 **OWNER-APPROVED (YES)** recorded from owner dashboard exclusivity + signed phrase. No agent hosted/local DB requests, logins, SQL, tokens, migrations, backups/restores, subscription/project changes, account/provisioning, JWT minting, production activation, commit/push. No J1–J13 this session.
+**As-of:** 2026-11-06 (A3 OWNER-APPROVED; A1/A4/A6 still NOT APPROVED; JWT UNPROVEN)
 **Repo:** `/Users/syedmairaj/Documents/storeagent`
-**Baseline:** `main` @ `7d42247` — **Verified HEAD:** `7d4224744313e2140c4e9f47537fc820c1ec820f` (this session reconfirm: match)
+**Baseline:** `main` @ `b99799e` — **Verified HEAD:** `b99799ecd69cc67ea00a3aec190ff89696909768` (this session reconfirm: match)
 **Dirty tree:** Unrelated dirty/untracked preserved. This file updated in place only; other dirty files untouched.
 **Normative parents:**
 - `docs/M6_PE1_B6A_HOSTED_JWT_ISOLATION_PREFLIGHT.md` (§A–§E) — approval IDs / matrix / stop rules authoritative
@@ -21,7 +21,8 @@
 | **OWNER-PROVIDED (screenshot)** | Owner manual dashboard/screenshot evidence; abbreviated IDs only; not agent-verified |
 | **OWNER-APPROVED** | Named gate explicitly signed YES by owner in this worksheet |
 | **CANDIDATE** | Earlier screenshot mapping; superseded as **PROPOSED** for A3 when so labeled |
-| **PROPOSED (A3)** | Owner-designated for A3; **not** signed YES; insufficient until exclusivity + phrase |
+| **PROPOSED (A3)** | Owner-designated for A3 before signature; superseded when A3 is **OWNER-APPROVED** |
+| **OWNER-APPROVED (A3)** | A3 exclusivity + exact phrase signed YES by StoreAgent owner |
 | **PRIOR CLOSEOUT** | From HV1/HV2 (or related) docs; not re-verified this session |
 | **INDEPENDENTLY VERIFIED** | Confirmed by approved hosted/console probe in a later session |
 | **NOT APPROVED** | Normative gate not satisfied |
@@ -51,13 +52,14 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 
 **Explicit non-claims (A2 YES alone):**
 
-- Does **not** set A1 / A3 / A4 / A6 = YES.
+- Does **not** set A1 / A4 / A6 = YES (A3 is separately signed in §4.3).
 - Does **not** authorize hosted JWT mint, SQL, PostgREST, or J1–J13.
-- Does **not** formally designate Org A/B under **A3** (§2.3 rows are **PROPOSED** only until exclusivity + phrase signed).
 - Does **not** invent missing UUID characters, forecast-row inventory, or JWT results.
 - Does **not** prove runtime JWT isolation (remains **UNPROVEN**).
 - Does **not** approve D1–D7, PE1.c, workers/cron, subscription upgrade, backups/restores, account changes, secrets handling, or production activation.
 - Does **not** execute the future environment strategy (§0.2) — **DEFERRED PLAN** / planning only.
+
+**A3 YES non-claims (this update):** Designates Org A/B + Users A/B for PE1.b.6b JWT RLS probes only. Does **not** approve A1 / A4 / A6, mint JWTs, run J1–J13, prove JWT runtime isolation, authorize PE1.c, or flip launch readiness.
 
 ### 0.1.1 Reconciliation with prior E6 stop
 
@@ -84,16 +86,16 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 | Topic | Offline evidence | Assessment |
 |---|---|---|
 | Pin | HV2 §H.0 **PRIOR CLOSEOUT**: `storeagent` / `qlsqminsfdntpqdkhxjx` / `postgres` / PG 17.11; owner reaffirms same ref | **TECHNICAL OK** to *plan* against this pin; console reconfirm still owed at execution (J13 / E1) |
-| Env class | **A2 OWNER-APPROVED:** Other / Development & Testing; Supabase UI PRODUCTION ≠ PE1 Production | **A2 YES**; A1/A3/A4/A6 still open |
+| Env class | **A2 OWNER-APPROVED:** Other / Development & Testing; Supabase UI PRODUCTION ≠ PE1 Production | **A2 YES**; **A3 YES**; A1/A4/A6 still open |
 | Data / traffic posture | Owner: no paying customers, merchant data, or production traffic | **OWNER-DECLARED**; aligns with low blast-radius **LIMITED** JWT pack |
 | Forecast tables | HV1 **PRIOR CLOSEOUT**: global counts **0** on all six | Stale-until-reproven; implies **LIMITED** mode unless fresh dual-org rows appear |
 | RLS catalog | HV2: six membership + `auth.uid()` SELECT policies; no write policies; RPC EXECUTE service_role only | **TECHNICAL OK** as catalog baseline; JWT **runtime** still **UNPROVEN** |
 | Workers / cron / `vercel.json` | PE1.b.6a / HV2: workers off posture; no `vercel.json` at baseline | Must remain off during any future pack |
 | Source of truth | App code local; hosted DB is trial pin | Hosted JWT tests prove **DB RLS/EXECUTE**, not local unit tests |
 
-**Technical readiness (environment):** **CONDITIONAL GO** for planning a **LIMITED**, read-only / deny-only JWT pack on `qlsqminsfdntpqdkhxjx` — **subject to formal A1, A3, A4, A6**.
+**Technical readiness (environment):** **CONDITIONAL GO** for planning a **LIMITED**, read-only / deny-only JWT pack on `qlsqminsfdntpqdkhxjx` — **subject to formal A1, A4, A6** (A2 + A3 already YES).
 
-**Authorization readiness:** **NO-GO** for execution (A2 YES; A1/A3/A4/A6 still **NOT APPROVED**).
+**Authorization readiness:** **NO-GO** for execution (A2 + A3 YES; A1/A4/A6 still **NOT APPROVED**).
 
 ---
 
@@ -113,43 +115,44 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 |---|---|---|
 | Project inspected | `qlsqminsfdntpqdkhxjx` | **OWNER-PROVIDED (screenshot)** |
 | Auth users present | **Two** Auth users exist | **OWNER-PROVIDED (screenshot)** |
+| `organization_members` Table Editor | Owner inspected complete displayed view; **exactly two** membership rows | **OWNER-PROVIDED** (dashboard; not agent SQL) |
 | New accounts / orgs needed now | **None** | **OWNER-DECLARED** |
 | Third organization | Existing **M5 canary fixture** — **EXCLUDE** from PE1.b.6b Org A/B | **OWNER-DECLARED** |
 | Runtime JWT isolation | Still **UNPROVEN** | — |
 
-### 2.3 Proposed A3 identities (abbreviated — do not invent missing chars)
+### 2.3 A3 identities (abbreviated — do not invent missing chars)
 
 **Normative A3 requirements (PE1.b.6a §E / §B.1–§B.3):** Distinct Org A ≠ Org B; User A member of **A only**; User B member of **B only**; optional User N with no A/B membership; ≠ production canary allowlist; redacted IDs OK; no JWT mint in designation.
 
 | Label | Abbreviated id (as supplied) | Role / link | Status |
 |---|---|---|---|
-| **User A** | `37e2d8a3…` | → **Org A** `17e5f502…` as **owner** | **PROPOSED (A3)** — owner-designated |
-| **User B** | `0e0024e4…` | → **Org B** `feacd560…` as **owner** | **PROPOSED (A3)** — owner-designated |
-| Org A | `17e5f502…` | Distinct from Org B (prefix differs); not M5 canary | **PROPOSED (A3)** |
-| Org B | `feacd560…` | Distinct from Org A; not M5 canary | **PROPOSED (A3)** |
+| **User A** | `37e2d8a3…` | → **Org A** `17e5f502…` as **owner**; A∈A **only** | **OWNER-APPROVED (A3)** |
+| **User B** | `0e0024e4…` | → **Org B** `feacd560…` as **owner**; B∈B **only** | **OWNER-APPROVED (A3)** |
+| Org A | `17e5f502…` | Distinct from Org B (prefix differs); not M5 canary | **OWNER-APPROVED (A3)** |
+| Org B | `feacd560…` | Distinct from Org A; not M5 canary | **OWNER-APPROVED (A3)** |
 | M5 canary org | (not designated) | **Excluded** from JWT A/B pair | Out of scope |
 | User N | — | Not designated | **SKIP** (optional; PE1.b.6a recommended but not required for A3) |
 
-### 2.3.1 Missing A3 evidence (blocks APPROVED)
+### 2.3.1 A3 evidence checklist
 
 | # | Required (PE1.b.6a) | Status |
 |---|---|---|
-| E-A3-1 | Owner **signed** exact A3 approval statement (§4.3) | **MISSING** |
-| E-A3-2 | Explicit **A∈A only** — User A has **no** membership in Org B (and no other probe orgs if claimed “only”) | **MISSING** as signed exclusivity YES (positive A→A owner row alone is insufficient) |
-| E-A3-3 | Explicit **B∈B only** — User B has **no** membership in Org A | **MISSING** as signed exclusivity YES |
-| E-A3-4 | Org display name/slug (optional but preferred with redacted id) | **MISSING** — abbreviated ids only |
+| E-A3-1 | Owner **signed** exact A3 approval statement (§4.3) | **RECORDED** — exact phrase unchanged; StoreAgent owner; 2026-11-06 |
+| E-A3-2 | Explicit **A∈A only** — User A has **no** membership in Org B (and no other memberships in complete table view) | **YES** — owner Table Editor: User A `37e2d8a3…` → Org A `17e5f502…` only; role `owner`; complete view had exactly two membership rows total |
+| E-A3-3 | Explicit **B∈B only** — User B has **no** membership in Org A | **YES** — owner Table Editor: User B `0e0024e4…` → Org B `feacd560…` only; role `owner`; no other memberships present |
+| E-A3-4 | Org display name/slug (optional but preferred with redacted id) | **MISSING** — abbreviated ids only (optional; not blocking after E-A3-1…E-A3-3) |
 | E-A3-5 | Expand ellipsis to full UUIDs | **NOT REQUIRED** for A3 (redacted OK); **FORBIDDEN** for agent to invent |
 
-**Present (insufficient alone):** Owner-designated pairs; screenshot-derived owner role on each org; M5 canary excluded; Org A ≠ Org B at abbreviated prefix; A2 already YES.
+**Evidence source:** Owner dashboard verification of `public.organization_members` in Supabase project `qlsqminsfdntpqdkhxjx` (Table Editor) and explicit A3 authorization in ChatGPT on 2026-11-06. **Not** agent-executed SQL. **Not** JWT runtime proof.
 
-**Explicit:** Proposed ≠ approved. Agent did **not** expand ellipsis UUIDs. No JWTs minted. No provisioning.
+**Explicit:** Agent did **not** expand ellipsis UUIDs. No JWTs minted. No provisioning. Positive `role = owner` alone was **not** treated as exclusivity; exclusivity follows from complete two-row membership inventory.
 
 ### 2.4 Reuse / designation verdict
 
 | Question | Verdict |
 |---|---|
-| Proposed A3 A/B pairs recorded? | **YES** — §2.3 **PROPOSED (A3)** |
-| Formal A3 approved? | **NO** — **NOT APPROVED** (missing E-A3-1…E-A3-3) |
+| A3 A/B pairs recorded? | **YES** — §2.3 **OWNER-APPROVED (A3)** |
+| Formal A3 approved? | **YES** — **OWNER-APPROVED** (E-A3-1…E-A3-3 satisfied) |
 | New Auth users / orgs required? | **NO** (owner) |
 | Invent / complete UUID characters? | **FORBIDDEN** |
 
@@ -198,14 +201,14 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 
 ---
 
-## 4. Formal authorization (A1–A4 / A6) — still required
+## 4. Formal authorization (A1–A4 / A6) — A2 + A3 done; A1/A4/A6 still required
 
 ### 4.1 Separation
 
 | Layer | Status |
 |---|---|
 | **Technical readiness** (§1–§3) | **CONDITIONAL GO** to *plan* LIMITED pack |
-| **Formal authorization** | **NO-GO** until signed YES below |
+| **Formal authorization** | **NO-GO** for execution until A1 + A4 + A6 also YES (A2 + A3 done) |
 
 ### 4.2 Gate A2 — Env class
 
@@ -226,37 +229,37 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 | A2 signed YES / NO | **YES** |
 | Signature + date | Owner decision recorded 2026-11-06 (this worksheet update) |
 
-**A2 non-effects:** Does **not** approve A1/A3/A4/A6, JWT pack execution, migrations, backup/restore operations, account changes, secrets handling, subscription/production activation, or new project creation.
+**A2 non-effects:** Does **not** approve A1/A4/A6 or JWT pack execution by itself; A3 is separately recorded in §4.3. Does **not** authorize migrations, backup/restore operations, account changes, secrets handling, subscription/production activation, or new project creation.
 
 ### 4.3 Gate A3 — Org A / Org B (/ User N)
 
 | | |
 |---|---|
 | **Normative (PE1.b.6a §E)** | Designate Org A / Org B (/ User N) for probes; ≠ production canary allowlist. |
-| **Exact owner approval statement** (copy unchanged to sign) | See box below. |
-| **Evidence on hand** | §2.3 **PROPOSED (A3)** abbreviated pairs; M5 canary **excluded**. |
-| **Missing for YES** | §2.3.1 E-A3-1 (signed phrase), E-A3-2 / E-A3-3 (exclusivity YES). |
-| **Status** | **NOT APPROVED** |
+| **Exact owner approval statement** (copy unchanged to sign) | See box below — **signed unchanged**. |
+| **Evidence on hand** | §2.3 abbreviated pairs; owner Table Editor exclusivity on `organization_members`; M5 canary **excluded**. |
+| **Missing for YES** | None for A3 (E-A3-1…E-A3-3 satisfied). E-A3-4 org name/slug still optional/missing. |
+| **Status** | **OWNER-APPROVED (YES)** — 2026-11-06 |
 
-**Exact A3 owner approval statement:**
+**Exact A3 owner approval statement (signed unchanged):**
 
 > I designate Org A and Org B (distinct) and Users A/B for PE1.b.6b JWT RLS probes only. Memberships: A∈A only, B∈B only. Optional User N has no A/B membership. This is not a production canary allowlist and does not mint PE1 UUIDs for eligibility.
 
 | Field | Value |
 |---|---|
-| Org A (abbreviated id) | **PROPOSED** `17e5f502…` |
-| Org B (abbreviated id) | **PROPOSED** `feacd560…` |
-| User A → Org A (owner) | **PROPOSED** `37e2d8a3…` |
-| User A member of A **only**? | YES / NO: ________ *(required for A3 YES)* |
-| User B → Org B (owner) | **PROPOSED** `0e0024e4…` |
-| User B member of B **only**? | YES / NO: ________ *(required for A3 YES)* |
+| Org A (abbreviated id) | **DESIGNATED** `17e5f502…` |
+| Org B (abbreviated id) | **DESIGNATED** `feacd560…` |
+| User A → Org A (owner) | **DESIGNATED** `37e2d8a3…` |
+| User A member of A **only**? | **YES** — owner Table Editor; complete view; exactly two membership rows project-wide; A→A only |
+| User B → Org B (owner) | **DESIGNATED** `0e0024e4…` |
+| User B member of B **only**? | **YES** — owner Table Editor; B→B only; no other memberships |
 | User N (optional) | **SKIP** |
 | Exclude M5 canary from A/B? | **YES** (owner) |
-| Exact phrase above copied without alteration? | YES / NO: ________ |
-| A3 signed YES / NO | ________ |
-| Signature + date | ________ |
+| Exact phrase above copied without alteration? | **YES** |
+| A3 signed YES / NO | **YES** |
+| Signature + date | StoreAgent owner; 2026-11-06 (ChatGPT authorization + dashboard verification; recorded in this worksheet) |
 
-**Gate rule:** A3 stays **NOT APPROVED** until exclusivity fields are **YES**, the exact phrase is affirmed, and A3 signed **YES**. Proposed pairs alone do **not** flip this gate.
+**A3 non-effects:** Does **not** approve A1 / A4 / A6, authorize JWT mint or J1–J13, prove JWT runtime isolation, approve PE1.c, or change launch NO-GO.
 
 ### 4.4 Gate A4 — FULL vs LIMITED
 
@@ -287,11 +290,11 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 | | |
 |---|---|
 | **Phrase skeleton** | “I approve PE1.b.6b read-only hosted JWT isolation probes on project ref `qlsqminsfdntpqdkhxjx`, env class `Other`, mode `<FULL\|LIMITED>`, using designated test users only. No forecast RPC success path, no workers, no PE1.c.” |
-| **Status** | **NOT APPROVED** — requires A2 (done) + A3 + A4 + A6 already YES |
+| **Status** | **NOT APPROVED** — requires A2 (done) + A3 (done) + A4 + A6 already YES |
 
 | Field | Value |
 |---|---|
-| A1 signed YES / NO | ________ |
+| A1 signed YES / NO | ________ (**NOT APPROVED**) |
 | Operator + timestamp | ________ |
 
 ### 4.7 Optional A5 — J12
@@ -305,19 +308,20 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 | Gate | Status | Note |
 |---|---|---|
 | Technical env readiness | **CONDITIONAL GO** | Plan LIMITED pack |
-| Proposed A3 identities (§2.3) | **RECORDED** | Abbreviated; exclusivity + phrase still open |
+| A3 identities (§2.3) | **OWNER-APPROVED** | Abbreviated; exclusivity + phrase recorded |
 | A2 Env class | **OWNER-APPROVED (YES)** | Other / Development & Testing; planning only |
-| A3 Org/users | **NOT APPROVED** | Proposed pairs ready; missing E-A3-1…E-A3-3 |
+| A3 Org/users | **OWNER-APPROVED (YES)** | E-A3-1…E-A3-3 satisfied 2026-11-06 |
 | A4 Mode | **NOT APPROVED** | LIMITED recommended |
 | A6 Retention | **NOT APPROVED** | |
-| A1 Execute | **NOT APPROVED** | Last; after A3 + A4 + A6 |
+| A1 Execute | **NOT APPROVED** | Last; after A4 + A6 |
 | A5 J12 | **N/A** (optional) | |
 | Phase 2 J1–J13 | **NOT EXECUTED** | JWT runtime **UNPROVEN** |
+| PE1.c / paying launch | **NO-GO** | Unchanged |
 | Future env strategy (§0.2) | **DEFERRED PLAN** | Non-executable planning only |
 
 ### 5.1 Next single owner action
 
-Confirm **User A ∈ Org A only** and **User B ∈ Org B only** (dashboard membership check; no SQL dump), then paste the §4.3 A3 statement and set **A3 = YES** with date. Do **not** mint JWTs or run SQL.
+Declare **A4** mode (**LIMITED** recommended; no fixture INSERT in PE1.b.6b), then **A6** retention location, then **A1** execute phrase — still **no** JWT mint / SQL / J-matrix until all remaining gates are YES.
 
 ---
 
@@ -325,16 +329,17 @@ Confirm **User A ∈ Org A only** and **User B ∈ Org B only** (dashboard membe
 
 | Action | Decision |
 |---|---|
-| Reconfirm HEAD `7d42247`; preserve dirty tree; update this worksheet only | **GO** |
-| Record §2.3 proposed A3 identities (abbreviated) | **GO** (done) |
-| Mark A3 APPROVED without exclusivity YES + signed phrase | **NO-GO** |
-| Treat proposed pairs as A3 YES / invent UUID characters | **NO-GO** |
+| Reconfirm HEAD `b99799e`; preserve dirty tree; update this worksheet only | **GO** |
+| Record A3 exclusivity + signed exact phrase | **GO** (done) |
+| Mark A3 APPROVED without exclusivity YES + signed phrase | **NO-GO** (historical; now satisfied) |
+| Invent UUID characters | **NO-GO** |
 | Alter A1 / A4 / A6 status | **NO-GO** (remain **NOT APPROVED**) |
 | Execute PE1.b.6b / mint JWTs / run SQL this session | **NO-GO** |
-| After A1 + A3 + A4 + A6 also signed YES | **GO to execute** minimal §3.3 plan (separate session) |
+| Begin A4 / J1–J13 in this documentation slice | **NO-GO** |
+| After A1 + A4 + A6 also signed YES | **GO to execute** minimal §3.3 plan (separate session) |
 
-**Overall:** **A3 NOT APPROVED** (proposed only). **A1 / A4 / A6 NOT APPROVED**. **AUTHORIZATION NO-GO** for PE1.b.6b execution. A2 remains YES.
+**Overall:** **A3 OWNER-APPROVED (YES)**. **A1 / A4 / A6 NOT APPROVED**. **AUTHORIZATION NO-GO** for PE1.b.6b execution. A2 remains YES. JWT runtime **UNPROVEN**. PE1.c / launch **NO-GO**.
 
 ---
 
-**STOP.** A3 proposed identities recorded. No hosted ops. No invented UUID characters. No commit/push.
+**STOP.** A3 authorization recorded. No hosted ops. No invented UUID characters. No commit/push. Do not begin A4 or execute J1–J13.
