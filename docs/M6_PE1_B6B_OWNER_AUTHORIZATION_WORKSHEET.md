@@ -1,9 +1,9 @@
 # M6-PE1.b.6b — Owner Authorization Worksheet
 
-**Mode:** OFFLINE DOCS ONLY — A2–A4 + A6 **OWNER-APPROVED (YES)** recorded. No agent hosted/local DB requests, logins, SQL, tokens, migrations, backups/restores, subscription/project changes, account/provisioning, JWT minting, production activation, commit/push. No J1–J13 this session.
-**As-of:** 2026-11-06 (A2+A3+A4+A6 OWNER-APPROVED; A1 still NOT APPROVED; JWT UNPROVEN)
+**Mode:** OFFLINE DOCS ONLY — A1–A4 + A6 **OWNER-APPROVED (YES)** recorded (A5 N/A). Formal authorization complete for LIMITED pack; **hosted execution not started this session**. No agent hosted/local DB requests, logins, SQL, tokens, migrations, backups/restores, subscription/project changes, account/provisioning, JWT minting, production activation, commit/push. No J1–J13 this session.
+**As-of:** 2026-11-06 (A1–A4+A6 OWNER-APPROVED; J1–J13 NOT EXECUTED; JWT UNPROVEN)
 **Repo:** `/Users/syedmairaj/Documents/storeagent`
-**Baseline:** `main` @ `4c3816f` — **Verified HEAD:** `4c3816f06dce72d3bc9100b0d123ecab8b8d8d5c` (this session reconfirm: match)
+**Baseline:** `main` @ `fcf21b6` — **Verified HEAD:** `fcf21b6cd5c87a6d90b8ea7ebea1c0058447def4` (this session reconfirm: match)
 **Dirty tree:** Unrelated dirty/untracked preserved. This file updated in place only; other dirty files untouched.
 **Normative parents:**
 - `docs/M6_PE1_B6A_HOSTED_JWT_ISOLATION_PREFLIGHT.md` (§A–§E) — approval IDs / matrix / stop rules authoritative
@@ -25,6 +25,7 @@
 | **OWNER-APPROVED (A3)** | A3 exclusivity + exact phrase signed YES by StoreAgent owner |
 | **OWNER-APPROVED (A4)** | A4 FULL/LIMITED mode signed YES by StoreAgent owner |
 | **OWNER-APPROVED (A6)** | A6 evidence retention location signed YES by StoreAgent owner |
+| **OWNER-APPROVED (A1)** | A1 LIMITED pack execution authorization signed YES by StoreAgent owner (≠ executed; ≠ JWT PASS) |
 | **PRIOR CLOSEOUT** | From HV1/HV2 (or related) docs; not re-verified this session |
 | **INDEPENDENTLY VERIFIED** | Confirmed by approved hosted/console probe in a later session |
 | **NOT APPROVED** | Normative gate not satisfied |
@@ -35,7 +36,7 @@
 
 ## 0. Purpose
 
-Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack from **formal authorization** (A1–A4/A6). Until **A1** (plus already-signed A2–A4 and A6) is owner-signed **YES**, PE1.b.6b execution remains **NO-GO**.
+Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack from **formal authorization** (A1–A4/A6). **A1–A4 + A6 are now OWNER-APPROVED (YES).** Hosted pack execution remains **deferred** to a **separate session** after operational prechecks (pin / workers / inventory / Auth). A1 YES ≠ JWT runtime PASS and ≠ PE1.c / launch.
 
 ---
 
@@ -54,18 +55,19 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 
 **Explicit non-claims (A2 YES alone):**
 
-- Does **not** set A1 = YES (A3 / A4 / A6 are separately signed in §4.3 / §4.4 / §4.5).
-- Does **not** authorize hosted JWT mint, SQL, PostgREST, or J1–J13.
+- Does **not** by itself authorize pack execution (A1 is separately signed in §4.6).
 - Does **not** invent missing UUID characters, forecast-row inventory, or JWT results.
-- Does **not** prove runtime JWT isolation (remains **UNPROVEN**).
+- Does **not** prove runtime JWT isolation (remains **UNPROVEN** until pack runs and passes).
 - Does **not** approve D1–D7, PE1.c, workers/cron, subscription upgrade, backups/restores, account changes, secrets handling, or production activation.
 - Does **not** execute the future environment strategy (§0.2) — **DEFERRED PLAN** / planning only.
 
-**A3 YES non-claims:** Designates Org A/B + Users A/B for PE1.b.6b JWT RLS probes only. Does **not** approve A1, mint JWTs, run J1–J13, prove JWT runtime isolation, authorize PE1.c, or flip launch readiness.
+**A3 YES non-claims:** Designates Org A/B + Users A/B for PE1.b.6b JWT RLS probes only. Does **not** prove JWT runtime isolation, authorize PE1.c, or flip launch readiness.
 
-**A4 YES non-claims:** Declares inventory mode **LIMITED** only. Does **not** approve A1, authorize JWT mint or J1–J13, prove JWT runtime isolation, authorize fixture INSERT / forecast mutations, claim FULL same-tenant positive proof, authorize PE1.c, or flip launch readiness.
+**A4 YES non-claims:** Declares inventory mode **LIMITED** only. Does **not** authorize fixture INSERT / forecast mutations, claim FULL same-tenant positive proof, authorize PE1.c, or flip launch readiness.
 
-**A6 YES non-claims (this update):** Designates sanitized operator evidence retention path only. Does **not** approve A1, authorize JWT mint or J1–J13, prove JWT runtime isolation, substitute for D7 production audit ownership, authorize PE1.c, or flip launch readiness.
+**A6 YES non-claims:** Designates sanitized operator evidence retention path only. Does **not** substitute for D7 production audit ownership, authorize PE1.c, or flip launch readiness.
+
+**A1 YES non-claims (this update):** Authorizes a **future** LIMITED read-only JWT isolation pack on the approved pin only, subject to operational prechecks and signed safety conditions. Does **not** mean J1–J13 have run or passed; does **not** prove JWT isolation; does **not** authorize PE1.c, workers/cron activation, D1–D7, fixture INSERT, uncontrolled DML, successful RPC bodies, service_role bypass testing (J12), or paying-customer launch.
 
 ### 0.1.1 Reconciliation with prior E6 stop
 
@@ -92,16 +94,16 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 | Topic | Offline evidence | Assessment |
 |---|---|---|
 | Pin | HV2 §H.0 **PRIOR CLOSEOUT**: `storeagent` / `qlsqminsfdntpqdkhxjx` / `postgres` / PG 17.11; owner reaffirms same ref | **TECHNICAL OK** to *plan* against this pin; console reconfirm still owed at execution (J13 / E1) |
-| Env class | **A2 OWNER-APPROVED:** Other / Development & Testing; Supabase UI PRODUCTION ≠ PE1 Production | **A2 YES**; **A3 YES**; **A4 LIMITED YES**; **A6 YES**; A1 still open |
+| Env class | **A2 OWNER-APPROVED:** Other / Development & Testing; Supabase UI PRODUCTION ≠ PE1 Production | **A2 YES**; **A3 YES**; **A4 LIMITED YES**; **A6 YES**; **A1 YES** (pack not executed this session) |
 | Data / traffic posture | Owner: no paying customers, merchant data, or production traffic | **OWNER-DECLARED**; aligns with low blast-radius **LIMITED** JWT pack |
 | Forecast tables | HV1 **PRIOR CLOSEOUT**: global counts **0** on all six | Stale-until-reproven; **NOT RECONFIRMED** this session; A4 **LIMITED** (§4.4) |
 | RLS catalog | HV2: six membership + `auth.uid()` SELECT policies; no write policies; RPC EXECUTE service_role only | **TECHNICAL OK** as catalog baseline; JWT **runtime** still **UNPROVEN** |
 | Workers / cron / `vercel.json` | PE1.b.6a / HV2: workers off posture; no `vercel.json` at baseline | Must remain off during any future pack |
 | Source of truth | App code local; hosted DB is trial pin | Hosted JWT tests prove **DB RLS/EXECUTE**, not local unit tests |
 
-**Technical readiness (environment):** **CONDITIONAL GO** for planning a **LIMITED**, read-only / deny-only JWT pack on `qlsqminsfdntpqdkhxjx` — **subject to formal A1** (A2 + A3 + A4 + A6 already YES).
+**Technical readiness (environment):** **CONDITIONAL GO** for a **LIMITED**, read-only / deny-only JWT pack on `qlsqminsfdntpqdkhxjx` — formal A1–A4 + A6 **YES**; subject to operational prechecks in a **separate** execution session.
 
-**Authorization readiness:** **NO-GO** for execution (A2 + A3 + A4 + A6 YES; A1 still **NOT APPROVED**).
+**Authorization readiness:** **FORMAL GO** (A1–A4 + A6 YES). **This documentation session:** **NO-GO** for hosted execution / J1–J13 (not started; JWT still **UNPROVEN**).
 
 ---
 
@@ -207,14 +209,14 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 
 ---
 
-## 4. Formal authorization (A1–A4 / A6) — A2–A4 + A6 done; A1 still required
+## 4. Formal authorization (A1–A4 / A6) — A1–A4 + A6 done (A5 N/A)
 
 ### 4.1 Separation
 
 | Layer | Status |
 |---|---|
-| **Technical readiness** (§1–§3) | **CONDITIONAL GO** to *plan* LIMITED pack |
-| **Formal authorization** | **NO-GO** for execution until A1 also YES (A2–A4 + A6 done) |
+| **Technical readiness** (§1–§3) | **CONDITIONAL GO** for LIMITED pack (subject to operational prechecks) |
+| **Formal authorization** | **COMPLETE** (A1–A4 + A6 YES) — execution deferred to separate session |
 
 ### 4.2 Gate A2 — Env class
 
@@ -235,7 +237,7 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 | A2 signed YES / NO | **YES** |
 | Signature + date | Owner decision recorded 2026-11-06 (this worksheet update) |
 
-**A2 non-effects:** Does **not** approve A1 or JWT pack execution by itself; A3/A4/A6 are separately recorded in §4.3 / §4.4 / §4.5. Does **not** authorize migrations, backup/restore operations, account changes, secrets handling, subscription/production activation, or new project creation.
+**A2 non-effects:** Does **not** by itself authorize JWT pack execution; A1/A3/A4/A6 are separately recorded. Does **not** authorize migrations, backup/restore operations, account changes, secrets handling, subscription/production activation, or new project creation.
 
 ### 4.3 Gate A3 — Org A / Org B (/ User N)
 
@@ -265,7 +267,7 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 | A3 signed YES / NO | **YES** |
 | Signature + date | StoreAgent owner; 2026-11-06 (ChatGPT authorization + dashboard verification; recorded in this worksheet) |
 
-**A3 non-effects:** Does **not** approve A1, authorize JWT mint or J1–J13, prove JWT runtime isolation, approve PE1.c, or change launch NO-GO. (A4/A6 are separately recorded in §4.4 / §4.5.)
+**A3 non-effects:** Does **not** prove JWT runtime isolation, approve PE1.c, or change launch NO-GO. (A1/A4/A6 are separately recorded.)
 
 ### 4.4 Gate A4 — FULL vs LIMITED
 
@@ -289,7 +291,7 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 | A4 signed YES / NO | **YES** |
 | Signature + date | StoreAgent.si owner; 2026-11-06 (explicit ChatGPT approval; recorded in this worksheet) |
 
-**A4 non-effects:** Does **not** approve A1, authorize JWT mint or J1–J13, prove JWT runtime isolation, authorize fixture INSERT or forecast mutations, claim FULL same-tenant positive proof, approve PE1.c / workers / paying launch. (A6 is separately recorded in §4.5.)
+**A4 non-effects:** Does **not** authorize fixture INSERT or forecast mutations, claim FULL same-tenant positive proof, approve PE1.c / workers / paying launch. (A1/A6 are separately recorded.)
 
 ### 4.5 Gate A6 — Evidence retention
 
@@ -313,23 +315,47 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 | A6 signed YES / NO | **YES** |
 | Signature + date | StoreAgent.si owner; 2026-11-06 (explicit ChatGPT approval; recorded in this worksheet) |
 
-**A6 non-effects:** Does **not** authorize hosted execution (A1), mint JWTs, run J1–J13, prove JWT runtime isolation, own D7 production audit, approve PE1.c / workers / paying launch.
+**A6 non-effects:** Does **not** prove JWT runtime isolation, own D7 production audit, approve PE1.c / workers / paying launch. (A1 is separately recorded in §4.6.)
 
 ### 4.6 Gate A1 — Execute pack (last)
 
 | | |
 |---|---|
-| **Phrase skeleton** | “I approve PE1.b.6b read-only hosted JWT isolation probes on project ref `qlsqminsfdntpqdkhxjx`, env class `Other`, mode `<FULL\|LIMITED>`, using designated test users only. No forecast RPC success path, no workers, no PE1.c.” |
-| **Status** | **NOT APPROVED** — requires A2 (done) + A3 (done) + A4 (done / LIMITED) + A6 (done) already YES |
+| **Normative (PE1.b.6a §E)** | Explicit YES to run PE1.b.6b read-only JWT/RLS/EXECUTE-deny pack on pin; ≠ PE1.c / workers. |
+| **Status** | **OWNER-APPROVED (YES)** — 2026-11-06 |
+| **Execution this session** | **NOT STARTED** — separate session required after operational prechecks |
+
+**Exact A1 owner approval statement (signed unchanged):**
+
+> I approve PE1.b.6b read-only hosted JWT isolation probes on project ref qlsqminsfdntpqdkhxjx, env class Other, mode LIMITED, using designated test users only. No forecast RPC success path, no workers, no PE1.c.
+
+**Exact additional owner safety conditions (signed unchanged):**
+
+> J7/J8/J9 must use privilege-first verification. J5 and J12 are SKIP. No forecast fixture INSERT, uncontrolled DML, successful RPC invocation, or service-role bypass testing. Store only sanitized results in the approved A6 path. Any unexpected grant, write success, RPC success, tenant leak, or count drift requires immediate STOP. LIMITED evidence must never be represented as FULL isolation proof.
 
 | Field | Value |
 |---|---|
-| A1 signed YES / NO | ________ (**NOT APPROVED**) |
-| Operator + timestamp | ________ |
+| Project pin | `qlsqminsfdntpqdkhxjx` (preserved) |
+| Env class | **Other** / Development & Testing (A2) |
+| Mode | **LIMITED** (A4) |
+| Designated identities | User A/Org A + User B/Org B exclusive (A3); M5 canary excluded; User N SKIP |
+| J5 | **SKIP** |
+| J12 / A5 | **SKIP** / **N/A** — no service_role bypass testing |
+| J7 / J8 / J9 | **Privilege-first**, non-mutating verification required; no uncontrolled DML; no successful RPC body |
+| Fixture INSERT / uncontrolled mutations | **FORBIDDEN** |
+| Evidence | Sanitized-only in A6 path `docs/M6_PE1_B6B_HOSTED_JWT_RUNTIME_EVIDENCE.md` |
+| Stop conditions | All B6A §D.4 STOP conditions retained (pin/env; approvals; mode; cross-tenant leak; RPC/DML success; count drift; service_role mutate temptation; secrets in git) |
+| Exact A1 phrase copied without alteration? | **YES** |
+| Exact safety conditions copied without alteration? | **YES** |
+| A1 signed YES / NO | **YES** |
+| Signature + date | StoreAgent.si owner; 2026-11-06 (explicit ChatGPT approval; recorded in this worksheet) |
+| Hosted execution | **Separate session only** after operational prechecks (console pin, workers off, count-only inventory, Auth JWT mint for designated users) |
+
+**A1 non-effects / interpretation limits:** A1 YES is **authorization to run** a future LIMITED pack under the conditions above. It is **not** evidence that any security test passed. J1–J13 remain **NOT EXECUTED**. JWT runtime isolation remains **UNPROVEN**. PE1.c / D1–D7 / workers-cron activation / paying launch remain **NO-GO**.
 
 ### 4.7 Optional A5 — J12
 
-| Status | **N/A** unless owner opts in: ________ |
+| Status | **N/A** — **J12 = SKIP** (owner; no service_role bypass testing in PE1.b.6b) |
 
 ---
 
@@ -337,21 +363,23 @@ Separate **technical readiness** for a minimal hosted JWT tenant-isolation pack 
 
 | Gate | Status | Note |
 |---|---|---|
-| Technical env readiness | **CONDITIONAL GO** | Plan LIMITED pack |
+| Technical env readiness | **CONDITIONAL GO** | LIMITED pack; operational prechecks owed at execution |
 | A3 identities (§2.3) | **OWNER-APPROVED** | Abbreviated; exclusivity + phrase recorded |
-| A2 Env class | **OWNER-APPROVED (YES)** | Other / Development & Testing; planning only |
+| A2 Env class | **OWNER-APPROVED (YES)** | Other / Development & Testing |
 | A3 Org/users | **OWNER-APPROVED (YES)** | E-A3-1…E-A3-3 satisfied 2026-11-06 |
 | A4 Mode | **OWNER-APPROVED (YES)** | **LIMITED**; HV1 historical zero rows; current inventory NOT RECONFIRMED |
 | A6 Retention | **OWNER-APPROVED (YES)** | `docs/M6_PE1_B6B_HOSTED_JWT_RUNTIME_EVIDENCE.md` (sanitized only) |
-| A1 Execute | **NOT APPROVED** | Last remaining formal gate |
-| A5 J12 | **N/A** (optional) | |
+| A1 Execute | **OWNER-APPROVED (YES)** | LIMITED pack authorized; **not executed** this session |
+| A5 J12 | **N/A** / **SKIP** | No service_role bypass testing |
+| J5 | **SKIP** | User N not designated |
 | Phase 2 J1–J13 | **NOT EXECUTED** | JWT runtime **UNPROVEN** |
-| PE1.c / workers / paying launch | **NO-GO** | Unchanged |
+| D1–D7 production policy | **NOT APPROVED** | Unchanged |
+| PE1.c / workers / paying launch | **NO-GO** | No activation authorized |
 | Future env strategy (§0.2) | **DEFERRED PLAN** | Non-executable planning only |
 
 ### 5.1 Next single owner action
 
-Sign **A1** execute phrase for pin `qlsqminsfdntpqdkhxjx`, env class **Other**, mode **LIMITED**, designated test users only — still **no** JWT mint / SQL / J-matrix until A1 is YES.
+Open a **separate** PE1.b.6b execution session: operational prechecks (pin `qlsqminsfdntpqdkhxjx`, workers off, count-only inventory, Auth for designated A/B users), then LIMITED matrix with privilege-first J7/J8/J9; J5/J12 SKIP; sanitized A6 evidence only. Do **not** treat A1 YES as JWT PASS.
 
 ---
 
@@ -359,21 +387,17 @@ Sign **A1** execute phrase for pin `qlsqminsfdntpqdkhxjx`, env class **Other**, 
 
 | Action | Decision |
 |---|---|
-| Reconfirm HEAD `4c3816f`; preserve dirty tree; update this worksheet only | **GO** |
-| Record A3 exclusivity + signed exact phrase | **GO** (done) |
-| Record A4 LIMITED + signed exact phrase | **GO** (done) |
-| Record A6 retention path + signed exact phrase | **GO** (done) |
+| Reconfirm HEAD `fcf21b6`; preserve dirty tree; update this worksheet only | **GO** |
+| Record A1 phrase + safety conditions unchanged | **GO** (done) |
 | Invent UUID characters / invent inventory counts / invent J results | **NO-GO** |
-| Alter A1 status | **NO-GO** (remain **NOT APPROVED**) |
 | Paste secrets into git retention path | **NO-GO** (STOP + rotate if it occurs) |
 | Over-claim LIMITED as FULL same-tenant positive proof | **NO-GO** |
-| Fixture INSERT / forecast mutations under PE1.b.6b | **NO-GO** |
-| Execute PE1.b.6b / mint JWTs / run SQL this session | **NO-GO** |
-| Begin A1 / J1–J13 in this documentation slice | **NO-GO** |
-| After A1 also signed YES | **GO to execute** minimal §3.3 LIMITED plan (separate session) |
+| Fixture INSERT / uncontrolled DML / successful RPC / J12 | **NO-GO** |
+| Execute PE1.b.6b / mint JWTs / run SQL **this** documentation session | **NO-GO** |
+| After operational prechecks in a **separate** session | **GO to execute** minimal §3.3 LIMITED plan under A1 conditions |
 
-**Overall:** **A2 + A3 + A4 + A6 OWNER-APPROVED (YES)** — A4 mode **LIMITED**; A6 retention = runtime evidence path (sanitized). **A1 NOT APPROVED**. **AUTHORIZATION NO-GO** for PE1.b.6b execution. JWT runtime **UNPROVEN**. PE1.c / workers / launch **NO-GO**.
+**Overall:** **A1 + A2 + A3 + A4 + A6 OWNER-APPROVED (YES)** — A4/A1 mode **LIMITED**; A6 = sanitized runtime evidence path; J5/J12 **SKIP**. **J1–J13 NOT EXECUTED**. JWT runtime **UNPROVEN**. PE1.c / workers / D1–D7 / paying launch **NO-GO**. A1 YES ≠ test PASS.
 
 ---
 
-**STOP.** A6 evidence retention authorization recorded. No hosted ops. No invented UUID characters, inventory counts, or J results. No commit/push. Do not initiate A1 or hosted testing.
+**STOP.** A1 authorization recorded. No hosted ops. No J-matrix execution. No invented UUID characters, inventory counts, or J results. No commit/push. Do **not** start the PE1.b.6b execution session in this slice.
