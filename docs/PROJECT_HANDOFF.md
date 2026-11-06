@@ -1,6 +1,9 @@
 # StoreAgent project handoff
 
-Bootstrap for new ChatGPT / Cursor sessions. Canonical detail: `docs/IMPLEMENTATION_STATUS.md`. M5.6/M5.7 worker detail: `docs/M5_6_HANDOFF.md`. Product roadmap (Gemini-aligned): `docs/StoreAgent_Master_Roadmap_2026_Updated_7_Day_Trial.docx` — do not overwrite casually.
+Bootstrap for new ChatGPT / Cursor sessions.
+
+**Active PE1.b.6b continuity (read first for JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`  
+Canonical long ledger: `docs/IMPLEMENTATION_STATUS.md` (**partially stale** — see §3 note). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually.
 
 ## 1. Thesis and non-negotiables
 
@@ -10,6 +13,7 @@ Data determines reality. Deterministic forecasting and inventory logic calculate
 - Fail closed on uncertainty; no sync≡complete; no fabricated forecasts.
 - Provider-independent canonical domain; adapters normalize into it.
 - Sequence: **M6 forecasting → M7 decisions → approval-gated buying**.
+- **Paying-customer launch:** **NO-GO** until separate launch acceptance (security + ops + merchant journey). PE1.b.6b ≠ launch.
 
 ## 2. Baseline
 
@@ -17,12 +21,15 @@ Data determines reality. Deterministic forecasting and inventory logic calculate
 |---|---|
 | Repository | StoreAgent.si |
 | Branch | `main` |
-| HEAD | `6136874` — `feat(forecasting): add diagnostic evaluation reporting` |
-| As-of | M6 hosted schema closeout (P1–P4d local + hosted migrations through `20261030200000`) |
+| HEAD (verify) | Expect ≥ `7d42247` — `docs(forecast): define PE1.b.6a hosted JWT isolation preflight` |
+| As-of | 2026-11-06 — PE1.b.6a committed; PE1.b.6b authorization in progress (A2 YES; A3–A1 open) |
+| Hosted pin | `qlsqminsfdntpqdkhxjx` (trial; PE1 env class **Other** / Development & Testing per worksheet A2) |
 
-Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing.
+Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Commit untracked PE1.b.6b docs before trusting chat alone.
 
 ## 3. Status matrix
+
+**Note:** `IMPLEMENTATION_STATUS.md` still says “M7 NOT STARTED” in its active handoff header; that line is **stale**. M7 persistence / lifecycle **foundations** exist in migrations and contracts; **production merchant activation** remains **BLOCKED**. Prefer this matrix + PE1.b.6b handover for current truth.
 
 | Area | Implemented | Local verified | Hosted verified | Planned / blocked |
 |---|---|---|---|---|
@@ -30,13 +37,16 @@ Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing.
 | M5.7 adversarial | Yes | Yes (local) | F1/T4 schema only | Worker runtime **blocked** |
 | M5 workers / cron / HTTP | Code present | — | **OFF (repo config)**; live host env **not verified** | Enablement **blocked** |
 | E.4 canary queue | — | — | Intentionally `queued` dirty=2 claimed=1 | **Do not drain** |
-| M6 P1–P4d (local) | Yes through `6136874` | Yes | — | Production forecast operation **NOT APPROVED** |
+| M6 P1–P4d (local) | Yes through `6136874`+ | Yes | — | Production forecast operation **NOT APPROVED** |
 | M6 hosted schema | Yes | — | **CLOSED** through `20261030200000` | Schema ≠ operation |
-| M6 production persist/publish/eval callers | Code present | Local/tests | Row counts verified **0** at closeout | Activation **blocked** |
-| Live historical PIT replay | — | Fixture diagnostics only | Unsupported | Unsupported |
-| M7 decisions | — | — | — | After M6 operational gates |
-| CSV → Shopify → Woo → Amazon | Product locked | — | — | Planned |
-| 7-day trial / decision-first UX | Product locked | — | — | Planned |
+| PE1.b.4a / 4b synthetic lifecycle | Docs + local disposable evidence | **PASS** (offline Env-A) | N/A (not hosted proof) | ≠ JWT / PE1.c |
+| PE1.b.5 gap audit | Docs | — | Catalog cited; JWT **UNPROVEN** | PE1.c **NO-GO** |
+| PE1.b.6a JWT preflight | Docs @ `7d42247` | — | Plan only | Execution needs A1–A4+A6 |
+| PE1.b.6b JWT runtime | Worksheet + evidence docs | — | **NOT EXECUTED** | A2 YES; A3 proposed; A1/A4/A6 open |
+| M6 production persist/publish/eval | Code present | Local/tests | Row counts historically **0** | Activation **blocked** |
+| M7 decisions / approvals | Schema + contracts **partial** | Partial | — | Merchant activation **blocked** |
+| CSV → Shopify → Woo → Amazon | Product locked | — | — | Launch path open |
+| Billing / trial / ops | Partial docs/code | — | — | Paying launch **NO-GO** |
 
 ## 4. M5 snapshot
 
@@ -84,9 +94,9 @@ Local implementation/testing committed on `main` through **`6136874`** (P1 → P
 
 ## 6. Next three engineering steps
 
-1. Treat M6 hosted schema as closed; do **not** enable production persist/publish/eval callers without a new explicit approval.
-2. Keep M5 worker/rollover HTTP and forecast workers/cron **OFF**; optionally complete live host-env verification (P1).
-3. Next product/engineering gates remain separate: production algorithm approval, automatic publication, then **M7** decisions — not authorized by this closeout.
+1. **PE1.b.6b:** Complete A3 → A4 (LIMITED) → A6 → A1 on the owner worksheet; then LIMITED JWT matrix only. See `docs/M6_PE1_B6B_SESSION_HANDOVER.md`.
+2. Keep M5/forecast workers/cron/HTTP **OFF**; do **not** enable production persist/publish/eval without new approval.
+3. After JWT closeout: one focused **launch-gap inventory** (M5 ops, M6 hosted lifecycle, M7 activation, integrations, UX, billing, deployment) — not indefinite architecture churn.
 
 ## 7. Hard bans
 
@@ -112,20 +122,24 @@ From the master roadmap / October 2026 Gemini-aligned addendum (do not rewrite t
 
 | Doc | Use |
 |---|---|
-| `docs/IMPLEMENTATION_STATUS.md` | Milestone truth |
+| `docs/M6_PE1_B6B_SESSION_HANDOVER.md` | **PE1.b.6b / ChatGPT–Cursor continuity** (authority map + prompts) |
+| `docs/M6_PE1_B6B_OWNER_AUTHORIZATION_WORKSHEET.md` | Live A1–A6 status |
+| `docs/M6_PE1_B6A_HOSTED_JWT_ISOLATION_PREFLIGHT.md` | Normative JWT plan |
+| `docs/M6_PE1_B6B_HOSTED_JWT_RUNTIME_EVIDENCE.md` | J1–J13 results (still empty) |
+| `docs/M6_PE1_B5_HOSTED_CANARY_READINESS_GAP_AUDIT.md` | Hosted readiness gaps |
+| `docs/M6_PE1_B4A_*` / `B4B_*` | Offline synthetic lifecycle contract + evidence |
 | `docs/PROJECT_HANDOFF.md` | This file — session start |
+| `docs/IMPLEMENTATION_STATUS.md` | Long milestone ledger (**check staleness**) |
 | `docs/M5_6_HANDOFF.md` | M5.6/M5.7 worker contracts |
 | `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md` | Canary ops (do not drain dirty=2) |
-| `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md` | Org-scoped canary isolation |
-| `docs/FORECASTING.md` | Forecast architecture |
-| `docs/DECISION_ENGINE.md` | M7 decision contracts |
-| `docs/SERVICE_ROLE_BOUNDARY.md` | RPC / mutation authority |
-| `docs/BACKGROUND_JOBS.md` | Job orchestration contracts |
-| Master roadmap DOCX | Product / Gemini-aligned plan |
+| `docs/FORECASTING.md` / `docs/DECISION_ENGINE.md` | Forecast / M7 contracts |
+| `docs/SERVICE_ROLE_BOUNDARY.md` / `docs/BACKGROUND_JOBS.md` | Authority / jobs |
+| Master roadmap DOCX | Product plan |
 
 ## 10. How to start a new chat
 
-1. Paste or open this file plus confirm HEAD (`6136874` or newer stated baseline).
-2. Ask the agent for a **read-only** confirm of §3–7 before code or hosted changes.
-3. State the single next task (default: **no production forecast activation** — await separate approval).
-4. Preserve unrelated dirty-tree files; no drive-by docs or Git unless requested.
+1. Confirm HEAD (`7d42247` or newer). Commit PE1.b.6b untracked docs if still untracked.
+2. For PE1.b.6b: open `docs/M6_PE1_B6B_SESSION_HANDOVER.md` and paste the ChatGPT or Cursor prompt from that file.
+3. For general product work: this file + read-only confirm of §3–7 before hosted changes.
+4. Default ban: **no** production forecast activation, workers, PE1.c, or paying launch claims without explicit approval.
+5. Preserve unrelated dirty-tree files; no drive-by Git unless requested.

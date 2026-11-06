@@ -2,11 +2,23 @@
 
 ## Active handoff
 
+> **STALE-WARNING (2026-11-06):** Prefer `docs/PROJECT_HANDOFF.md` + `docs/M6_PE1_B6B_SESSION_HANDOVER.md` for **current** PE1.b.6b gates and session bootstrap. This ledger’s header baseline (`6136874`) and the line “M7 — NOT STARTED” below are **outdated** relative to later commits (PE1.b.4a→6a on `main` through `7d42247`; M7 schema/contract foundations exist). Treat M7 as **foundations present / production activation BLOCKED**, not greenfield. Do **not** invent PE1.b.6b JWT PASS from this file — JWT runtime remains **UNPROVEN** until worksheet A1–A4+A6 and runtime evidence say otherwise.
+
 Project thesis, also recorded in `README.md` and `docs/PROJECT_HANDOFF.md`:
 
 Data determines reality. Deterministic forecasting and inventory logic calculate decisions. AI explains, prioritizes, and communicates those decisions. Merchants approve actions until automation earns trust.
 
-Baseline for this handoff: `main` @ `6136874` (M6 P4d diagnostic reporting; hosted schema closeout through `20261030200000`). Session bootstrap: `docs/PROJECT_HANDOFF.md`. M5.6 operating detail: `docs/M5_6_HANDOFF.md`.
+Baseline for this handoff section (historical): `main` @ `6136874` (M6 P4d; hosted schema closeout). **Current PE1.b docs baseline:** `main` @ `7d42247` (PE1.b.6a). Session bootstrap: `docs/PROJECT_HANDOFF.md`. PE1.b.6b continuity: `docs/M6_PE1_B6B_SESSION_HANDOVER.md`. M5.6 operating detail: `docs/M5_6_HANDOFF.md`.
+
+### PE1.b progress pointer (do not duplicate gates here)
+
+| Slice | Doc | Status snapshot |
+|---|---|---|
+| PE1.b.4a | `docs/M6_PE1_B4A_SYNTHETIC_LIFECYCLE_PREFLIGHT.md` | Contract closed |
+| PE1.b.4b | `docs/M6_PE1_B4B_SYNTHETIC_LIFECYCLE_EVIDENCE.md` | Offline Env-A PASS; ≠ hosted JWT |
+| PE1.b.5 | `docs/M6_PE1_B5_HOSTED_CANARY_READINESS_GAP_AUDIT.md` | Gaps; PE1.c NO-GO |
+| PE1.b.6a | `docs/M6_PE1_B6A_HOSTED_JWT_ISOLATION_PREFLIGHT.md` | Plan @ `7d42247` |
+| PE1.b.6b | Worksheet + runtime evidence + session handover | A2 YES; A3 proposed; A1/A4/A6 open; J **NOT EXECUTED** |
 
 ### Roadmap ownership
 
@@ -51,9 +63,9 @@ M6 — Forecasting — **IN PROGRESS** (owns forecasting). Local P1–P4d implem
 - M6 production forecast operation (persist/publish/eval callers, algorithm approval, automatic publication) — **NOT APPROVED**
 - M6 → M7 activation — **BLOCKED** until separate future gates
 
-M7 — Inventory Decisions — NOT STARTED. M7 owns inventory decisions (after forecasting). Product sequence remains M6 forecasting → M7 decisions → approval-gated buying. Preserve Gemini roadmap: REORDER/REDUCE/PROMOTE/WATCH, available-stock planning, multi-location isolation, lead-time, supplier MOQ, approval-gated buying, CSV→Shopify→WooCommerce→Amazon, seven-day trial, premium decision-first UX.
+M7 — Inventory Decisions — **FOUNDATIONS PRESENT / PRODUCTION ACTIVATION BLOCKED** (header previously said “NOT STARTED” — **stale**). Schema/contracts/demo tracks exist under later M7 docs and migrations; merchant-facing production activation, trusted live metric→decision wiring, and approval-gated buying remain **unauthorized**. Product sequence remains M6 forecasting → M7 decisions → approval-gated buying. Preserve Gemini roadmap: REORDER/REDUCE/PROMOTE/WATCH, available-stock planning, multi-location isolation, lead-time, supplier MOQ, approval-gated buying, CSV→Shopify→WooCommerce→Amazon, seven-day trial, premium decision-first UX.
 
-NEXT STEP = **Do not activate production forecast operation.** Hosted M6 schema is closed; production persist/publish/eval callers, algorithm approval, automatic publication, and M7 remain **separate future approvals**. Optional P1: correction-outbox trigger-function EXECUTE defense-in-depth; live hosting env verification for worker flags. M5 worker/rollover HTTP enablement remains a **separate** unauthorized track. DO NOT ENABLE WORKERS / CRON / HTTP METRIC (RECOMPUTE OR ROLLOVER) OR FORECAST WORKERS WITHOUT EXPLICIT SEPARATE APPROVAL. DO NOT CLAIM/RECOMPUTE THE E.4 CANARY GRAIN LEFT `queued` AT `dirty_generation=2` / `claimed_generation=1`. HOSTED SCHEMA DEPLOY DOES **NOT** AUTHORIZE PRODUCTION FORECAST OPERATION, ALGORITHM APPROVAL, OR M7.
+NEXT STEP = **PE1.b.6b owner gates (A3→A4→A6→A1) then LIMITED JWT proof** per `docs/M6_PE1_B6B_SESSION_HANDOVER.md`; still **do not** activate production forecast operation. Hosted M6 schema is closed; production persist/publish/eval callers, algorithm approval, automatic publication, and M7 merchant activation remain **separate future approvals**. Optional P1: correction-outbox trigger-function EXECUTE defense-in-depth; live hosting env verification for worker flags. M5 worker/rollover HTTP enablement remains a **separate** unauthorized track. DO NOT ENABLE WORKERS / CRON / HTTP METRIC (RECOMPUTE OR ROLLOVER) OR FORECAST WORKERS WITHOUT EXPLICIT SEPARATE APPROVAL. DO NOT CLAIM/RECOMPUTE THE E.4 CANARY GRAIN LEFT `queued` AT `dirty_generation=2` / `claimed_generation=1`. HOSTED SCHEMA DEPLOY DOES **NOT** AUTHORIZE PRODUCTION FORECAST OPERATION, ALGORITHM APPROVAL, OR M7. PAYING-CUSTOMER LAUNCH REMAINS **NO-GO**.
 
 M5.5 persistence and recomputation are closed. M5.6A source-event capture and M5.6B recompute-request generation are closed. M5.6C worker orchestration is closed for local implementation and native local Supabase PostgreSQL 17 verification. M5.6D daily rollover is **closed** for implementation and native local Supabase PostgreSQL 17 verification (independent acceptance D1–D12). M5.7 local adversarial engineering is **closed** (see M5.7 closeout below); that closure is **not** hosted worker/runtime readiness. **Hosted schema (M5):** M5.6A–D (`20261020100000` for M5.6D), M5.6E.3 (`20261028100000`), and M5.7 F1/T4 (`20261028210000`, `20261028220000`) are deployed and operator-verified on hosted. **Hosted canary runtime:** M5.6E.4 closed — org-scoped consume/claim, one-shot recompute, and frozen-as_of rollover ×2 verified on the canary org (supporting evidence for M5.6D; not full HTTP rollover runtime verification); foreign fingerprint unchanged; canary request remains intentionally `queued` at `dirty_generation=2` (`claimed_generation=1`, `applied_generation=1`, `attempt_count=0`, lease fields cleared) and was **untouched** by M6 schema deploy. Hosted multi-store, timezone-recovery, and HTTP rollover/recompute execution remain unverified. **Production worker enablement** and hosted metric-worker runtime verification remain separate and unauthorized. Repo configuration keeps workers/cron/HTTP disabled; live hosting env was **not** verified at M6 schema closeout. No scheduler. **Hosted schema (M6):** `20261030100000`, `20261030110000`, `20261030120000`–`20261030160000`, and `20261030200000` **APPLIED AND VERIFIED**. Post-deploy verification: seven correction-outbox triggers installed; outbox pending=0; forecast/publication/current/evaluation hosted row counts=0; no automatic persist/publish/eval activation. Canary runbook: `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md`. Isolation decision: `docs/M5_6E_3_CANARY_ISOLATION_DECISION.md`. M5 handoff: `docs/M5_6_HANDOFF.md`. Project handoff: `docs/PROJECT_HANDOFF.md`. Incoming quantity, inventory position, and inventory age remain unknown until trustworthy historical evidence exists.
 
