@@ -48,19 +48,20 @@ describe("M7.4f Actions navigation activation", () => {
     );
   });
 
-  it("keeps Inventory, Forecasting, and Data quality disabled", () => {
+  it("activates Inventory while keeping Forecasting and Data quality disabled", () => {
     for (const file of [
       "components/app-shell/app-shell.tsx",
       "components/app-shell/mobile-app-menu.tsx",
     ]) {
       const source = read(file);
 
-      expect(source).toContain('label: "Inventory"');
+      expect(source).toContain("InventoryNavLink");
       expect(source).toContain('label: "Forecasting"');
       expect(source).toContain('label: "Data quality"');
       expect(source).toContain("Later");
       expect(source).toContain('aria-disabled="true"');
       expect(source).not.toContain('label: "Actions"');
+      expect(source).not.toContain('label: "Inventory"');
     }
   });
 

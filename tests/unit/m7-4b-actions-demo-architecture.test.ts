@@ -107,8 +107,9 @@ describe("M7.4b Actions demonstration architecture", () => {
       const source = read(file);
 
       expect(source).toContain("ActionsNavLink");
+      expect(source).toContain("InventoryNavLink");
       expect(source).toContain("Later");
-      expect(source).toContain('label: "Inventory"');
+      expect(source).toContain('label: "Forecasting"');
       expect(source).not.toContain('label: "Actions"');
     }
   });

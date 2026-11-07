@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import {
-  Boxes,
   ChartNoAxesCombined,
   ChevronDown,
   Database,
@@ -13,6 +12,10 @@ import {
 import {
   ActionsNavLink,
 } from "@/components/app-shell/actions-nav-link";
+
+import {
+  InventoryNavLink,
+} from "@/components/app-shell/inventory-nav-link";
 
 import {
   MobileAppMenu,
@@ -44,10 +47,6 @@ interface AppShellProps {
 }
 
 const FUTURE_NAVIGATION = [
-  {
-    label: "Inventory",
-    icon: Boxes,
-  },
   {
     label: "Forecasting",
     icon: ChartNoAxesCombined,
@@ -119,6 +118,10 @@ export function AppShell({
             className="mt-8 space-y-1 px-4"
           >
             <OverviewNavLink
+              organizationId={organization.id}
+            />
+
+            <InventoryNavLink
               organizationId={organization.id}
             />
 

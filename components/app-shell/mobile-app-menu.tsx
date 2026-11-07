@@ -12,7 +12,6 @@ import {
 import Link from "next/link";
 
 import {
-  Boxes,
   ChartNoAxesCombined,
   Database,
   LogOut,
@@ -24,6 +23,10 @@ import {
 import {
   ActionsNavLink,
 } from "@/components/app-shell/actions-nav-link";
+
+import {
+  InventoryNavLink,
+} from "@/components/app-shell/inventory-nav-link";
 
 import {
   OverviewNavLink,
@@ -48,10 +51,6 @@ interface MobileAppMenuProps {
 }
 
 const FUTURE_NAVIGATION = [
-  {
-    label: "Inventory",
-    icon: Boxes,
-  },
   {
     label: "Forecasting",
     icon: ChartNoAxesCombined,
@@ -176,6 +175,14 @@ export function MobileAppMenu({
                 className="space-y-1 p-4"
               >
                 <OverviewNavLink
+                  organizationId={organization.id}
+                  variant="mobile"
+                  onNavigate={() =>
+                    setOpen(false)
+                  }
+                />
+
+                <InventoryNavLink
                   organizationId={organization.id}
                   variant="mobile"
                   onNavigate={() =>

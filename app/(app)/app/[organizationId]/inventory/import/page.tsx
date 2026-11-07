@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  ArrowRight,
-  FileSpreadsheet,
-  ShieldCheck,
-} from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
+import { InventoryImportWizard } from "@/components/inventory-import/inventory-import-wizard";
 import { requireAppIdentity } from "@/lib/auth/app-route";
 import { AppError } from "@/lib/observability/app-error";
 import {
@@ -14,6 +10,7 @@ import {
   type OrganizationProfileRecord,
 } from "@/lib/organizations/profile";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { roleHasPermission } from "@/lib/tenancy/permissions";
 import { resolveServerOrganizationContext } from "@/lib/tenancy/server-organization-context";
 
 export const metadata: Metadata = {
@@ -25,6 +22,12 @@ type StoreSummary = {
   name: string;
   currency: string;
   timezone: string;
+};
+
+type LocationSummary = {
+  id: string;
+  store_id: string;
+  name: string;
 };
 
 export default async function InventoryImportEntryPage({
@@ -56,7 +59,7 @@ export default async function InventoryImportEntryPage({
     throw new AppError({
       code: "DATA_LOAD_FAILED",
       kind: "operational",
-      message: "Unable to load organization for inventory import entry.",
+      message: "Unable to load organization for inventory import.",
       publicMessage: "Unable to load inventory import right now.",
       httpStatus: 500,
       cause: organizationError,
@@ -78,7 +81,7 @@ export default async function InventoryImportEntryPage({
     throw new AppError({
       code: "DATA_LOAD_FAILED",
       kind: "operational",
-      message: "Unable to load stores for inventory import entry.",
+      message: "Unable to load stores for inventory import.",
       publicMessage: "Unable to load inventory import right now.",
       httpStatus: 500,
       cause: storeError,
@@ -90,14 +93,42 @@ export default async function InventoryImportEntryPage({
     redirect(`/app/onboarding/store?organizationId=${organizationId}`);
   }
 
-  const primaryStore = storeRows[0]!;
+  const { data: locations, error: locationError } = await supabase
+    .from("locations")
+    .select("id,store_id,name")
+    .eq("organization_id", organizationId)
+    .order("name", { ascending: true });
+
+  if (locationError) {
+    throw new AppError({
+      code: "DATA_LOAD_FAILED",
+      kind: "operational",
+      message: "Unable to load locations for inventory import.",
+      publicMessage: "Unable to load inventory import right now.",
+      httpStatus: 500,
+      cause: locationError,
+    });
+  }
+
+  const locationRows = ((locations ?? []) as LocationSummary[]).map(
+    (location) => ({
+      id: location.id,
+      storeId: location.store_id,
+      name: location.name,
+    }),
+  );
+
+  const canImport = roleHasPermission(
+    resolution.context.role,
+    "integrations.manage",
+  );
 
   return (
     <div>
       <div className="flex flex-col gap-5 border-b border-zinc-200 pb-8 sm:pb-10">
         <div className="inline-flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm">
           <ShieldCheck className="size-3.5" aria-hidden="true" />
-          Inventory entry point
+          Trusted CSV import
         </div>
 
         <ol className="flex flex-wrap gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
@@ -116,95 +147,26 @@ export default async function InventoryImportEntryPage({
         </ol>
 
         <div className="max-w-3xl">
-          <p className="text-sm font-medium text-zinc-500">Next step</p>
+          <p className="text-sm font-medium text-zinc-500">Inventory import</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
-            Connect inventory when you are ready.
+            Import real inventory from CSV.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600">
-            {primaryStore.name} is ready as a store boundary. StoreAgent will not
-            invent products, stock levels, forecasts, or decisions until real
-            inventory source data is imported.
+            Preview and confirm before anything is written. StoreAgent will not
+            invent quantities, forecasts, or purchase recommendations from this
+            file.
           </p>
         </div>
       </div>
 
-      <section className="grid gap-5 py-8 sm:py-10 xl:grid-cols-[1.35fr_0.65fr]">
-        <div className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm sm:p-9">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-zinc-950 text-white">
-            <FileSpreadsheet className="size-5" aria-hidden="true" />
-          </div>
-
-          <p className="mt-8 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-            CSV inventory
-          </p>
-          <h2 className="mt-3 max-w-xl text-2xl font-semibold tracking-[-0.03em]">
-            Import is prepared, not populated.
-          </h2>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-600">
-            A default Main location exists for {primaryStore.name}. Upload and
-            provider binding arrive as a dedicated ingestion workflow. Until
-            then, inventory counts remain empty on purpose.
-          </p>
-
-          <dl className="mt-8 grid gap-4 text-sm text-zinc-600 sm:grid-cols-3">
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                Store
-              </dt>
-              <dd className="mt-1 font-medium text-zinc-950">
-                {primaryStore.name}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                Currency
-              </dt>
-              <dd className="mt-1 font-medium text-zinc-950">
-                {primaryStore.currency}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                Timezone
-              </dt>
-              <dd className="mt-1 font-medium text-zinc-950">
-                {primaryStore.timezone}
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        <aside className="flex flex-col justify-between rounded-3xl border border-zinc-200 bg-zinc-950 p-7 text-white shadow-sm sm:p-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-400">
-              Decision workspace
-            </p>
-            <h2 className="mt-3 text-xl font-semibold tracking-[-0.025em]">
-              Explore decisions without fake inventory.
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-zinc-400">
-              The Actions surface remains demonstration-only until live inventory
-              and metric pipelines are connected for this organization.
-            </p>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-3">
-            <Link
-              href={`/app/${organizationId}/actions`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-100"
-            >
-              Open decision workspace
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
-            <Link
-              href={`/app/${organizationId}`}
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-700 px-4 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 hover:text-white"
-            >
-              Back to overview
-            </Link>
-          </div>
-        </aside>
-      </section>
+      <div className="py-8 sm:py-10">
+        <InventoryImportWizard
+          organizationId={organizationId}
+          stores={storeRows}
+          locations={locationRows}
+          canImport={canImport}
+        />
+      </div>
     </div>
   );
 }
