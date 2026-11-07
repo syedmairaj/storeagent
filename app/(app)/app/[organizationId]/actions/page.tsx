@@ -11,6 +11,10 @@ import {
 } from "@/components/actions-demo/actions-demo-workspace";
 
 import {
+  DecisionReadinessPanel,
+} from "@/components/inventory-readiness/decision-readiness-panel";
+
+import {
   requireAppIdentity,
 } from "@/lib/auth/app-route";
 
@@ -23,6 +27,10 @@ import {
   getM7DecisionDemoFixtureRoot,
   loadM7DecisionDemoDataset,
 } from "@/lib/demo/m7-decision-demo-fixtures";
+
+import {
+  loadMerchantDecisionReadiness,
+} from "@/lib/inventory-readiness";
 
 import {
   resolveServerOrganizationContext,
@@ -69,6 +77,12 @@ export default async function OrganizationActionsDemoPage({
       getM7DecisionDemoFixtureRoot(),
     );
 
+  // Live readiness is separate from the synthetic Actions demo queue.
+  const readiness =
+    await loadMerchantDecisionReadiness(
+      organizationId,
+    );
+
   // Trusted server-resolved soft-enable (default OFF / empty allowlist).
   // Never reads client query/body flags.
   const aiEnablement =
@@ -101,6 +115,13 @@ export default async function OrganizationActionsDemoPage({
   return (
     <div className="min-w-0 max-w-full space-y-2.5 sm:space-y-4 xl:space-y-5">
       <DemoDataBanner />
+
+      <DecisionReadinessPanel
+        readiness={readiness}
+        organizationId={organizationId}
+        variant="compact"
+        showActionsDemoLink={false}
+      />
 
       {loaded.ok ? (
         <ActionsDemoWorkspace

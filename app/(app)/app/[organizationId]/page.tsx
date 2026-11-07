@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { requireAppIdentity } from "@/lib/auth/app-route";
+import { loadMerchantDecisionReadiness } from "@/lib/inventory-readiness";
 import { AppError } from "@/lib/observability/app-error";
 import {
   isOrganizationProfileIncomplete,
@@ -92,6 +93,11 @@ export default async function OrganizationHome({
 
   const hasStore = storeRows.length > 0;
   const primaryStore = storeRows[0] ?? null;
+  const readiness = hasStore
+    ? await loadMerchantDecisionReadiness(organizationId)
+    : null;
+  const hasInventory =
+    (readiness?.presence.knownAvailableSkuCount ?? 0) > 0;
 
   return (
     <div>
@@ -114,7 +120,13 @@ export default async function OrganizationHome({
           >
             First store
           </li>
-          <li className="rounded-full border border-zinc-200 px-3 py-1">
+          <li
+            className={
+              hasInventory
+                ? "rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-zinc-800"
+                : "rounded-full border border-zinc-200 px-3 py-1"
+            }
+          >
             Inventory
           </li>
           <li className="rounded-full border border-zinc-200 px-3 py-1">
@@ -126,12 +138,16 @@ export default async function OrganizationHome({
           <p className="text-sm font-medium text-zinc-500">Overview</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
             {hasStore
-              ? "Your store boundary is ready."
+              ? hasInventory
+                ? "Live inventory is connected."
+                : "Your store boundary is ready."
               : "Waiting for the first store."}
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600">
             {hasStore
-              ? "Organization and store setup are complete. Inventory import and decisions stay empty until real source data arrives."
+              ? hasInventory
+                ? readiness!.summary
+                : "Organization and store setup are complete. Import inventory before decision readiness can advance — StoreAgent will not invent stock or demand."
               : "This organization has no store yet. An owner or admin needs to create the first store before inventory import can begin."}
           </p>
         </div>
@@ -154,29 +170,36 @@ export default async function OrganizationHome({
 
             <h2 className="mt-3 max-w-xl text-2xl font-semibold tracking-[-0.03em]">
               {hasStore
-                ? `${primaryStore!.name} is active — no inventory imported yet.`
+                ? hasInventory
+                  ? `${primaryStore!.name} has ${readiness!.presence.knownAvailableSkuCount} live SKU position(s). Commercial recommendations stay blocked until sales and planning evidence arrive.`
+                  : `${primaryStore!.name} is active — no inventory imported yet.`
                 : "No store has been created for this organization."}
             </h2>
 
             <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-600">
               StoreAgent does not fabricate SKUs, stock positions, forecasts, or
-              recommendations. Only completed setup stages are shown as done.
+              recommendations. Actions remains a labeled synthetic demo until
+              commercial eligibility is met.
             </p>
 
             {hasStore ? (
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href={`/app/${organizationId}/inventory/import`}
+                  href={
+                    hasInventory
+                      ? `/app/${organizationId}/inventory`
+                      : `/app/${organizationId}/inventory/import`
+                  }
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
                 >
                   <FileSpreadsheet className="size-4" aria-hidden="true" />
-                  Inventory import entry
+                  {hasInventory ? "View inventory readiness" : "Inventory import entry"}
                 </Link>
                 <Link
                   href={`/app/${organizationId}/actions`}
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950"
                 >
-                  Decision workspace
+                  Synthetic Actions demo
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
               </div>

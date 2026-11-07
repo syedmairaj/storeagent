@@ -8,7 +8,9 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { DecisionReadinessPanel } from "@/components/inventory-readiness/decision-readiness-panel";
 import { requireAppIdentity } from "@/lib/auth/app-route";
+import { loadMerchantDecisionReadiness } from "@/lib/inventory-readiness";
 import { AppError } from "@/lib/observability/app-error";
 import {
   isOrganizationProfileIncomplete,
@@ -173,6 +175,7 @@ export default async function InventoryPage({
     }
   }
   const latestRows = [...latestByGrain.values()];
+  const readiness = await loadMerchantDecisionReadiness(organizationId);
 
   return (
     <div>
@@ -190,7 +193,8 @@ export default async function InventoryPage({
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600">
               Showing the latest CSV observation per SKU and location. Empty
-              means not imported yet — StoreAgent does not invent stock.
+              means not imported yet — StoreAgent does not invent stock,
+              demand, or recommendations.
             </p>
           </div>
 
@@ -203,6 +207,13 @@ export default async function InventoryPage({
           </Link>
         </div>
       </div>
+
+      <section className="border-b border-zinc-200 py-8 sm:py-10">
+        <DecisionReadinessPanel
+          readiness={readiness}
+          organizationId={organizationId}
+        />
+      </section>
 
       <section className="py-8 sm:py-10">
         {latestRows.length === 0 ? (
