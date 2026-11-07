@@ -182,7 +182,13 @@ export function DecisionReadinessPanel({
           href={`/app/${organizationId}/inventory/import`}
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700"
         >
-          Import CSV
+          Import inventory
+        </Link>
+        <Link
+          href={`/app/${organizationId}/inventory/sales-import`}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700"
+        >
+          Import sales history
         </Link>
         {showActionsDemoLink ? (
           <Link

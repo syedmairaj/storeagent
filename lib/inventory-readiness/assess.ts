@@ -95,7 +95,7 @@ export function assessMerchantDecisionReadiness(input: {
       nextStep:
         salesStatus === "available"
           ? null
-          : "Connect sales/orders and recompute metrics so demand aligns to SKU, store, and location.",
+          : "Import sales history CSV (or connect orders), then run an authorized M5 metric recompute so demand aligns to SKU, store, and location.",
     }),
     inputStatus(metricsStatus, {
       key: "sku_daily_metrics",
@@ -204,7 +204,7 @@ export function assessMerchantDecisionReadiness(input: {
         ...(alignedDemand > 0
           ? []
           : [
-              "Add sales/order history and recompute grain-aligned metrics so demand velocity is known (unknown ≠ zero).",
+              "Import sales history CSV, then run an authorized M5 metric recompute so grain-aligned demand velocity is known (unknown ≠ zero).",
             ]),
         "Configure lead time, safety-stock days, and review period before reorder/target thresholds unlock.",
         "Connect trusted purchase-order incoming before REORDER or REDUCE can use incoming state (PROMOTE does not require incoming).",

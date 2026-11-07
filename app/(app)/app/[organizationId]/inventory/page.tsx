@@ -198,13 +198,21 @@ export default async function InventoryPage({
             </p>
           </div>
 
-          <Link
-            href={`/app/${organizationId}/inventory/import`}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white"
-          >
-            <FileSpreadsheet className="size-4" aria-hidden="true" />
-            Import CSV
-          </Link>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href={`/app/${organizationId}/inventory/import`}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white"
+            >
+              <FileSpreadsheet className="size-4" aria-hidden="true" />
+              Import inventory
+            </Link>
+            <Link
+              href={`/app/${organizationId}/inventory/sales-import`}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700"
+            >
+              Import sales history
+            </Link>
+          </div>
         </div>
       </div>
 

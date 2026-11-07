@@ -52,7 +52,7 @@ export async function authorizeMerchantInventoryImport(input: {
   if (!roleHasPermission(resolution.context.role, "integrations.manage")) {
     return {
       ok: false,
-      error: "Only owners and admins can import inventory.",
+      error: "Only owners and admins can import CSV data.",
     };
   }
 
