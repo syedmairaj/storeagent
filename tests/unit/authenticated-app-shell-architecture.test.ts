@@ -323,13 +323,13 @@ describe(
         expect(
           source,
         ).toContain(
-          "No inventory data has been connected yet.",
+          "no inventory imported yet.",
         );
 
         expect(
           source,
         ).toContain(
-          "will not invent inventory",
+          "does not fabricate SKUs, stock positions, forecasts",
         );
       },
     );

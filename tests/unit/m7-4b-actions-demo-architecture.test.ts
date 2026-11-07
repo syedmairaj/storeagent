@@ -119,9 +119,11 @@ describe("M7.4b Actions demonstration architecture", () => {
     );
 
     expect(source).toContain(
-      "No inventory data has been connected yet.",
+      "no inventory imported yet.",
     );
-    expect(source).toContain("will not invent inventory");
+    expect(source).toContain(
+      "does not fabricate SKUs, stock positions, forecasts",
+    );
 
     for (const forbidden of [
       "opportunity count",

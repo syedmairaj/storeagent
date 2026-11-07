@@ -94,6 +94,21 @@ export default async function OrganizationOnboardingPage({
           </form>
         </header>
 
+        <ol className="mb-8 flex flex-wrap gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-[var(--sa-ink-muted)]">
+          <li className="rounded-full border border-[var(--sa-insight)] bg-[color-mix(in_srgb,var(--sa-insight)_12%,transparent)] px-3 py-1 text-[var(--sa-insight)]">
+            Organization
+          </li>
+          <li className="rounded-full border border-[var(--sa-frame)] px-3 py-1">
+            First store
+          </li>
+          <li className="rounded-full border border-[var(--sa-frame)] px-3 py-1">
+            Inventory
+          </li>
+          <li className="rounded-full border border-[var(--sa-frame)] px-3 py-1">
+            Decisions
+          </li>
+        </ol>
+
         <p className="text-[0.7rem] font-bold uppercase tracking-[0.16em] text-[var(--sa-insight)]">
           First-time setup
         </p>

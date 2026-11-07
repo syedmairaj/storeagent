@@ -8,10 +8,20 @@ import {
   parseOrganizationProfileInput,
   type OrganizationProfileFields,
 } from "@/lib/organizations/profile";
+import {
+  isOrganizationUuid,
+  mapFirstStoreBootstrapError,
+  parseFirstStoreBootstrapInput,
+  type FirstStoreBootstrapFields,
+} from "@/lib/stores/bootstrap";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type ActionResult =
   | { ok: true }
+  | { ok: false; error: string };
+
+export type CreateFirstStoreActionResult =
+  | { ok: true; storeId: string; locationId: string }
   | { ok: false; error: string };
 
 /**
@@ -97,6 +107,75 @@ export async function completeOrganizationProfileAction(input: {
     return {
       ok: false,
       error: "Unable to save organization details.",
+    };
+  }
+}
+
+export async function createFirstOrganizationStoreAction(input: {
+  organizationId: string;
+  store: FirstStoreBootstrapFields;
+}): Promise<CreateFirstStoreActionResult> {
+  const parsed = parseFirstStoreBootstrapInput(input.store);
+  if (!parsed.ok) {
+    return { ok: false, error: parsed.error };
+  }
+
+  const organizationId = input.organizationId?.trim() ?? "";
+  if (!isOrganizationUuid(organizationId)) {
+    return { ok: false, error: "Organization is required." };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.rpc(
+      "create_current_user_first_organization_store",
+      {
+        p_organization_id: organizationId,
+        p_name: parsed.value.name,
+        p_currency: parsed.value.currency,
+        p_timezone: parsed.value.timezone,
+      },
+    );
+
+    if (error) {
+      return {
+        ok: false,
+        error: mapFirstStoreBootstrapError(error.message),
+      };
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    const storeId =
+      row &&
+      typeof row === "object" &&
+      "store_id" in row &&
+      typeof row.store_id === "string"
+        ? row.store_id
+        : null;
+    const locationId =
+      row &&
+      typeof row === "object" &&
+      "location_id" in row &&
+      typeof row.location_id === "string"
+        ? row.location_id
+        : null;
+
+    if (!storeId || !locationId) {
+      return {
+        ok: false,
+        error: "Unable to create your store right now.",
+      };
+    }
+
+    return {
+      ok: true,
+      storeId,
+      locationId,
+    };
+  } catch {
+    return {
+      ok: false,
+      error: "Unable to create your store right now.",
     };
   }
 }

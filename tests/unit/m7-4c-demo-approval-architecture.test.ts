@@ -205,7 +205,7 @@ describe("M7.4c demonstration approval architecture", () => {
     );
 
     expect(overview).toContain(
-      "will not invent inventory",
+      "does not fabricate SKUs, stock positions, forecasts",
     );
     expect(overview).not.toContain("DemoApprovalCluster");
   });

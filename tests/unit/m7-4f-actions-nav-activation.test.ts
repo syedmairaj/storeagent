@@ -134,7 +134,7 @@ describe("M7.4f Actions navigation activation", () => {
     );
 
     expect(overview).toContain(
-      "will not invent inventory",
+      "does not fabricate SKUs, stock positions, forecasts",
     );
 
     for (const forbidden of [

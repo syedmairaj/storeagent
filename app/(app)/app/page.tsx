@@ -166,7 +166,11 @@ export default async function OrganizationSelectionPage() {
                     <p className="mt-4 text-xs font-semibold text-[var(--sa-insight)]">
                       Finish setup before opening the workspace
                     </p>
-                  ) : null}
+                  ) : (
+                    <p className="mt-4 text-xs font-semibold text-[var(--sa-ink-muted)]">
+                      Opens workspace — first store setup continues if needed
+                    </p>
+                  )}
                 </Link>
               );
             })}

@@ -61,7 +61,7 @@ export function OrganizationSetupForm({
         return;
       }
 
-      router.replace(`/app/${organizationId}`);
+      router.replace(`/app/onboarding/store?organizationId=${organizationId}`);
       router.refresh();
     });
   }
@@ -153,7 +153,7 @@ export function OrganizationSetupForm({
           </>
         ) : (
           <>
-            Continue to workspace
+            Continue to first store
             <ArrowRight className="size-4" aria-hidden="true" />
           </>
         )}
