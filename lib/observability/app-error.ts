@@ -6,6 +6,7 @@ export type ApplicationErrorKind =
 export type ApplicationErrorCode =
   | "AUTHENTICATION_REQUIRED"
   | "AUTH_CALLBACK_FAILED"
+  | "AUTH_RECOVERY_FAILED"
   | "PROVISIONING_FAILED"
   | "SIGN_OUT_FAILED"
   | "ORGANIZATION_REQUIRED"
