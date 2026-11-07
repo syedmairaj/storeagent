@@ -157,6 +157,16 @@ if (
   }
 }
 
+const marketingProject: Project = {
+  name: "marketing-landing",
+  testMatch: /marketing-landing.*\.spec\.ts/,
+  use: {
+    browserName: "chromium",
+    viewport: { width: 1440, height: 900 },
+    // Public marketing — no auth storageState
+  },
+};
+
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: false,
@@ -180,11 +190,11 @@ export default defineConfig({
   },
   use: {
     browserName: "chromium",
-    baseURL: "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "off",
     locale: "en-US",
   },
-  projects,
+  projects: [...projects, marketingProject],
 });

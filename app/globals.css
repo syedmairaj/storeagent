@@ -137,3 +137,158 @@ body {
     @apply font-sans;
   }
 }
+
+/* —— StoreAgent.si Quiet Intelligence (marketing surface) —— */
+.marketing-surface {
+  --sa-ink: #10161c;
+  --sa-porcelain: #f5f4f0;
+  --sa-signal: #c7f36b;
+  --sa-insight: #729bff;
+  --sa-stone: #d9d5cd;
+  --sa-ink-muted: color-mix(in srgb, var(--sa-ink) 62%, transparent);
+  --sa-ink-soft: color-mix(in srgb, var(--sa-ink) 8%, transparent);
+  --sa-frame: color-mix(in srgb, var(--sa-ink) 12%, transparent);
+  --font-sans: var(--font-marketing-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-marketing-display), ui-serif, Georgia, serif;
+  font-family: var(--font-sans);
+  color: var(--sa-ink);
+  background-color: var(--sa-porcelain);
+}
+
+.marketing-surface .font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+.marketing-surface a:focus-visible,
+.marketing-surface button:focus-visible {
+  outline: 2px solid var(--sa-insight);
+  outline-offset: 3px;
+}
+
+@keyframes sa-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sa-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sa-rise {
+  animation: sa-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sa-fade {
+  animation: sa-fade 0.8s ease both;
+}
+
+.sa-d1 {
+  animation-delay: 0.08s;
+}
+.sa-d2 {
+  animation-delay: 0.18s;
+}
+.sa-d3 {
+  animation-delay: 0.3s;
+}
+.sa-d4 {
+  animation-delay: 0.42s;
+}
+.sa-d5 {
+  animation-delay: 0.54s;
+}
+
+@keyframes sa-panel-swap {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sa-panel-swap {
+  animation: sa-panel-swap 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes sa-story-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.sa-story-progress-bar {
+  width: 100%;
+  transform-origin: left center;
+  animation: sa-story-progress 5s linear forwards;
+}
+
+@keyframes sa-signal-dash {
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+
+.sa-signal-dash {
+  animation: sa-signal-dash 2.4s linear infinite;
+}
+
+@keyframes sa-signal-node {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sa-signal-node {
+  animation: sa-signal-node 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes sa-bar-fill {
+  from {
+    transform: scaleX(0.15);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.sa-bar-fill {
+  transform-origin: left center;
+  animation: sa-bar-fill 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sa-rise,
+  .sa-fade,
+  .sa-panel-swap,
+  .sa-story-progress-bar,
+  .sa-signal-dash,
+  .sa-signal-node,
+  .sa-bar-fill {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
