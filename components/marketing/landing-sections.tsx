@@ -3,6 +3,7 @@ import { ArrowRight, ShieldCheck } from "lucide-react";
 import { BrandMark } from "@/components/marketing/brand-mark";
 import { DecisionStory } from "@/components/marketing/decision-story";
 import { FourDecisionsExplorer } from "@/components/marketing/four-decisions-explorer";
+import { LandingAuthButton } from "@/components/marketing/landing-auth";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { ProblemSolutionVisual } from "@/components/marketing/problem-solution-visual";
 import { cn } from "@/lib/utils";
@@ -99,16 +100,13 @@ export function LandingPage() {
                     aria-hidden="true"
                   />
                 </a>
-                <a
-                  href="/login"
-                  className="inline-flex items-center justify-center rounded-full border border-[var(--sa-frame)] bg-[var(--sa-porcelain)] px-5 py-2.5 text-sm font-semibold text-[var(--sa-ink)] transition-colors hover:border-[color-mix(in_srgb,var(--sa-ink)_22%,var(--sa-frame))] hover:bg-[var(--sa-ink-soft)]"
-                >
+                <LandingAuthButton className="inline-flex items-center justify-center rounded-full border border-[var(--sa-frame)] bg-[var(--sa-porcelain)] px-5 py-2.5 text-sm font-semibold text-[var(--sa-ink)] transition-colors hover:border-[color-mix(in_srgb,var(--sa-ink)_22%,var(--sa-frame))] hover:bg-[var(--sa-ink-soft)]">
                   Sign In
-                </a>
+                </LandingAuthButton>
               </div>
               <p className="sa-rise sa-d5 mt-3 max-w-md text-xs leading-relaxed text-[var(--sa-ink-muted)]">
-                Public signup is not open yet. The story uses demo sample data —
-                pause, replay, or switch scenarios anytime.
+                Sign in with email to get started. The story uses demo sample
+                data — pause, replay, or switch scenarios anytime.
               </p>
             </div>
 
@@ -249,22 +247,22 @@ export function LandingPage() {
                 buttons on this page.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <a
-                  href="/login?next=/app"
+                <LandingAuthButton
+                  nextPath="/app"
                   className="group inline-flex items-center gap-2 rounded-full bg-[var(--sa-ink)] px-6 py-3.5 text-sm font-semibold text-[var(--sa-porcelain)] transition-[transform,background,box-shadow] hover:bg-[color-mix(in_srgb,var(--sa-ink)_90%,var(--sa-insight))] hover:shadow-[0_14px_32px_-16px_color-mix(in_srgb,var(--sa-ink)_65%,transparent)] active:translate-y-px"
                 >
-                  Sign In to workspace
+                  Continue to workspace
                   <ArrowRight
                     className="size-4 transition-transform group-hover:translate-x-0.5"
                     aria-hidden="true"
                   />
-                </a>
-                <span
-                  className="inline-flex items-center rounded-full border border-dashed border-[var(--sa-frame)] px-5 py-3.5 text-sm font-semibold text-[var(--sa-ink-muted)]"
-                  title="Public signup is not available yet"
+                </LandingAuthButton>
+                <a
+                  href="/login?mode=password"
+                  className="inline-flex items-center rounded-full border border-[var(--sa-frame)] px-5 py-3.5 text-sm font-semibold text-[var(--sa-ink-muted)] transition hover:text-[var(--sa-ink)]"
                 >
-                  Try Free — coming soon
-                </span>
+                  Password sign-in
+                </a>
               </div>
             </div>
             <div className="rounded-2xl border border-[var(--sa-frame)] bg-[var(--sa-ink)] p-6 text-[var(--sa-porcelain)] sm:p-7">
@@ -307,9 +305,9 @@ export function LandingPage() {
             <a href="#impact" className="hover:text-[var(--sa-ink)]">
               Impact
             </a>
-            <a href="/login" className="hover:text-[var(--sa-ink)]">
+            <LandingAuthButton className="hover:text-[var(--sa-ink)]">
               Sign In
-            </a>
+            </LandingAuthButton>
           </nav>
         </div>
         <div className="border-t border-[var(--sa-frame)]">

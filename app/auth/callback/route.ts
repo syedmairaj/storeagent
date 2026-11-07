@@ -77,14 +77,56 @@ export async function GET(
         "code",
       );
 
+  // GoTrue may leave next URL-encoded once (%2Fapp) after redirect_to nesting.
+  const rawNext =
+    request.nextUrl
+      .searchParams
+      .get(
+        "next",
+      );
+  let decodedNext =
+    rawNext;
+  if (
+    typeof rawNext ===
+      "string" &&
+    rawNext.startsWith(
+      "%",
+    )
+  ) {
+    try {
+      decodedNext =
+        decodeURIComponent(
+          rawNext,
+        );
+    } catch {
+      decodedNext =
+        rawNext;
+    }
+  }
+
   const nextPath =
     safeAuthNextPath(
-      request.nextUrl
-        .searchParams
-        .get(
-          "next",
-        ),
+      decodedNext,
+      "/app",
     );
+
+  // Surface GoTrue errors that arrived as query params (hash errors never reach the server).
+  const oauthError =
+    request.nextUrl
+      .searchParams
+      .get(
+        "error",
+      );
+  if (
+    oauthError &&
+    !code
+  ) {
+    return callbackFailure(
+      request,
+      requestId,
+      "callback",
+    );
+  }
 
   if (!code) {
     const error =

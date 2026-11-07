@@ -39,7 +39,19 @@ export default async function FirstStoreOnboardingPage({
   const requestedId = params.organizationId?.trim() ?? "";
 
   const supabase = await createSupabaseServerClient();
-  await ensureCurrentUserProvisioned(supabase);
+
+  try {
+    await ensureCurrentUserProvisioned(supabase);
+  } catch (cause) {
+    throw new AppError({
+      code: "PROVISIONING_FAILED",
+      kind: "operational",
+      message: "Unable to provision user during store onboarding.",
+      publicMessage: "Unable to prepare your workspace right now.",
+      httpStatus: 500,
+      cause,
+    });
+  }
 
   const { data: orgData, error: orgError } = await supabase
     .from("organizations")

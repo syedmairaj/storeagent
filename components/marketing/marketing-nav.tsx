@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { BrandMark } from "@/components/marketing/brand-mark";
+import { LandingAuthButton } from "@/components/marketing/landing-auth";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -60,12 +61,9 @@ export function MarketingNav() {
         </nav>
 
         <div className="hidden items-center gap-2.5 sm:flex">
-          <a
-            href="/login"
-            className="rounded-full px-3.5 py-2 text-[0.8125rem] font-semibold text-[var(--sa-ink)] transition-colors hover:bg-[var(--sa-ink-soft)]"
-          >
+          <LandingAuthButton className="rounded-full px-3.5 py-2 text-[0.8125rem] font-semibold text-[var(--sa-ink)] transition-colors hover:bg-[var(--sa-ink-soft)]">
             Sign In
-          </a>
+          </LandingAuthButton>
           <a
             href="#demo"
             className="inline-flex items-center rounded-full bg-[var(--sa-ink)] px-4 py-2 text-[0.8125rem] font-semibold text-[var(--sa-porcelain)] transition-[transform,background] hover:bg-[color-mix(in_srgb,var(--sa-ink)_92%,var(--sa-insight))] active:translate-y-px"
@@ -123,13 +121,12 @@ export function MarketingNav() {
             </a>
           ))}
           <div className="mt-3 flex flex-col gap-2 border-t border-[var(--sa-frame)] pt-3">
-            <a
-              href="/login"
+            <LandingAuthButton
               className="rounded-full border border-[var(--sa-frame)] px-4 py-2.5 text-center text-sm font-semibold"
-              onClick={() => setOpen(false)}
+              nextPath="/app"
             >
               Sign In
-            </a>
+            </LandingAuthButton>
             <a
               href="#demo"
               className="rounded-full bg-[var(--sa-ink)] px-4 py-2.5 text-center text-sm font-semibold text-[var(--sa-porcelain)]"

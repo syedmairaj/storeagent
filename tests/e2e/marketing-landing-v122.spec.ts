@@ -234,11 +234,27 @@ test.describe("Landing V1.2.2 decision story", () => {
       await expect(page.locator(`#${id}`)).toBeVisible();
     }
 
-    await expect(page.locator('a[href="/login"]').first()).toBeVisible();
     await expect(
-      page.locator('a[href="/login?next=/app"]').first(),
+      page.getByRole("button", { name: "Sign In" }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Password sign-in" }).first(),
     ).toBeVisible();
     await expect(page.locator('a[href="#demo"]').first()).toBeVisible();
+
+    await page.getByRole("button", { name: "Sign In" }).first().click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Continue with Google" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Send magic link" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Continue with Google" }),
+    ).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
 
     const resLogin = await page.request.get("/login");
     expect(resLogin.ok()).toBeTruthy();
