@@ -118,9 +118,7 @@ export function PlanningInputsEditor({
       setReviewPeriodDays(
         formatPlanningDayForInput(result.value.reviewPeriodDays),
       );
-      setSavedNote(
-        "Planning inputs saved. Blank fields stay unknown — 0 is an explicit zero.",
-      );
+      setSavedNote(result.metricsRefresh.note);
       router.refresh();
     });
   }

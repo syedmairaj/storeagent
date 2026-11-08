@@ -3,6 +3,7 @@ import "server-only";
 import { aggregateInventoryMetrics } from "@/lib/metrics/inventory-aggregates";
 import type {
   InventoryDemandDay,
+  InventoryPlanningSettings,
   InventorySnapshotFact,
 } from "@/lib/metrics/inventory-aggregates";
 import { aggregateSales } from "@/lib/metrics/sales-aggregates";
@@ -14,6 +15,7 @@ import type {
   SalesAggregateReturnRefund,
 } from "@/lib/metrics/sales-aggregates";
 import { toPersistedSkuDailyMetric } from "@/lib/metrics/sku-daily-metric-record";
+import { toInventoryPlanningSettings } from "@/lib/planning-inputs/to-inventory-planning-settings";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const SKU_DAILY_METRIC_SOURCE_MISMATCH = "SA008";
@@ -71,6 +73,15 @@ export async function recomputeSkuDailyMetric(
 
   let lastMismatch = false;
 
+  // Org-default planning is configuration evidence, not a source-token
+  // commercial fact. Load once per recompute; invalidation dirties grains
+  // when planning changes. Provenance remains organization-default — never
+  // treated as attested supplier planning (M7 PB1).
+  const planning = await readOrganizationPlanningSettings(
+    client,
+    input.organizationId,
+  );
+
   for (let attempt = 0; attempt < SOURCE_READ_ATTEMPTS; attempt += 1) {
     const snapshot = await readSourceSnapshot(client, input);
     assertIanaTimeZone(snapshot.timeZone);
@@ -112,6 +123,7 @@ export async function recomputeSkuDailyMetric(
         salesVelocity30d: sales.windows[30].velocity,
         days: sales.days satisfies readonly InventoryDemandDay[],
       },
+      planning,
     });
     const metric = toPersistedSkuDailyMetric(
       input.metricDate,
@@ -176,6 +188,24 @@ async function readSourceSnapshot(
   }
 
   return result.data as SourceSnapshot;
+}
+
+async function readOrganizationPlanningSettings(
+  client: RpcClient,
+  organizationId: string,
+): Promise<InventoryPlanningSettings> {
+  const result = await client.rpc(
+    "sku_daily_metric_organization_planning_settings",
+    {
+      p_organization_id: organizationId,
+    },
+  );
+
+  if (result.error !== null) {
+    throw new Error(result.error.message);
+  }
+
+  return toInventoryPlanningSettings(result.data);
 }
 
 function isSourceMismatch(error: {

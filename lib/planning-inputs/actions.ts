@@ -2,6 +2,12 @@
 
 import { requireAppIdentity } from "@/lib/auth/app-route";
 import { parseMerchantPlanningInputs } from "@/lib/planning-inputs/parse";
+import { refreshMetricsAfterPlanningChange } from "@/lib/planning-inputs/refresh-metrics-after-planning-change";
+import {
+  planningMetricsRefreshFailureReport,
+  reportPlanningMetricsRefresh,
+  type PlanningMetricsRefreshReport,
+} from "@/lib/planning-inputs/refresh-status";
 import type { MerchantPlanningInputs } from "@/lib/planning-inputs/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { roleHasPermission } from "@/lib/tenancy/permissions";
@@ -11,7 +17,11 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type SaveMerchantPlanningInputsResult =
-  | { ok: true; value: MerchantPlanningInputs }
+  | {
+      ok: true;
+      value: MerchantPlanningInputs;
+      metricsRefresh: PlanningMetricsRefreshReport;
+    }
   | { ok: false; error: string };
 
 function mapRpcError(message: string): string {
@@ -36,6 +46,8 @@ function mapRpcError(message: string): string {
 /**
  * Trusted write: owner/admin only via SECURITY DEFINER RPC.
  * Partial configs and explicit zeros are preserved; blanks stay null.
+ * Upsert+invalidation are atomic in SQL; refresh drain is best-effort and
+ * reported honestly (never claims metrics ready when work remains).
  */
 export async function saveMerchantPlanningInputsAction(input: {
   organizationId: string;
@@ -102,13 +114,29 @@ export async function saveMerchantPlanningInputsAction(input: {
       review_period_days: number | null;
     };
 
+    const value: MerchantPlanningInputs = {
+      leadTimeDays: saved.lead_time_days,
+      safetyStockDays: saved.safety_stock_days,
+      reviewPeriodDays: saved.review_period_days,
+    };
+
+    // Upsert already dirtied current metric grains in-txn. Drain is separate
+    // and must not invent a "ready" claim when bounded work remains.
+    let metricsRefresh: PlanningMetricsRefreshReport;
+    try {
+      const summary = await refreshMetricsAfterPlanningChange({
+        organizationId,
+        ownerId: `planning-inputs-refresh:${identity.userId}`,
+      });
+      metricsRefresh = reportPlanningMetricsRefresh(summary);
+    } catch {
+      metricsRefresh = planningMetricsRefreshFailureReport();
+    }
+
     return {
       ok: true,
-      value: {
-        leadTimeDays: saved.lead_time_days,
-        safetyStockDays: saved.safety_stock_days,
-        reviewPeriodDays: saved.review_period_days,
-      },
+      value,
+      metricsRefresh,
     };
   } catch (cause) {
     const message =

@@ -101,9 +101,9 @@ The sections below are the historical milestone log.
 
 
 
-**Preflight type:** source-grounded M5–M7 planning-evidence architecture review (docs only; no product implementation in this slice).
+**Preflight type:** source-grounded M5–M7 planning-evidence architecture review; **Planning Evidence Binding V1 implemented locally** after this preflight (org defaults → M5 thresholds + current-metric invalidation). Commercial gates unchanged.
 
-**Baseline HEAD:** `main` @ `b3ccc5efbd62ec53306d4857e94f0ed845680f34` (`feat(inventory): add secure merchant planning inputs v1`).
+**Baseline HEAD:** `main` @ `c3a0ad842ed2b4b25fc66abe93f7bcad629bbc79` (planning inputs present; binding is uncommitted local work on top).
 
 **Definition — “foundation ready”:** locally implemented and tested capability. It does **not** mean proven commercial outcomes, hosted runtime readiness, PE1.b.6b JWT verification, or paying-customer launch.
 
@@ -145,7 +145,7 @@ Provider roadmap (subject to canonical roadmap + integration feasibility): CSV /
 
 | 3 | **WHAT TO PURCHASE** | **Not live-ready** | Canonical M7 engine (`decideInventoryAction`), demo review controls, and merchant planning inputs exist. Real commercial decisions and purchasing workflows remain gated (M7.2/M7.3 hard-false; Actions = synthetic demo). |
 
-| 4 | **SUPPLIER LEAD-TIME UNCERTAINTY** | **Partially ready** | Secure merchant **organization-default** assumptions exist (`organization_planning_inputs`, `lib/planning-inputs/*`). Verified supplier performance, supplier/SKU overrides, and trusted incoming integration remain incomplete. |
+| 4 | **SUPPLIER LEAD-TIME UNCERTAINTY** | **Partially ready** | Secure merchant **organization-default** assumptions exist and bind into local M5 threshold recompute (`organization_planning_inputs`, planning-evidence binding V1). Verified supplier performance, supplier/SKU overrides, PB1 attested supplier facts, and trusted incoming integration remain incomplete. |
 
 | 5 | **UNTRUSTWORTHY FORECASTS** | **Foundation ready for evidence transparency** | Eligible history, missing inputs, freshness, and data sufficiency are exposed (`lib/forecasting/history-sufficiency.ts`, readiness/forecast disposition contracts). Do **not** claim proven forecast accuracy or production forecasting readiness (M6 production operation **NOT APPROVED**). |
 
@@ -173,7 +173,7 @@ Provider roadmap (subject to canonical roadmap + integration feasibility): CSV /
 
 | Missing / zero / short / stale / pending distinctions | Local readiness + cover classifiers | `lib/inventory-readiness/assess.ts`, `lib/inventory-intelligence/classify-cover.ts` (`null ≠ 0`; `zero_demand` vs `short_history` vs `stale` vs `pending_freshness`) |
 
-| Merchant organization planning defaults | Local (org defaults; not supplier facts) | `supabase/migrations/20261108160000_merchant_planning_inputs_v1.sql`, `lib/planning-inputs/{types,parse,load,actions}.ts`, `PlanningInputsEditor` |
+| Merchant organization planning defaults + M5 threshold binding | Local (org defaults; not supplier facts; commercialActionsEligible hard-false) | `20261108160000_merchant_planning_inputs_v1.sql`, `20261108170000_planning_evidence_binding_v1.sql`, `lib/planning-inputs/*`, `recomputeSkuDailyMetric`, `PlanningInputsEditor` |
 
 | Tenant authorization + human-control principles | Local contracts + demo controls | membership/`organization.manage` for planning writes; M7.3 human-approval lifecycle **fail-closed**; demo Actions no-save |
 
@@ -307,9 +307,9 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 
 
-- Persisted org defaults **match** `InventoryPlanningSettings` field names and null≠0 semantics — **safe as future inputs** to `aggregateInventoryMetrics` / inventory-math.
+- Persisted org defaults **match** `InventoryPlanningSettings` field names and null≠0 semantics and are bound into trusted M5 recompute via `sku_daily_metric_organization_planning_settings` → `aggregateInventoryMetrics({ planning })` (migration `20261108170000_planning_evidence_binding_v1.sql`).
 
-- **Not yet wired** into M5 recompute: architecture test asserts `recompute-sku-daily-metric.ts` does **not** read `organization_planning_inputs` (`tests/unit/merchant-planning-inputs-architecture.test.ts`). Today thresholds stay unknown unless planning is passed into aggregates by another caller.
+- Planning upsert dirties **store-local current** metric grains through `enqueue_sku_daily_metric_planning_invalidation` (same dirty_generation / lease semantics as M5.6B/C). Save action drains via existing org-scoped merchant recompute tick. Incoming remains forced unknown; formulas unchanged.
 
 - Readiness treats planning presence as **capability evidence only** (`reorder_thresholds` ready ≠ executable M7 action; `commercialActionsEligible` hard-false).
 
@@ -361,7 +361,7 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 
 
-1. **Bind org planning defaults into M5 threshold recompute** (null≠0; no formula change; no commercial unlock).
+1. **Bind org planning defaults into M5 threshold recompute** — **DONE locally** (null≠0; no formula change; no commercial unlock; planning upsert invalidates current metrics).
 
 2. Establish **trusted incoming state** for grains that need REORDER/REDUCE — or deliberately choose **PROMOTE-only** local diagnostic if incoming remains unknown (still requires known target + demand pressure; age may stay unavailable).
 
@@ -371,7 +371,7 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 
 
-Until steps 1–2 (and production create approval) land, the only merchant-visible “action” remains the **synthetic Actions demo**.
+Until steps 2–3 (and production create approval) land, the only merchant-visible “action” remains the **synthetic Actions demo**.
 
 
 
@@ -385,9 +385,9 @@ Until steps 1–2 (and production create approval) land, the only merchant-visib
 
 | **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults |
 
-| **CURRENT** | M5–M7 Planning Evidence Integration Architecture Preflight (this section) |
+| **CURRENT** | Planning Evidence Binding V1 (org defaults → M5 thresholds; commercial gates unchanged) |
 
-| **PROPOSED NEXT** | (1) Bind planning assumptions safely to canonical threshold evidence; (2) Establish verified incoming/PO evidence where required by the chosen action; (3) Activate the smallest independently authorized real M7 decision with human approval |
+| **PROPOSED NEXT** | (1) Establish verified incoming/PO evidence where required by the chosen action; (2) Activate the smallest independently authorized real M7 decision with human approval |
 
 | **LATER** | Supplier Intelligence; purchasing workflows; stronger forecasts; provider connectors |
 
@@ -401,7 +401,7 @@ Until steps 1–2 (and production create approval) land, the only merchant-visib
 
 
 
-**PREFLIGHT COMPLETE** — documentation updated; no product implementation authorized by this slice.
+**PLANNING EVIDENCE BINDING V1** — locally implemented (org defaults → M5 thresholds + current-metric invalidation). Commercial actions, PB1 supplier attestation, incoming, workers/cron remain unchanged / blocked.
 
 ## Current milestone
 

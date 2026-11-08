@@ -41,7 +41,13 @@ describe("merchant planning inputs architecture", () => {
       "upsert_current_user_organization_planning_inputs",
     );
     expect(actions).toContain("parseMerchantPlanningInputs");
+    expect(actions).toContain("refreshMetricsAfterPlanningChange");
+    expect(actions).toContain("reportPlanningMetricsRefresh");
+    expect(actions).toContain("metricsRefresh");
     expect(actions).not.toContain("createSupabaseAdminClient");
+    expect(actions).not.toContain("decideInventoryAction");
+    expect(actions).not.toContain("TrustedSupplierPlanningFacts");
+    expect(actions).not.toContain("commercialActionsEligible");
 
     const load = read("lib/planning-inputs/load.ts");
     expect(load).toContain('import "server-only"');
@@ -62,13 +68,58 @@ describe("merchant planning inputs architecture", () => {
     expect(editor).toContain("Merchant assumptions");
     expect(editor).toMatch(/not verified supplier or SKU facts/i);
     expect(editor).toMatch(/Commercial actions stay\s+disabled/);
+    expect(editor).toContain("metricsRefresh.note");
     expect(editor).not.toContain("decideInventoryAction");
     expect(editor).not.toContain("m7-decision-demo");
   });
 
-  it("keeps M5 recompute free of planning-input side effects in this slice", () => {
+  it("binds organization planning defaults into trusted M5 recompute", () => {
+    const binding = read(
+      "supabase/migrations/20261108170000_planning_evidence_binding_v1.sql",
+    );
+    expect(binding).toContain(
+      "sku_daily_metric_organization_planning_settings",
+    );
+    expect(binding).toContain(
+      "enqueue_sku_daily_metric_planning_invalidation",
+    );
+    expect(binding).toContain("dirty_generation");
+    expect(binding).toContain("claimed");
+    expect(binding).toContain("running");
+    expect(binding).toMatch(/to service_role/);
+    expect(binding).toMatch(
+      /revoke all[\s\S]*from public, anon, authenticated/i,
+    );
+    expect(binding).toContain(
+      "enqueue_sku_daily_metric_planning_invalidation",
+    );
+    expect(binding).toMatch(/Not attested supplier|organization-default/i);
+
     const recompute = read("lib/persistence/recompute-sku-daily-metric.ts");
-    expect(recompute).not.toContain("organization_planning_inputs");
+    expect(recompute).toContain(
+      "sku_daily_metric_organization_planning_settings",
+    );
+    expect(recompute).toContain("toInventoryPlanningSettings");
+    expect(recompute).toContain("planning,");
     expect(recompute).not.toContain("loadMerchantPlanningInputs");
+    expect(recompute).not.toContain("TrustedSupplierPlanningFacts");
+    expect(recompute).not.toContain("pb1_trusted_supplier_planning_v1");
+    expect(recompute).not.toContain("commercialActionsEligible");
+    expect(recompute).not.toContain("decideInventoryAction");
+
+    const persisted = read("lib/metrics/sku-daily-metric-record.ts");
+    expect(persisted).toContain('eligibleIncomingQuantity: null');
+    expect(persisted).toContain('"incoming_state_unknown"');
+
+    const refresh = read(
+      "lib/planning-inputs/refresh-metrics-after-planning-change.ts",
+    );
+    expect(refresh).toContain("runAuthorizedOrgMetricRecompute");
+    expect(refresh).not.toContain("ENABLE_METRIC");
+  });
+
+  it("keeps readiness commercial gate hard-false", () => {
+    const assess = read("lib/inventory-readiness/assess.ts");
+    expect(assess).toMatch(/const canCommercial = false/);
   });
 });

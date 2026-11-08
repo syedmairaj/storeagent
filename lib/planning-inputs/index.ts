@@ -6,6 +6,16 @@ export {
   parseMerchantPlanningInputs,
   parsePlanningDayInput,
 } from "@/lib/planning-inputs/parse";
+export { refreshMetricsAfterPlanningChange } from "@/lib/planning-inputs/refresh-metrics-after-planning-change";
+export {
+  planningMetricsRefreshFailureReport,
+  reportPlanningMetricsRefresh,
+} from "@/lib/planning-inputs/refresh-status";
+export type {
+  PlanningMetricsRefreshReport,
+  PlanningMetricsRefreshStatus,
+} from "@/lib/planning-inputs/refresh-status";
+export { toInventoryPlanningSettings } from "@/lib/planning-inputs/to-inventory-planning-settings";
 export {
   EMPTY_MERCHANT_PLANNING_INPUTS,
   type MerchantPlanningInputs,
