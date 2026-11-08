@@ -28,19 +28,30 @@ function grainKey(row: {
 
 /**
  * Count latest inventory grains that have a matching org/store/location/variant
- * metric with known sales_velocity_30d. Org-wide metric existence is not enough.
- * Null velocity fails closed (unknown ≠ zero).
+ * metric for the store-local as-of (current) metric_date with known
+ * sales_velocity_30d. Org-wide metric existence is not enough. Stale
+ * metric_dates (older than as-of) do not unlock cover. Null velocity
+ * fails closed (unknown ≠ zero); numeric zero counts as known.
  */
 export function countGrainAlignedKnownDemand(input: {
   inventoryGrains: readonly InventoryGrainForAlignment[];
   metrics: readonly MetricGrainForAlignment[];
+  /**
+   * Store-local YYYY-MM-DD as-of date per store_id. Missing store entries
+   * fail closed (no alignment).
+   */
+  asOfMetricDateByStoreId: ReadonlyMap<string, string>;
 }): number {
-  const latestMetricByGrain = new Map<string, MetricGrainForAlignment>();
+  const currentMetricByGrain = new Map<string, MetricGrainForAlignment>();
   for (const row of input.metrics) {
+    const asOf = input.asOfMetricDateByStoreId.get(row.store_id);
+    if (asOf === undefined || row.metric_date !== asOf) {
+      continue;
+    }
     const key = grainKey(row);
-    const existing = latestMetricByGrain.get(key);
-    if (!existing || row.metric_date > existing.metric_date) {
-      latestMetricByGrain.set(key, row);
+    const existing = currentMetricByGrain.get(key);
+    if (!existing) {
+      currentMetricByGrain.set(key, row);
     }
   }
 
@@ -49,7 +60,7 @@ export function countGrainAlignedKnownDemand(input: {
     if (grain.available_quantity === null) {
       continue;
     }
-    const metric = latestMetricByGrain.get(grainKey(grain));
+    const metric = currentMetricByGrain.get(grainKey(grain));
     if (metric && metric.sales_velocity_30d !== null) {
       aligned += 1;
     }

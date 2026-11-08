@@ -156,8 +156,8 @@ export default async function SalesImportEntryPage({
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600">
             Persist genuine order lines into the canonical commerce model. Cover
-            and velocity stay blocked until an authorized M5 metric recompute
-            produces grain-aligned demand — raw orders alone are not enough.
+            and velocity stay blocked until demand metrics are activated for
+            matching SKU, store, and location — raw orders alone are not enough.
           </p>
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 
+import { ActivateDemandMetricsButton } from "@/components/inventory-readiness/activate-demand-metrics-button";
 import type {
   EvidenceSufficiency,
   MerchantDecisionReadiness,
@@ -18,12 +19,21 @@ export function DecisionReadinessPanel({
   organizationId,
   variant = "full",
   showActionsDemoLink = true,
+  activationScope = null,
 }: {
   readiness: MerchantDecisionReadiness;
   organizationId: string;
   variant?: "full" | "compact";
   showActionsDemoLink?: boolean;
+  activationScope?: { storeId: string; locationId: string } | null;
 }) {
+  const coverReady =
+    readiness.capabilities.find((item) => item.key === "cover_days")?.ready ===
+    true;
+  const showActivate =
+    Boolean(activationScope?.storeId && activationScope.locationId) &&
+    readiness.presence.hasSalesHistory &&
+    !coverReady;
   const compact = variant === "compact";
 
   return (
@@ -170,7 +180,7 @@ export function DecisionReadinessPanel({
         </div>
       ) : null}
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Link
           href={`/app/${organizationId}/inventory`}
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white"
@@ -190,6 +200,13 @@ export function DecisionReadinessPanel({
         >
           Import sales history
         </Link>
+        {showActivate && activationScope ? (
+          <ActivateDemandMetricsButton
+            organizationId={organizationId}
+            storeId={activationScope.storeId}
+            locationId={activationScope.locationId}
+          />
+        ) : null}
         {showActionsDemoLink ? (
           <Link
             href={`/app/${organizationId}/actions`}

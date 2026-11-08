@@ -39,7 +39,10 @@ export function assessMerchantDecisionReadiness(input: {
   const hasKnownAvailable = presence.knownAvailableSkuCount > 0;
   const hasSalesRows = presence.hasSalesHistory;
   const hasMetricRows = presence.hasSkuDailyMetrics;
-  const alignedDemand = presence.grainAlignedKnownDemandCount;
+  const metricsPending = presence.hasPendingMetricWork;
+  const alignedDemand = metricsPending
+    ? 0
+    : presence.grainAlignedKnownDemandCount;
 
   // Planning / forecast / trusted incoming are never inferred from CSV alone.
   const hasLeadTime = false;
@@ -62,9 +65,11 @@ export function assessMerchantDecisionReadiness(input: {
 
   const metricsStatus: EvidenceSufficiency = !hasMetricRows
     ? "missing"
-    : alignedDemand > 0
-      ? "available"
-      : "insufficient";
+    : metricsPending
+      ? "insufficient"
+      : alignedDemand > 0
+        ? "available"
+        : "insufficient";
 
   const inputs: EvidenceInputStatus[] = [
     inputStatus(inventoryStatus, {
@@ -95,21 +100,25 @@ export function assessMerchantDecisionReadiness(input: {
       nextStep:
         salesStatus === "available"
           ? null
-          : "Import sales history CSV (or connect orders), then run an authorized M5 metric recompute so demand aligns to SKU, store, and location.",
+          : "Import sales history CSV (or connect orders), then activate demand metrics so demand aligns to SKU, store, and location.",
     }),
     inputStatus(metricsStatus, {
       key: "sku_daily_metrics",
       label: "Derived daily metrics",
       detail:
         metricsStatus === "available"
-          ? `${alignedDemand} stock position(s) have matching M5 metrics with known sales velocity.`
+          ? `${alignedDemand} stock position(s) have matching current demand metrics with known sales velocity.`
           : metricsStatus === "insufficient"
-            ? "M5 metric rows exist but none are window-aligned to latest stock grains with known sales_velocity_30d."
-            : "No M5 metric rows yet. Velocity, cover, and planning thresholds are not persisted.",
+            ? metricsPending
+              ? "Demand metrics are still updating from recent sales or stock changes. Cover stays blocked until current demand finishes."
+              : "Demand metric rows exist but none are current and matched to latest stock with known sales velocity. Stale or unmatched metrics do not unlock cover."
+            : "No demand metric rows yet. Velocity, cover, and planning thresholds are not persisted.",
       nextStep:
         metricsStatus === "available"
           ? null
-          : "Recompute sku_daily_metrics after trusted sales and inventory evidence exist for the same grains.",
+          : metricsPending
+            ? "Activate demand metrics again if the update is still pending."
+            : "Activate demand metrics after trusted sales and inventory exist for the same SKU, store, and location.",
     }),
     inputStatus(hasLeadTime ? "available" : "missing", {
       key: "lead_time",
@@ -204,7 +213,7 @@ export function assessMerchantDecisionReadiness(input: {
         ...(alignedDemand > 0
           ? []
           : [
-              "Import sales history CSV, then run an authorized M5 metric recompute so grain-aligned demand velocity is known (unknown ≠ zero).",
+              "Import sales history CSV, then activate demand metrics so store-local current grain-aligned velocity is known (unknown ≠ zero; stale metrics do not count).",
             ]),
         "Configure lead time, safety-stock days, and review period before reorder/target thresholds unlock.",
         "Connect trusted purchase-order incoming before REORDER or REDUCE can use incoming state (PROMOTE does not require incoming).",

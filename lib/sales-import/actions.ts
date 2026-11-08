@@ -12,6 +12,12 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import {
+  merchantMetricsActivationNote,
+  resolveMerchantMetricsActivationStatus,
+  type MerchantMetricsActivationStatus,
+} from "@/lib/metrics-activation/merchant-copy";
+import { runAuthorizedOrgMetricRecompute } from "@/lib/metrics-activation/run-org-recompute";
+import {
   buildMerchantSalesCsvImportPlan,
   collectMerchantSalesOrders,
 } from "@/lib/sales-import/build-csv-plan";
@@ -72,6 +78,11 @@ export type ConfirmSalesImportResult =
         message: string;
       }[];
       metricRecomputeNote: string;
+      metricsActivated: boolean;
+      metricsSucceeded: number;
+      metricsConsumedEvents: number;
+      metricsStatus: MerchantMetricsActivationStatus;
+      metricsPendingRemaining: boolean;
     }
   | { ok: false; error: string };
 
@@ -343,6 +354,43 @@ export async function confirmMerchantSalesImportAction(input: {
           `Row ${row.rowNumber} ${row.disposition}.`,
       }));
 
+    const shouldActivateMetrics =
+      parsed.velocityEligibleCount > 0 ||
+      orderItemCounts.created > 0 ||
+      orderItemCounts.updated > 0 ||
+      orderItemCounts.skipped > 0;
+
+    let metricsSucceeded = 0;
+    let metricsConsumedEvents = 0;
+    let metricsActivated = false;
+    let metricsStatus: MerchantMetricsActivationStatus = "idle";
+    let metricsPendingRemaining = false;
+    let metricRecomputeNote =
+      "Sales imported. Activate demand metrics so current demand can unlock days-of-stock cover. Unknown demand is not treated as zero.";
+
+    if (shouldActivateMetrics) {
+      try {
+        const activation = await runAuthorizedOrgMetricRecompute({
+          organizationId: authorized.scope.organizationId,
+          ownerId: `merchant-sales-import-metrics:${identity.userId}`,
+        });
+        metricsActivated = true;
+        metricsSucceeded = activation.succeeded;
+        metricsConsumedEvents = activation.consumedEvents;
+        metricsPendingRemaining = activation.pendingRemaining;
+        metricsStatus = resolveMerchantMetricsActivationStatus(activation);
+        metricRecomputeNote = `Sales imported. ${merchantMetricsActivationNote(
+          metricsStatus,
+          activation,
+        )}`;
+      } catch {
+        metricsStatus = "retryable";
+        metricsPendingRemaining = true;
+        metricRecomputeNote =
+          "Sales imported. Demand metrics need another try — use Activate demand metrics on inventory readiness. Cover stays blocked until current demand is ready.";
+      }
+    }
+
     return {
       ok: true,
       syncRunId: result.syncRunId,
@@ -355,8 +403,12 @@ export async function confirmMerchantSalesImportAction(input: {
       storeName: authorized.scope.storeName,
       locationName: authorized.scope.locationName,
       rowErrors,
-      metricRecomputeNote:
-        "Sales lines are persisted as orders and order items. Grain-aligned sales velocity (sku_daily_metrics) requires a separate authorized M5 metric recompute — workers and cron stay off in this milestone. Decision readiness will keep cover blocked until recomputed metrics exist.",
+      metricRecomputeNote,
+      metricsActivated,
+      metricsSucceeded,
+      metricsConsumedEvents,
+      metricsStatus,
+      metricsPendingRemaining,
     };
   } catch (cause) {
     const message =

@@ -43,10 +43,17 @@ export type EvidencePresence = {
   hasSkuDailyMetrics: boolean;
   /**
    * Latest inventory grains (variant×location) that also have a matching
-   * org/store/location/variant metric with known sales_velocity_30d.
+   * org/store/location/variant metric for the store-local as-of metric_date
+   * with known sales_velocity_30d. Stale metric_dates do not count.
+   * Pending source-event / recompute work also blocks this count.
    * Org-wide head counts alone never populate this.
    */
   grainAlignedKnownDemandCount: number;
+  /**
+   * True when unconsumed metric source events or open recompute requests
+   * remain for the organization. Metrics are not "current" while pending.
+   */
+  hasPendingMetricWork: boolean;
 };
 
 export type EvidenceInputStatus = {

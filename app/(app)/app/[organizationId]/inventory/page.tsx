@@ -177,6 +177,35 @@ export default async function InventoryPage({
   const latestRows = [...latestByGrain.values()];
   const readiness = await loadMerchantDecisionReadiness(organizationId);
 
+  const primaryGrain = latestRows[0] ?? null;
+  let activationScope: { storeId: string; locationId: string } | null =
+    primaryGrain
+      ? {
+          storeId: primaryGrain.store_id,
+          locationId: primaryGrain.location_id,
+        }
+      : null;
+
+  if (!activationScope) {
+    const bootstrapStoreId = String((storesData ?? [])[0]?.id ?? "");
+    if (bootstrapStoreId) {
+      const { data: bootstrapLocation } = await supabase
+        .from("locations")
+        .select("id")
+        .eq("organization_id", organizationId)
+        .eq("store_id", bootstrapStoreId)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (bootstrapLocation?.id) {
+        activationScope = {
+          storeId: bootstrapStoreId,
+          locationId: String(bootstrapLocation.id),
+        };
+      }
+    }
+  }
+
   return (
     <div>
       <div className="flex flex-col gap-5 border-b border-zinc-200 pb-8 sm:pb-10">
@@ -220,6 +249,7 @@ export default async function InventoryPage({
         <DecisionReadinessPanel
           readiness={readiness}
           organizationId={organizationId}
+          activationScope={activationScope}
         />
       </section>
 

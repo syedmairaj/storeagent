@@ -49,7 +49,9 @@ describe("merchant sales import architecture", () => {
 
     const assess = read("lib/inventory-readiness/assess.ts");
     expect(assess).toContain("grainAlignedKnownDemandCount");
-    expect(assess).toContain("Import sales history CSV");
+    expect(assess).toContain("hasPendingMetricWork");
+    expect(assess).toContain("Activate demand metrics");
+    expect(assess).toMatch(/canCommercial = false/);
   });
 
   it("wires the sales import page and inventory entry points", () => {

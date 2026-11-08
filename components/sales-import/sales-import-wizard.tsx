@@ -107,6 +107,11 @@ export function SalesImportWizard({
     storeName: string;
     locationName: string;
     metricRecomputeNote: string;
+    metricsActivated: boolean;
+    metricsSucceeded: number;
+    metricsConsumedEvents: number;
+    metricsStatus: "ready" | "pending" | "retryable" | "idle";
+    metricsPendingRemaining: boolean;
     rowErrors: readonly { rowNumber: number; code: string; message: string }[];
   } | null>(null);
   const [pending, startTransition] = useTransition();
@@ -271,6 +276,11 @@ export function SalesImportWizard({
         storeName: result.storeName,
         locationName: result.locationName,
         metricRecomputeNote: result.metricRecomputeNote,
+        metricsActivated: result.metricsActivated,
+        metricsSucceeded: result.metricsSucceeded,
+        metricsConsumedEvents: result.metricsConsumedEvents,
+        metricsStatus: result.metricsStatus,
+        metricsPendingRemaining: result.metricsPendingRemaining,
         rowErrors: result.rowErrors,
       });
       setStep("result");
@@ -324,8 +334,8 @@ export function SalesImportWizard({
         StoreAgent will not invent net sales after returns. SKUs must already
         exist from inventory import. Identical retries are safe; conflicting
         changes to an existing order or line are rejected so history cannot be
-        silently rewritten. Cover stays blocked until an authorized metric
-        recompute.
+        silently rewritten. Cover stays blocked until demand metrics are
+        activated for matching stock positions.
       </div>
 
       <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
@@ -506,7 +516,7 @@ export function SalesImportWizard({
               </h2>
               <p className="mt-2 text-sm text-zinc-600">
                 {readyCount} ready · {rejectedCount} rejected ·{" "}
-                {velocityEligibleCount} velocity-eligible after recompute
+                {velocityEligibleCount} velocity-eligible after metrics activation
                 {storeTimezone ? ` · timezone ${storeTimezone}` : ""}
               </p>
             </div>
@@ -607,7 +617,7 @@ export function SalesImportWizard({
             <span className="font-mono text-xs">{resultSummary.syncRunId}</span>{" "}
             ({resultSummary.disposition})
           </p>
-          <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <Stat label="Ready lines" value={String(resultSummary.readyCount)} />
             <Stat label="Created" value={String(resultSummary.created)} />
             <Stat label="Updated" value={String(resultSummary.updated)} />
@@ -617,6 +627,20 @@ export function SalesImportWizard({
               value={String(
                 resultSummary.quarantined + resultSummary.failed,
               )}
+            />
+            <Stat
+              label="Demand metrics"
+              value={
+                resultSummary.metricsStatus === "ready"
+                  ? "Ready"
+                  : resultSummary.metricsStatus === "pending"
+                    ? "Pending"
+                    : resultSummary.metricsStatus === "retryable"
+                      ? "Retry"
+                      : resultSummary.metricsActivated
+                        ? "Idle"
+                        : "—"
+              }
             />
           </dl>
           <p className="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-6 text-zinc-700">

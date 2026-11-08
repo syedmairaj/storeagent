@@ -17,6 +17,7 @@ describe("merchant decision readiness", () => {
         hasSalesHistory: false,
         hasSkuDailyMetrics: false,
         grainAlignedKnownDemandCount: 0,
+        hasPendingMetricWork: false,
       },
     });
 
@@ -50,6 +51,7 @@ describe("merchant decision readiness", () => {
         hasSalesHistory: false,
         hasSkuDailyMetrics: false,
         grainAlignedKnownDemandCount: 0,
+        hasPendingMetricWork: false,
       },
     });
 
@@ -72,6 +74,7 @@ describe("merchant decision readiness", () => {
         hasSalesHistory: true,
         hasSkuDailyMetrics: true,
         grainAlignedKnownDemandCount: 0,
+        hasPendingMetricWork: false,
       },
     });
 
@@ -103,6 +106,7 @@ describe("merchant decision readiness", () => {
         hasSalesHistory: true,
         hasSkuDailyMetrics: true,
         grainAlignedKnownDemandCount: 2,
+        hasPendingMetricWork: false,
       },
     });
 
@@ -120,6 +124,33 @@ describe("merchant decision readiness", () => {
     ).toMatch(/REORDER\/REDUCE need trusted incoming/i);
   });
 
+  it("blocks cover while metric source processing is still pending", () => {
+    const readiness = assessMerchantDecisionReadiness({
+      organizationId: "11111111-1111-4111-8111-111111111111",
+      presence: {
+        inventorySnapshotCount: 3,
+        distinctSkuCount: 2,
+        distinctStoreCount: 1,
+        distinctLocationCount: 1,
+        knownAvailableSkuCount: 2,
+        hasSalesHistory: true,
+        hasSkuDailyMetrics: true,
+        grainAlignedKnownDemandCount: 2,
+        hasPendingMetricWork: true,
+      },
+    });
+
+    expect(
+      readiness.capabilities.find((item) => item.key === "cover_days")?.ready,
+    ).toBe(false);
+    expect(
+      readiness.inputs.find((item) => item.key === "sku_daily_metrics")?.status,
+    ).toBe("insufficient");
+    expect(
+      readiness.inputs.find((item) => item.key === "sku_daily_metrics")?.detail,
+    ).toMatch(/still updating/i);
+  });
+
   it("treats null-only inventory as insufficient stock evidence", () => {
     const readiness = assessMerchantDecisionReadiness({
       organizationId: "11111111-1111-4111-8111-111111111111",
@@ -132,6 +163,7 @@ describe("merchant decision readiness", () => {
         hasSalesHistory: false,
         hasSkuDailyMetrics: false,
         grainAlignedKnownDemandCount: 0,
+        hasPendingMetricWork: false,
       },
     });
 
@@ -157,6 +189,7 @@ describe("merchant decision readiness", () => {
         hasSalesHistory: false,
         hasSkuDailyMetrics: false,
         grainAlignedKnownDemandCount: 0,
+        hasPendingMetricWork: false,
       },
     });
 
@@ -165,7 +198,8 @@ describe("merchant decision readiness", () => {
     expect(readiness.nextSteps[0]).toMatch(/Import a CSV/i);
   });
 
-  it("counts only store/location/variant-aligned metrics with known velocity", () => {
+  it("counts only store/location/variant-aligned current metrics with known velocity", () => {
+    const asOfMetricDateByStoreId = new Map([["s1", "2026-11-08"]]);
     const aligned = countGrainAlignedKnownDemand({
       inventoryGrains: [
         {
@@ -186,15 +220,23 @@ describe("merchant decision readiness", () => {
           store_id: "s1",
           location_id: "l1",
           variant_id: "v1",
-          metric_date: "2026-11-01",
+          metric_date: "2026-11-08",
           sales_velocity_30d: 1.5,
+        },
+        // Stale metric_date — must not unlock cover.
+        {
+          store_id: "s1",
+          location_id: "l1",
+          variant_id: "v1",
+          metric_date: "2026-11-01",
+          sales_velocity_30d: 9,
         },
         // Wrong store — must not align.
         {
           store_id: "s-other",
           location_id: "l1",
           variant_id: "v2",
-          metric_date: "2026-11-01",
+          metric_date: "2026-11-08",
           sales_velocity_30d: 2,
         },
         // Matching grain but unknown velocity — fail closed.
@@ -202,10 +244,49 @@ describe("merchant decision readiness", () => {
           store_id: "s1",
           location_id: "l1",
           variant_id: "v2",
-          metric_date: "2026-11-01",
+          metric_date: "2026-11-08",
           sales_velocity_30d: null,
         },
       ],
+      asOfMetricDateByStoreId,
+    });
+
+    expect(aligned).toBe(1);
+  });
+
+  it("treats proven zero velocity as known demand and ignores missing as-of", () => {
+    const aligned = countGrainAlignedKnownDemand({
+      inventoryGrains: [
+        {
+          store_id: "s1",
+          location_id: "l1",
+          variant_id: "v1",
+          available_quantity: 3,
+        },
+        {
+          store_id: "s2",
+          location_id: "l2",
+          variant_id: "v2",
+          available_quantity: 5,
+        },
+      ],
+      metrics: [
+        {
+          store_id: "s1",
+          location_id: "l1",
+          variant_id: "v1",
+          metric_date: "2026-11-08",
+          sales_velocity_30d: 0,
+        },
+        {
+          store_id: "s2",
+          location_id: "l2",
+          variant_id: "v2",
+          metric_date: "2026-11-08",
+          sales_velocity_30d: 1,
+        },
+      ],
+      asOfMetricDateByStoreId: new Map([["s1", "2026-11-08"]]),
     });
 
     expect(aligned).toBe(1);

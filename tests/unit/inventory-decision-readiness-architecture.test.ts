@@ -17,12 +17,20 @@ describe("inventory decision readiness architecture", () => {
     expect(load).toContain('from("inventory_snapshots")');
     expect(load).toContain("countGrainAlignedKnownDemand");
     expect(load).toContain("sales_velocity_30d");
-    expect(load).not.toContain("createSupabaseAdminClient");
+    expect(load).toContain("organization_members");
+    expect(load).toContain("countPendingMetricWorkForOrganization");
+    // Admin is allowed only after membership proof, for pending-queue freshness.
+    expect(load).toContain("createSupabaseAdminClient");
     expect(load).not.toContain("decideInventoryAction");
 
     const align = read("lib/inventory-readiness/align.ts");
     expect(align).toContain("sales_velocity_30d");
+    expect(align).toContain("asOfMetricDateByStoreId");
     expect(align).not.toContain("createSupabaseAdminClient");
+
+    expect(load).toContain("storeLocalAsOfDate");
+    expect(load).toContain("asOfMetricDateByStoreId");
+    expect(load).toContain("hasPendingMetricWork");
   });
 
   it("never calls the decision engine or fabricates action payloads", () => {
