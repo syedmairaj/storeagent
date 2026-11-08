@@ -12,8 +12,15 @@ import {
 } from "@/lib/metrics-activation/pending-work";
 import { storeLocalAsOfDate } from "@/lib/metrics-activation/store-local-as-of";
 import { AppError } from "@/lib/observability/app-error";
+import { EMPTY_MERCHANT_PLANNING_INPUTS } from "@/lib/planning-inputs/types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+type PlanningRow = {
+  lead_time_days: number | null;
+  safety_stock_days: number | null;
+  review_period_days: number | null;
+};
 
 type SnapshotGrainRow = {
   id: string;
@@ -127,6 +134,7 @@ export async function loadMerchantDecisionReadiness(
     { count: metricCount, error: metricCountError },
     { data: metrics, error: metricRowsError },
     { data: stores, error: storesError },
+    { data: planningRow, error: planningError },
   ] = await Promise.all([
     supabase
       .from("order_items")
@@ -149,6 +157,11 @@ export async function loadMerchantDecisionReadiness(
       .select("id,timezone")
       .eq("organization_id", organizationId)
       .limit(100),
+    supabase
+      .from("organization_planning_inputs")
+      .select("lead_time_days,safety_stock_days,review_period_days")
+      .eq("organization_id", organizationId)
+      .maybeSingle(),
   ]);
 
   if (salesError) {
@@ -181,6 +194,17 @@ export async function loadMerchantDecisionReadiness(
       publicMessage: "Unable to assess decision readiness right now.",
       httpStatus: 500,
       cause: storesError,
+    });
+  }
+
+  if (planningError) {
+    throw new AppError({
+      code: "DATA_LOAD_FAILED",
+      kind: "operational",
+      message: "Unable to load planning inputs for decision readiness.",
+      publicMessage: "Unable to assess decision readiness right now.",
+      httpStatus: 500,
+      cause: planningError,
     });
   }
 
@@ -218,6 +242,8 @@ export async function loadMerchantDecisionReadiness(
         asOfMetricDateByStoreId,
       });
 
+  const planning = (planningRow ?? null) as PlanningRow | null;
+
   const presence: EvidencePresence = {
     inventorySnapshotCount: rows.length,
     distinctSkuCount: new Set(latest.map((row) => row.variant_id)).size,
@@ -230,6 +256,13 @@ export async function loadMerchantDecisionReadiness(
     hasSkuDailyMetrics: (metricCount ?? 0) > 0,
     grainAlignedKnownDemandCount,
     hasPendingMetricWork: pendingWork,
+    planning: planning
+      ? {
+          leadTimeDays: planning.lead_time_days,
+          safetyStockDays: planning.safety_stock_days,
+          reviewPeriodDays: planning.review_period_days,
+        }
+      : { ...EMPTY_MERCHANT_PLANNING_INPUTS },
   };
 
   return assessMerchantDecisionReadiness({

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { InventoryIntelligenceWorkspace } from "@/components/inventory/inventory-intelligence-workspace";
+import { PlanningInputsEditor } from "@/components/inventory/planning-inputs-editor";
 import { DecisionReadinessPanel } from "@/components/inventory-readiness/decision-readiness-panel";
 import { requireAppIdentity } from "@/lib/auth/app-route";
 import { loadMerchantInventoryIntelligence } from "@/lib/inventory-intelligence";
@@ -18,7 +19,9 @@ import {
   isOrganizationProfileIncomplete,
   type OrganizationProfileRecord,
 } from "@/lib/organizations/profile";
+import { loadMerchantPlanningInputs } from "@/lib/planning-inputs";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { roleHasPermission } from "@/lib/tenancy/permissions";
 import { resolveServerOrganizationContext } from "@/lib/tenancy/server-organization-context";
 
 export const metadata: Metadata = {
@@ -76,9 +79,15 @@ export default async function InventoryPage({
     redirect(`/app/onboarding/store?organizationId=${organizationId}`);
   }
 
-  const [readiness, intelligence] = await Promise.all([
+  const canEditPlanning = roleHasPermission(
+    resolution.context.role,
+    "organization.manage",
+  );
+
+  const [readiness, intelligence, planning] = await Promise.all([
     loadMerchantDecisionReadiness(organizationId),
     loadMerchantInventoryIntelligence(organizationId),
+    loadMerchantPlanningInputs(organizationId),
   ]);
 
   const primaryRow = intelligence.rows[0] ?? null;
@@ -154,6 +163,18 @@ export default async function InventoryPage({
           readiness={readiness}
           organizationId={organizationId}
           activationScope={activationScope}
+        />
+      </section>
+
+      <section className="border-b border-zinc-200 py-8 sm:py-10">
+        <PlanningInputsEditor
+          organizationId={organizationId}
+          canEdit={canEditPlanning}
+          initial={{
+            leadTimeDays: planning.leadTimeDays,
+            safetyStockDays: planning.safetyStockDays,
+            reviewPeriodDays: planning.reviewPeriodDays,
+          }}
         />
       </section>
 

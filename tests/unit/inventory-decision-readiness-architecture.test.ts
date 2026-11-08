@@ -42,11 +42,22 @@ describe("inventory decision readiness architecture", () => {
     expect(assess).not.toContain('actionType: "PROMOTE"');
     expect(assess).not.toContain('actionType: "WATCH"');
     expect(assess).toContain("commercialActionsEligible");
-    expect(assess).toContain("hasLeadTime = false");
+    expect(assess).toContain("presence.planning");
+    expect(assess).toContain("leadTimeDays !== null");
     expect(assess).toContain("hasForecast = false");
     expect(assess).toContain("grainAlignedKnownDemandCount");
     expect(assess).toContain("PROMOTE does not");
     expect(assess).toMatch(/canCommercial = false/);
+    expect(assess).toMatch(/Not a verified supplier or SKU fact/i);
+    expect(assess).toMatch(/not an executable M7 commercial action/i);
+    expect(assess).not.toContain("hasLeadTime = false");
+  });
+
+  it("loads durable planning inputs into readiness without inventing defaults", () => {
+    const load = read("lib/inventory-readiness/load.ts");
+    expect(load).toContain('from("organization_planning_inputs")');
+    expect(load).toContain("EMPTY_MERCHANT_PLANNING_INPUTS");
+    expect(load).not.toContain("decideInventoryAction");
   });
 
   it("wires readiness into inventory, overview, and Actions without contaminating demo modules", () => {

@@ -44,10 +44,12 @@ export function assessMerchantDecisionReadiness(input: {
     ? 0
     : presence.grainAlignedKnownDemandCount;
 
-  // Planning / forecast / trusted incoming are never inferred from CSV alone.
-  const hasLeadTime = false;
-  const hasSafetyDays = false;
-  const hasReviewPeriod = false;
+  // Planning days come only from durable merchant inputs (null ≠ 0).
+  // Forecast / trusted incoming are never inferred from CSV alone.
+  const planning = presence.planning;
+  const hasLeadTime = planning.leadTimeDays !== null;
+  const hasSafetyDays = planning.safetyStockDays !== null;
+  const hasReviewPeriod = planning.reviewPeriodDays !== null;
   const hasTrustedIncoming = false;
   const hasForecast = false;
 
@@ -123,23 +125,38 @@ export function assessMerchantDecisionReadiness(input: {
     inputStatus(hasLeadTime ? "available" : "missing", {
       key: "lead_time",
       label: "Lead time",
-      detail: "Lead time is not supplied by CSV inventory import.",
-      nextStep:
-        "Add trusted supplier lead-time before reorder points can be calculated.",
+      detail: hasLeadTime
+        ? planning.leadTimeDays === 0
+          ? "Merchant organization assumption: lead time is explicitly 0 days (known zero). Not a verified supplier or SKU fact."
+          : `Merchant organization assumption: lead time is ${planning.leadTimeDays} day(s). Not a verified supplier or SKU fact.`
+        : "Lead time is unknown. CSV inventory import does not supply it, and no merchant assumption is configured.",
+      nextStep: hasLeadTime
+        ? null
+        : "Configure a merchant lead-time assumption before reorder points can be calculated.",
     }),
     inputStatus(hasSafetyDays ? "available" : "missing", {
       key: "safety_stock_days",
       label: "Safety stock days",
-      detail: "Planning safety-stock days are not on CSV inventory rows.",
-      nextStep:
-        "Configure planning settings before safety stock and ROP can be calculated.",
+      detail: hasSafetyDays
+        ? planning.safetyStockDays === 0
+          ? "Merchant organization assumption: safety-stock days is explicitly 0 (known zero)."
+          : `Merchant organization assumption: safety-stock days is ${planning.safetyStockDays}.`
+        : "Safety-stock days are unknown. They are not on CSV inventory rows, and no merchant assumption is configured.",
+      nextStep: hasSafetyDays
+        ? null
+        : "Configure a merchant safety-stock-days assumption before safety stock and ROP can be calculated.",
     }),
     inputStatus(hasReviewPeriod ? "available" : "missing", {
       key: "review_period_days",
       label: "Review period",
-      detail: "Review period is not inferred from inventory snapshots.",
-      nextStep:
-        "Configure review period before target stock can be calculated.",
+      detail: hasReviewPeriod
+        ? planning.reviewPeriodDays === 0
+          ? "Merchant organization assumption: review period is explicitly 0 days (known zero)."
+          : `Merchant organization assumption: review period is ${planning.reviewPeriodDays} day(s).`
+        : "Review period is unknown. It is not inferred from inventory snapshots, and no merchant assumption is configured.",
+      nextStep: hasReviewPeriod
+        ? null
+        : "Configure a merchant review-period assumption before target stock can be calculated.",
     }),
     inputStatus(hasTrustedIncoming ? "available" : "missing", {
       key: "trusted_incoming",
@@ -162,7 +179,9 @@ export function assessMerchantDecisionReadiness(input: {
   const canStock = hasKnownAvailable;
   // Cover needs known stock AND grain-aligned known demand — never org head counts.
   const canCover = hasKnownAvailable && alignedDemand > 0;
-  // Thresholds need cover inputs plus planning parameters (still closed in V1).
+  // Thresholds need cover inputs plus all three planning days.
+  // Presence unlocks capability evidence only — M5 formulas are not recomputed here
+  // and commercial evaluation stays independently gated.
   const canReorderThresholds =
     canCover && hasLeadTime && hasSafetyDays && hasReviewPeriod;
   // Milestone gate: commercial engine is not invoked / not independently authorized.
@@ -191,15 +210,15 @@ export function assessMerchantDecisionReadiness(input: {
       ready: canReorderThresholds,
       label: "Reorder / target thresholds",
       detail: canReorderThresholds
-        ? "Safety stock, reorder point, and target stock can be derived."
-        : "Needs grain-aligned demand plus lead time, safety-stock days, and review period. None are invented from CSV.",
+        ? "Merchant planning assumptions and grain-aligned demand are present for future threshold math. This is not an executable M7 commercial action."
+        : "Needs grain-aligned demand plus merchant planning assumptions for lead time, safety-stock days, and review period. None are invented from CSV.",
     },
     {
       key: "commercial_actions",
       ready: canCommercial,
       label: "REORDER / REDUCE / PROMOTE",
       detail:
-        "Commercial evaluation stays disabled. M7 prerequisites are action-specific: REORDER/REDUCE need trusted incoming; PROMOTE needs demand and target stock without inventing incoming. The decision engine is not invoked.",
+        "Commercial evaluation stays disabled. Configured planning assumptions are not executable M7 actions. REORDER/REDUCE need trusted incoming; PROMOTE needs demand and target stock without inventing incoming. The decision engine is not invoked.",
     },
   ];
 
@@ -215,7 +234,11 @@ export function assessMerchantDecisionReadiness(input: {
           : [
               "Import sales history CSV, then activate demand metrics so store-local current grain-aligned velocity is known (unknown ≠ zero; stale metrics do not count).",
             ]),
-        "Configure lead time, safety-stock days, and review period before reorder/target thresholds unlock.",
+        ...(hasLeadTime && hasSafetyDays && hasReviewPeriod
+          ? []
+          : [
+              "Configure lead time, safety-stock days, and review period before reorder/target thresholds unlock.",
+            ]),
         "Connect trusted purchase-order incoming before REORDER or REDUCE can use incoming state (PROMOTE does not require incoming).",
         "Use Actions only as a labeled synthetic demo until commercial evaluation is independently authorized.",
       ];
@@ -225,7 +248,9 @@ export function assessMerchantDecisionReadiness(input: {
       ? "Inventory rows exist but available quantity is unknown. Decisions stay empty — null stock is not zero."
       : "No live inventory evidence yet. Decisions stay empty until stock is imported."
     : canCover
-      ? `Live inventory and grain-aligned demand are present (${presence.knownAvailableSkuCount} SKU position(s), ${alignedDemand} with known velocity), but commercial recommendations stay disabled until planning evidence and independent authorization arrive.`
+      ? canReorderThresholds
+        ? `Live inventory, grain-aligned demand, and planning days are present (${presence.knownAvailableSkuCount} SKU position(s), ${alignedDemand} with known velocity). Commercial recommendations stay disabled until independent authorization arrives.`
+        : `Live inventory and grain-aligned demand are present (${presence.knownAvailableSkuCount} SKU position(s), ${alignedDemand} with known velocity), but commercial recommendations stay disabled until planning evidence and independent authorization arrive.`
       : `Live inventory is present (${presence.knownAvailableSkuCount} SKU position(s)), but commercial recommendations stay blocked until grain-aligned demand and planning evidence arrive.`;
 
   return {

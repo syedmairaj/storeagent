@@ -2,13 +2,25 @@ import { describe, expect, it } from "vitest";
 
 import { countGrainAlignedKnownDemand } from "@/lib/inventory-readiness/align";
 import { assessMerchantDecisionReadiness } from "@/lib/inventory-readiness/assess";
+import type { EvidencePresence } from "@/lib/inventory-readiness/types";
+import { EMPTY_MERCHANT_PLANNING_INPUTS } from "@/lib/planning-inputs/types";
 
+function presence(
+  partial: Omit<EvidencePresence, "planning"> & {
+    planning?: EvidencePresence["planning"];
+  },
+): EvidencePresence {
+  return {
+    ...partial,
+    planning: partial.planning ?? { ...EMPTY_MERCHANT_PLANNING_INPUTS },
+  };
+}
 
 describe("merchant decision readiness", () => {
   it("keeps commercial actions ineligible when only CSV inventory exists", () => {
     const readiness = assessMerchantDecisionReadiness({
       organizationId: "11111111-1111-4111-8111-111111111111",
-      presence: {
+      presence: presence({
         inventorySnapshotCount: 4,
         distinctSkuCount: 2,
         distinctStoreCount: 1,
@@ -18,7 +30,7 @@ describe("merchant decision readiness", () => {
         hasSkuDailyMetrics: false,
         grainAlignedKnownDemandCount: 0,
         hasPendingMetricWork: false,
-      },
+      }),
     });
 
     expect(readiness.commercialActionsEligible).toBe(false);
@@ -42,7 +54,7 @@ describe("merchant decision readiness", () => {
   it("does not treat missing sales as zero demand eligibility for cover", () => {
     const readiness = assessMerchantDecisionReadiness({
       organizationId: "11111111-1111-4111-8111-111111111111",
-      presence: {
+      presence: presence({
         inventorySnapshotCount: 1,
         distinctSkuCount: 1,
         distinctStoreCount: 1,
@@ -52,7 +64,7 @@ describe("merchant decision readiness", () => {
         hasSkuDailyMetrics: false,
         grainAlignedKnownDemandCount: 0,
         hasPendingMetricWork: false,
-      },
+      }),
     });
 
     const sales = readiness.inputs.find((item) => item.key === "sales_history");
@@ -65,7 +77,7 @@ describe("merchant decision readiness", () => {
   it("does not mark cover ready from org-wide sales or metric existence alone", () => {
     const readiness = assessMerchantDecisionReadiness({
       organizationId: "11111111-1111-4111-8111-111111111111",
-      presence: {
+      presence: presence({
         inventorySnapshotCount: 10,
         distinctSkuCount: 5,
         distinctStoreCount: 1,
@@ -75,7 +87,7 @@ describe("merchant decision readiness", () => {
         hasSkuDailyMetrics: true,
         grainAlignedKnownDemandCount: 0,
         hasPendingMetricWork: false,
-      },
+      }),
     });
 
     expect(readiness.commercialActionsEligible).toBe(false);
@@ -97,7 +109,7 @@ describe("merchant decision readiness", () => {
   it("marks cover ready only with grain-aligned known demand velocity", () => {
     const readiness = assessMerchantDecisionReadiness({
       organizationId: "11111111-1111-4111-8111-111111111111",
-      presence: {
+      presence: presence({
         inventorySnapshotCount: 3,
         distinctSkuCount: 2,
         distinctStoreCount: 1,
@@ -107,7 +119,7 @@ describe("merchant decision readiness", () => {
         hasSkuDailyMetrics: true,
         grainAlignedKnownDemandCount: 2,
         hasPendingMetricWork: false,
-      },
+      }),
     });
 
     expect(
@@ -124,10 +136,86 @@ describe("merchant decision readiness", () => {
     ).toMatch(/REORDER\/REDUCE need trusted incoming/i);
   });
 
+  it("treats explicit planning zero as available and keeps commercial gated", () => {
+    const readiness = assessMerchantDecisionReadiness({
+      organizationId: "11111111-1111-4111-8111-111111111111",
+      presence: presence({
+        inventorySnapshotCount: 3,
+        distinctSkuCount: 2,
+        distinctStoreCount: 1,
+        distinctLocationCount: 1,
+        knownAvailableSkuCount: 2,
+        hasSalesHistory: true,
+        hasSkuDailyMetrics: true,
+        grainAlignedKnownDemandCount: 2,
+        hasPendingMetricWork: false,
+        planning: {
+          leadTimeDays: 0,
+          safetyStockDays: 0,
+          reviewPeriodDays: 0,
+        },
+      }),
+    });
+
+    expect(
+      readiness.inputs.find((item) => item.key === "lead_time")?.status,
+    ).toBe("available");
+    expect(
+      readiness.inputs.find((item) => item.key === "lead_time")?.detail,
+    ).toMatch(/known zero/i);
+    expect(
+      readiness.inputs.find((item) => item.key === "lead_time")?.detail,
+    ).toMatch(/not a verified supplier or sku fact/i);
+    expect(
+      readiness.capabilities.find((item) => item.key === "reorder_thresholds")
+        ?.ready,
+    ).toBe(true);
+    expect(
+      readiness.capabilities.find((item) => item.key === "reorder_thresholds")
+        ?.detail,
+    ).toMatch(/not an executable M7 commercial action/i);
+    expect(readiness.commercialActionsEligible).toBe(false);
+  });
+
+  it("keeps reorder thresholds closed when planning is only partial", () => {
+    const readiness = assessMerchantDecisionReadiness({
+      organizationId: "11111111-1111-4111-8111-111111111111",
+      presence: presence({
+        inventorySnapshotCount: 3,
+        distinctSkuCount: 2,
+        distinctStoreCount: 1,
+        distinctLocationCount: 1,
+        knownAvailableSkuCount: 2,
+        hasSalesHistory: true,
+        hasSkuDailyMetrics: true,
+        grainAlignedKnownDemandCount: 2,
+        hasPendingMetricWork: false,
+        planning: {
+          leadTimeDays: 7,
+          safetyStockDays: null,
+          reviewPeriodDays: 14,
+        },
+      }),
+    });
+
+    expect(
+      readiness.inputs.find((item) => item.key === "lead_time")?.present,
+    ).toBe(true);
+    expect(
+      readiness.inputs.find((item) => item.key === "safety_stock_days")
+        ?.present,
+    ).toBe(false);
+    expect(
+      readiness.capabilities.find((item) => item.key === "reorder_thresholds")
+        ?.ready,
+    ).toBe(false);
+    expect(readiness.commercialActionsEligible).toBe(false);
+  });
+
   it("blocks cover while metric source processing is still pending", () => {
     const readiness = assessMerchantDecisionReadiness({
       organizationId: "11111111-1111-4111-8111-111111111111",
-      presence: {
+      presence: presence({
         inventorySnapshotCount: 3,
         distinctSkuCount: 2,
         distinctStoreCount: 1,
@@ -137,7 +225,7 @@ describe("merchant decision readiness", () => {
         hasSkuDailyMetrics: true,
         grainAlignedKnownDemandCount: 2,
         hasPendingMetricWork: true,
-      },
+      }),
     });
 
     expect(
@@ -154,7 +242,7 @@ describe("merchant decision readiness", () => {
   it("treats null-only inventory as insufficient stock evidence", () => {
     const readiness = assessMerchantDecisionReadiness({
       organizationId: "11111111-1111-4111-8111-111111111111",
-      presence: {
+      presence: presence({
         inventorySnapshotCount: 2,
         distinctSkuCount: 2,
         distinctStoreCount: 1,
@@ -164,7 +252,7 @@ describe("merchant decision readiness", () => {
         hasSkuDailyMetrics: false,
         grainAlignedKnownDemandCount: 0,
         hasPendingMetricWork: false,
-      },
+      }),
     });
 
     expect(
@@ -180,7 +268,7 @@ describe("merchant decision readiness", () => {
   it("stays empty when no inventory evidence exists", () => {
     const readiness = assessMerchantDecisionReadiness({
       organizationId: "11111111-1111-4111-8111-111111111111",
-      presence: {
+      presence: presence({
         inventorySnapshotCount: 0,
         distinctSkuCount: 0,
         distinctStoreCount: 0,
@@ -190,7 +278,7 @@ describe("merchant decision readiness", () => {
         hasSkuDailyMetrics: false,
         grainAlignedKnownDemandCount: 0,
         hasPendingMetricWork: false,
-      },
+      }),
     });
 
     expect(readiness.presence.knownAvailableSkuCount).toBe(0);

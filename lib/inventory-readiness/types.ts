@@ -31,6 +31,17 @@ export type EvidenceSufficiency =
   | "missing"
   | "insufficient";
 
+/**
+ * Durable merchant organization planning assumptions for readiness evidence.
+ * Not verified supplier/SKU facts. null = unknown; 0 = explicit known zero.
+ * Maps to InventoryPlanningSettings / organization_planning_inputs.
+ */
+export type PlanningEvidencePresence = {
+  leadTimeDays: number | null;
+  safetyStockDays: number | null;
+  reviewPeriodDays: number | null;
+};
+
 export type EvidencePresence = {
   inventorySnapshotCount: number;
   distinctSkuCount: number;
@@ -54,6 +65,11 @@ export type EvidencePresence = {
    * remain for the organization. Metrics are not "current" while pending.
    */
   hasPendingMetricWork: boolean;
+  /**
+   * Merchant-configured organization planning days when present.
+   * Absence of a row is represented as all-null (unknown).
+   */
+  planning: PlanningEvidencePresence;
 };
 
 export type EvidenceInputStatus = {
