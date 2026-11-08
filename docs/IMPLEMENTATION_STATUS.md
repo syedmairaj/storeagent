@@ -97,6 +97,312 @@ Use `npx supabase` for project commands. The global Supabase CLI is 2.90.0 and t
 
 The sections below are the historical milestone log.
 
+## 2026-11-08 — Merchant Pain-Point Readiness and M5–M7 Product Direction
+
+
+
+**Preflight type:** source-grounded M5–M7 planning-evidence architecture review (docs only; no product implementation in this slice).
+
+**Baseline HEAD:** `main` @ `b3ccc5efbd62ec53306d4857e94f0ed845680f34` (`feat(inventory): add secure merchant planning inputs v1`).
+
+**Definition — “foundation ready”:** locally implemented and tested capability. It does **not** mean proven commercial outcomes, hosted runtime readiness, PE1.b.6b JWT verification, or paying-customer launch.
+
+**Local vs hosted:** preserve Active handoff PE1.b gates above. Hosted PE1.b.6b JWT remains **UNPROVEN / NOT EXECUTED**. Workers / cron / HTTP metric and forecast routes remain **DISABLED** unless separately authorized. M7 production activation and merchant-approvable success paths remain **BLOCKED**.
+
+
+
+### Strategic positioning
+
+
+
+StoreAgent.si = provider-independent, merchant-friendly, explainable **AI Inventory & Buying Agent**.
+
+
+
+Core principle (unchanged): **Data determines reality. Deterministic commerce logic calculates. AI explains and prioritizes. Merchants approve consequential actions.**
+
+
+
+Competitive direction (strategic, not a superiority claim): address stockouts, trapped inventory capital, purchasing uncertainty, supplier reliability, forecasting trust, and fragmented workflows. Do **not** claim superiority over Prediko without evidence. Distinguish shipped capabilities from differentiation intent.
+
+
+
+Provider roadmap (subject to canonical roadmap + integration feasibility): CSV / core engine → Shopify read-only → WooCommerce → Amazon.
+
+
+
+### Six merchant pain points — readiness
+
+
+
+| # | Pain point | Readiness | Honest boundary |
+
+|---|---|---|---|
+
+| 1 | **STOCKOUTS** | **Foundation ready** | Real stock, sales velocity, cover, freshness, and data-quality checks exist (`lib/metrics/*`, `lib/inventory-intelligence/*`, `lib/inventory-readiness/*`). Full evidence-qualified **live** reorder and stockout prevention are **NOT** active. |
+
+| 2 | **EXCESS INVENTORY / CASH** | **Partially ready** | Stock, demand, and cover evidence exist. Verified excess **working-capital** calculations and live **REDUCE** decisions remain incomplete (no decision-engine cost/capital path; unit cost may exist on PO/supplier schema but is not wired into M7 money claims). |
+
+| 3 | **WHAT TO PURCHASE** | **Not live-ready** | Canonical M7 engine (`decideInventoryAction`), demo review controls, and merchant planning inputs exist. Real commercial decisions and purchasing workflows remain gated (M7.2/M7.3 hard-false; Actions = synthetic demo). |
+
+| 4 | **SUPPLIER LEAD-TIME UNCERTAINTY** | **Partially ready** | Secure merchant **organization-default** assumptions exist (`organization_planning_inputs`, `lib/planning-inputs/*`). Verified supplier performance, supplier/SKU overrides, and trusted incoming integration remain incomplete. |
+
+| 5 | **UNTRUSTWORTHY FORECASTS** | **Foundation ready for evidence transparency** | Eligible history, missing inputs, freshness, and data sufficiency are exposed (`lib/forecasting/history-sufficiency.ts`, readiness/forecast disposition contracts). Do **not** claim proven forecast accuracy or production forecasting readiness (M6 production operation **NOT APPROVED**). |
+
+| 6 | **SPREADSHEETS / FRAGMENTED WORKFLOWS** | **Core workflow ready locally** | Unified Inventory workspace, stock/sales CSV imports, canonical metrics, readiness, and planning inputs exist. Native commerce connectors and a full decision-first **commercial** workspace remain future work (Actions remains labeled synthetic demo). |
+
+
+
+### Implemented capabilities (verified against source; scope-qualified)
+
+
+
+| Capability | Scope | Primary references |
+
+|---|---|---|
+
+| Merchant auth + store onboarding | Local product path | `lib/auth/*`, org/store onboarding routes |
+
+| Secure inventory CSV import | Local; hosted schema separately gated | `lib/inventory-import/*`, CSV provider path |
+
+| Secure sales-history CSV import + immutable-conflict protection | Local | `lib/sales-import/*`, M3 history-conflict schema/tests |
+
+| Canonical M5 metric recomputation | Local implementation closed through M5.7 adversarial; hosted workers **OFF** | `lib/metrics/*`, `lib/persistence/recompute-sku-daily-metric.ts`, M5.6 orchestration |
+
+| Stock coverage + demand evidence workspace | Local Inventory UI | `lib/inventory-intelligence/*`, `app/(app)/app/[organizationId]/inventory/page.tsx` |
+
+| Missing / zero / short / stale / pending distinctions | Local readiness + cover classifiers | `lib/inventory-readiness/assess.ts`, `lib/inventory-intelligence/classify-cover.ts` (`null ≠ 0`; `zero_demand` vs `short_history` vs `stale` vs `pending_freshness`) |
+
+| Merchant organization planning defaults | Local (org defaults; not supplier facts) | `supabase/migrations/20261108160000_merchant_planning_inputs_v1.sql`, `lib/planning-inputs/{types,parse,load,actions}.ts`, `PlanningInputsEditor` |
+
+| Tenant authorization + human-control principles | Local contracts + demo controls | membership/`organization.manage` for planning writes; M7.3 human-approval lifecycle **fail-closed**; demo Actions no-save |
+
+
+
+**Demo / local / hosted / not activated distinctions:** Inventory intelligence + readiness + planning defaults = **local merchant surfaces**. Actions Decision Briefs = **synthetic demo** (`productionApprovalEligible=false`). M5/M6 engines + schemas = **implemented**; production forecast operation, M5/M6 workers/HTTP, and M7 merchant-approvable create/approve = **not activated**. PE1.b.6b JWT = **not proven**.
+
+
+
+### Incomplete / blocked capabilities (do not market as live)
+
+
+
+- Full live stockout / reorder recommendations
+
+- Verified cost-based excess working-capital analysis
+
+- Real REORDER / REDUCE / PROMOTE / WATCH execution against live merchant grains
+
+- Supplier lead-time reliability scoring and trusted incoming PO evidence on the M5 path (`eligibleIncomingQuantity` still forced unknown in `toPersistedSkuDailyMetric`)
+
+- Proven forecasting accuracy / production forecast operation
+
+- Automated purchasing, supplier outreach, or payments
+
+- Native Shopify / WooCommerce / Amazon connectors
+
+
+
+**Hard gates preserved:** M7 commercial production create/approve **NO-GO** until trusted source-of-create + merchant-approvable predicate are separately approved (`docs/M7_2A_*`, `docs/M7_3A_*`, `docs/M7_PB1_*`). Hosted PE1.b.6b security JWT verification remains **NO-GO / NOT EXECUTED** (see Active handoff). Paying-customer launch remains **NO-GO**.
+
+
+
+### Marketing truth boundaries
+
+
+
+**SAFE NOW (local honesty):**
+
+
+
+- Understand available stock and eligible stock coverage
+
+- See observed sales and limited demand history
+
+- Inspect evidence freshness, missing inputs, and readiness
+
+- Configure merchant planning assumptions
+
+- Review inventory and sales in one workspace
+
+
+
+**DO NOT CLAIM:**
+
+
+
+- Guaranteed stockout prevention
+
+- Guaranteed forecasting accuracy
+
+- Verified financial savings or excess capital without valid cost evidence
+
+- Exact purchasing recommendations before M7 eligibility
+
+- Verified supplier delivery performance
+
+- Autonomous purchasing or fully live AI decision execution
+
+
+
+**Suggested future landing positioning (copy only; not implemented):**
+
+“Stop guessing about your inventory. See what's in stock, understand how quickly products are selling, identify gaps in your data, and prepare better purchasing decisions—all in one workspace.”
+
+
+
+**Landing Merchant Pain-Point Messaging V1.3** = **FUTURE messaging milestone only** — marketing-page changes are **not** authorized by this preflight.
+
+
+
+### Preflight reuse map (canonical sources)
+
+
+
+| Area | Reusable capability | File / function |
+
+|---|---|---|
+
+| M5 velocity / cover / ROP / target | Frozen inventory math + aggregates; persist forces incoming unknown | `lib/metrics/inventory-math.ts` (`calculateSalesVelocity`, `calculateDaysOfStock`, `calculateSafetyStock`, `calculateReorderPoint`, `calculateTargetStock`, ROQ/risk helpers); `aggregateInventoryMetrics` (`lib/metrics/inventory-aggregates.ts`); `toPersistedSkuDailyMetric` (`lib/metrics/sku-daily-metric-record.ts`) |
+
+| Freshness / alignment | Grain-aligned known demand; pending work blocks cover | `loadMerchantInventoryIntelligence`, `classifyInventoryCoverStatus`, `loadMerchantDecisionReadiness` / `assessMerchantDecisionReadiness` |
+
+| M6 eligibility / DQ | History sufficiency; published-forecast binder hard-false production | `classifyHistorySufficiency`; `bindPublishedForecastEvidence` (`lib/decision-engine/published-forecast-eligibility.ts`); `docs/M6_PE1_FORECAST_ELIGIBILITY_READINESS.md` |
+
+| M7 engine | Deterministic orchestration + action rules | `decideInventoryAction` (`lib/decision-engine/decide.ts`); `evaluateReorderRule` / `evaluateReduceRule` / `evaluatePromoteRule` / `evaluateWatchHealthyRule` |
+
+| M7 binding (prep only) | Trusted M5 → decision input mapper; diagnostic only | `bindMetricToDecisionInput` (`lib/decision-engine/metric-decision-binding.ts`); optional `supplierPlanning` attestation — **not** org planning-inputs table |
+
+| Planning inputs | Org defaults, null≠0 parse, member read, owner/admin RPC write | `parseMerchantPlanningInputs`, `loadMerchantPlanningInputs`, `saveMerchantPlanningInputsAction`; migration `20261108160000_merchant_planning_inputs_v1.sql` |
+
+| PO / suppliers | Canonical tables + CSV reconcile exist; not trusted M5 incoming | `purchase_orders` / `purchase_order_items` / suppliers (M2); CSV reconcile RPCs; readiness hard-codes `hasTrustedIncoming = false` |
+
+| Workspaces | Inventory (live evidence) vs Actions (demo) | `inventory/page.tsx` + intelligence/readiness/planning editors; `actions/page.tsx` + `loadM7DecisionDemoDataset` |
+
+
+
+### M7 action-specific evidence matrix (do not conflate)
+
+
+
+Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
+
+
+
+| Action | Required evidence (fail closed; unknown ≠ 0) | Not required / notes |
+
+|---|---|---|
+
+| **REORDER** | Known available; **trusted incoming state known**; known demand velocity; known lead time; known ROP; known target; `recommendedOrderQuantity > 0` | Forecast **not** required for rule eligibility; still blocked for production create |
+
+| **REDUCE** | Known available; **incoming known and > 0**; known target; position above target; overstock medium/high | Existing excess with **no** incoming is **not** REDUCE (PROMOTE path); cost/capital **not** in engine |
+
+| **PROMOTE** | Known available **> 0**; known target; known demand; available above target; overstock medium/high; demand pressure (age ≥ 90 **or** falling **or** known-zero demand) | **Does not** require trusted incoming; inventory age currently unavailable on M5 persist path → age pressure often blocked |
+
+| **WATCH** | Fallback after no commercial candidate, **or** conflict among REORDER/REDUCE/PROMOTE; material uncertainty codes (missing inventory/incoming/demand/lead/ROP/target/forecast signals) | Must not be marketed as a purchase recommendation |
+
+
+
+### Planning inputs ↔ canonical thresholds
+
+
+
+- Persisted org defaults **match** `InventoryPlanningSettings` field names and null≠0 semantics — **safe as future inputs** to `aggregateInventoryMetrics` / inventory-math.
+
+- **Not yet wired** into M5 recompute: architecture test asserts `recompute-sku-daily-metric.ts` does **not** read `organization_planning_inputs` (`tests/unit/merchant-planning-inputs-architecture.test.ts`). Today thresholds stay unknown unless planning is passed into aggregates by another caller.
+
+- Readiness treats planning presence as **capability evidence only** (`reorder_thresholds` ready ≠ executable M7 action; `commercialActionsEligible` hard-false).
+
+- PB1 lead time accepts only attested `TrustedSupplierPlanningFacts`, **not** merchant org defaults — precedence for production supplier facts vs merchant assumptions remains a **future binding policy** slice.
+
+
+
+### Trusted incoming / PO gaps
+
+
+
+- PO schema + CSV purchase-order normalization/reconcile exist.
+
+- M5 persist path still sets `eligibleIncomingQuantity: null` + `incoming_state_unknown`.
+
+- Readiness always reports trusted incoming **missing**.
+
+- Therefore REORDER and REDUCE cannot be evidence-qualified on the live M5→decision path today; PROMOTE remains the only commercial rule that does not require incoming (still blocked by production create/approval gates and often by missing target/age).
+
+
+
+### Zero vs unknown and related risks
+
+
+
+| Risk | Current handling / gap |
+
+|---|---|
+
+| Zero vs unknown | Explicit throughout planning parse, readiness copy, cover classifier, and M7 rules |
+
+| Short history | Cover `short_history` / `no_eligible_days`; forecast sufficiency 0–6 / 7–27 / 28+ days |
+
+| Stale metrics | Cover `stale` when metric_date ≠ store-local as-of; PB1 optional staleness policy |
+
+| Pending freshness | Pending source-event/recompute work zeros aligned demand and blocks cover |
+
+| Returns | Sales aggregates net returned units into velocity; do not invent demand |
+
+| Multi-location | Decision grain is org/store/location/variant; no cross-location rollup in PB1/engine |
+
+| Inventory age | Persisted as unavailable → PROMOTE age pressure rarely available |
+
+| Cost / capital | No M7 working-capital evidence path |
+
+
+
+### Smallest safe local-only path to ONE real evidence-qualified action + human approval
+
+
+
+1. **Bind org planning defaults into M5 threshold recompute** (null≠0; no formula change; no commercial unlock).
+
+2. Establish **trusted incoming state** for grains that need REORDER/REDUCE — or deliberately choose **PROMOTE-only** local diagnostic if incoming remains unknown (still requires known target + demand pressure; age may stay unavailable).
+
+3. Use PB1 binding + diagnostic `decideInventoryAction` on one grain with hard-false production claims.
+
+4. Only after a separately approved **trusted source-of-create** + merchant-approvable predicate: persist one action and exercise **human approve** (M7.3). Demo no-save ≠ durable approval.
+
+
+
+Until steps 1–2 (and production create approval) land, the only merchant-visible “action” remains the **synthetic Actions demo**.
+
+
+
+### Development sequence
+
+
+
+| Stage | Status |
+
+|---|---|
+
+| **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults |
+
+| **CURRENT** | M5–M7 Planning Evidence Integration Architecture Preflight (this section) |
+
+| **PROPOSED NEXT** | (1) Bind planning assumptions safely to canonical threshold evidence; (2) Establish verified incoming/PO evidence where required by the chosen action; (3) Activate the smallest independently authorized real M7 decision with human approval |
+
+| **LATER** | Supplier Intelligence; purchasing workflows; stronger forecasts; provider connectors |
+
+
+
+**Order rationale (code-justified):** thresholds cannot become known on the recompute path until planning is bound (slice 1). REORDER/REDUCE additionally cannot clear eligibility without trusted incoming (slice 2). Production human approval cannot succeed while M7.3 approvable predicate / source-of-create remain fail-closed (slice 3). If product intentionally ships **PROMOTE-first**, slice 2 may narrow to “incoming not required for PROMOTE” but target/demand/overstock/age-or-trend pressure and create/approve gates remain; do **not** skip slice 1 if targets stay unknown.
+
+
+
+### Preflight verdict
+
+
+
+**PREFLIGHT COMPLETE** — documentation updated; no product implementation authorized by this slice.
+
 ## Current milestone
 
 M0 — Architecture Lock
