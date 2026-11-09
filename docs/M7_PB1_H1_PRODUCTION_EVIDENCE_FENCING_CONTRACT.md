@@ -1,20 +1,23 @@
 # M7-PB1.h.1 — Production Evidence-Fencing Contract Freeze
 
-**Status:** FROZEN for **design intent** + **PB1.h.1a safety clarifications**; several create-time guarantees remain **PROPOSED / UNENFORCED** until cooperating writers + TX protocol are implemented and proven (see §0.1, §1.6, §2.3, §14)
-**Baseline verified (h.1a correction):** `main` @ `75db88553bb4774b1afe40b6ce324343a9875c5a` — `docs(m7): freeze PB1 production evidence fencing contract`
+**Status:** FROZEN for **design intent** + **PB1.h.1a safety clarifications** + **PB1.h.4.0 transactional fencing protocol selection**; create-time guarantees remain **PROPOSED / UNENFORCED** until cooperating writers + TX protocol are implemented and proven (see §0.1, §0.2, §1.6, §2.3, §14)
+**Baseline verified (h.4.0 amendment):** `main` @ `9558df7351a60da924083578f1669b8242eef0a1` — `test(m7): verify PB1 evidence freshness and supplier concurrency races` (PB1.h.3 gap tests present; TX protocols still unenforced)
+**Prior h.1a baseline:** `75db88553bb4774b1afe40b6ce324343a9875c5a`
 **Prior h.1 baseline:** `b0e70590912a1bae27a77e18f3863d723f9a34c4`
-**Amendment:** **PB1.h.1a** — corrects supplier-phantom overclaim, optional SA008/false-ready wording, and conflated freshness axes (docs only)
+**Amendments:**
+- **PB1.h.1a** — corrects supplier-phantom overclaim, optional SA008/false-ready wording, and conflated freshness axes (docs only)
+- **PB1.h.4.0** — freezes chosen supplier + metric serialization protocol, corrected lock order, proof obligations, and successor slices (docs only; **no** SQL/TS implementation claim)
 **Origin:** PB1.h production readiness & evidence-fencing audit (local diagnostic PROMOTE/REORDER proven; production create/approve blocked)
 **Authority when docs conflict:** this freeze for **future** create-time / approval-time evidence fencing design, dual lead-time disclosure, and unlock prerequisites. Existing freezes remain authoritative for current behavior:
 - PB1 diagnostic binding: `docs/M7_PB1_TRUSTED_METRIC_DECISION_BINDING_CONTRACT.md`
 - M7.2 persistence (dormant / harness): `docs/M7_2A_IMMUTABLE_DECISION_PERSISTENCE_CONTRACT.md`
 - M7.3 lifecycle (fail-closed merchant approve): `docs/M7_3A_HUMAN_APPROVAL_LIFECYCLE_CONTRACT.md`
-- M5 formulas / SA008 / generations: `docs/INVENTORY_FORMULAS.md`, `lib/metrics/*`, `supabase/migrations/20261015110000_m5_5_sku_daily_metric_recompute.sql`, M5.6B/C migrations
-- PE1.b.6b: worksheet + runtime evidence (JWT **UNPROVEN**)
+- M5 formulas / SA008 / generations: `docs/INVENTORY_FORMULAS.md`, `lib/metrics/*`, `supabase/migrations/20261015110000_m5_5_sku_daily_metric_recompute.sql`, M5.6B/C migrations, `20261108180000_trusted_incoming_evidence_v1.sql`
+- PE1.b.6b: worksheet + runtime evidence (JWT **UNPROVEN** / **NO-GO**)
 
 This freeze does **not** authorize TypeScript, SQL, tests, schema, UI, migrations, ledger repair, hosted access, workers/cron/HTTP enablement, M7.2 production create, M7.3 merchant-approvable success, formula changes, purchasing, inventory mutation, or Git operations.
 
-**Legend:** **PROVEN** = true in current repo behavior. **PROPOSED** = required successor design; **not** currently enforceable; must not be treated as shipping safety. **BLOCKED** = production create/approve must not proceed until proven.
+**Legend:** **PROVEN** = true in current repo behavior. **PROPOSED** = required successor design; **not** currently enforceable; must not be treated as shipping safety. **UNENFORCED** = gap reproduced or design accepted but not implemented. **BLOCKED** = production create/approve must not proceed until proven.
 
 ---
 
@@ -23,12 +26,14 @@ This freeze does **not** authorize TypeScript, SQL, tests, schema, UI, migration
 | Gate | Result |
 |---|---|
 | Freeze fencing **design** + h.1a clarifications (docs only) | **GO** |
-| Claim supplier preferred phantoms are prevented today | **NO-GO** (§2.3 **PROPOSED**) |
-| Claim atomic create-time freshness is solved today | **NO-GO** (§1.6 **BLOCKED** / **PROPOSED**) |
+| Freeze h.4.0 chosen TX protocol (docs only; still **PROPOSED**) | **GO** |
+| Claim supplier preferred phantoms are prevented today | **NO-GO** (§2.3 **PROPOSED** / **UNENFORCED**; h.3 A1–A5) |
+| Claim atomic create-time freshness is solved today | **NO-GO** (§1.6 **BLOCKED** / **PROPOSED**; h.3 B1–B5, C1) |
 | Implement pure-TS fence validators (read-model helpers only) | **DONE locally (PB1.h.2)** — validators ≠ production TX proof; `transactionSafety` always unproven |
+| Local adversarial gap documentation (PB1.h.3) | **DONE locally** — proves gaps; does **not** close them |
 | Unlock `m5_sku_daily_metric_bound_v1` create path | **NO-GO** / **BLOCKED** until §1.6 + §2.3 + §7 proven |
 | Flip `inventory_action_is_merchant_approvable` | **NO-GO** |
-| Repair local migration ledger / hosted deploy / PE1.b.6b J-matrix | **NO-GO** (separate tracks) |
+| Repair local migration ledger / hosted deploy / PE1.b.6b J-matrix | **NO-GO** (separate tracks; retained) |
 | Invent verified supplier delivery performance or org-default LT as supplier facts | **FORBIDDEN** |
 
 **Product intent:** Document the **minimum safe** metric + supplier fencing design required before any future trusted production decision create or merchant approval, without enabling either, and without overclaiming concurrency safety the repository cannot yet prove. PB1.c/f/d/g remain **diagnostic preparation only**.
@@ -41,11 +46,20 @@ This freeze does **not** authorize TypeScript, SQL, tests, schema, UI, migration
 | SA008 / source `SHARE` marked optional | **Mandatory** for production create; last-moment recheck alone insufficient |
 | Freshness axes conflated under one event window | Split: sales window vs inventory token+events vs planning generation vs attestation generation vs PO events+dirty+token |
 
+### 0.2 PB1.h.4.0 protocol selection summary (still **PROPOSED** / **UNENFORCED**)
+
+| Decision | Frozen design (not implemented) |
+|---|---|
+| Supplier primary | **A:** DB `BEFORE INSERT OR UPDATE OR DELETE` trigger on `supplier_products` acquires org+variant **transaction** advisory lock; future create/approve use the **identical** lock (§2.3). Partial unique preferred = **deferred DiD**. `SERIALIZABLE` rejected as primary. |
+| Metric / first-request | Grain advisory shared by future create **and** every relevant enqueue/write path, including missing-request insertion (§1.2 step 1, §3.4). |
+| Lock order | **Corrected:** grain advisory → supplier advisory → source `SHARE` (canonical M5 order) → metric `FOR UPDATE` → request `FOR UPDATE` → supplier row `FOR UPDATE` → SA008/freshness recheck → hypothetical insert. Prior h.1 metric-before-SHARE order is **superseded** (deadlocks with `commit_sku_daily_metric`). |
+| Shipping safety | **Forbidden** until live dual-TX proof obligations in §8.1 **PASS**. |
+
 ---
 
 ## 1. Create-time transaction (**PROPOSED** successor; production create **BLOCKED**)
 
-Applies only to a **future** approved production create writer that persists `evidence_source_class = m5_sku_daily_metric_bound_v1`. Today’s RPC **always rejects** that class (`PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE`) — **PROVEN** fail-closed.
+Applies only to a **future** approved production create writer that persists `evidence_source_class = m5_sku_daily_metric_bound_v1`. Today’s RPC **always rejects** that class (`PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE`) — **PROVEN** fail-closed (`persist_inventory_action_recommendation` in `20261031100000_m7_2b_inventory_action_persistence.sql`).
 
 Until §1.6 exit criteria are met, treat the protocol below as **PROPOSED design**, not a solved shipping guarantee.
 
@@ -60,25 +74,48 @@ Until §1.6 exit criteria are met, treat the protocol below as **PROPOSED design
 | `service_role` meaning | Privilege ≠ evidence provenance (unchanged from M7.2a) |
 | Forecast | `forecast_run_id` remains null until separate M6 production eligibility approval |
 
-### 1.2 Lock order (**PROPOSED**; deadlock-safe target)
+### 1.2 Lock order (**PROPOSED**; h.4.0 corrected; deadlock-safe target vs M5 commit)
 
-Fixed order inside one create transaction. Do not invent alternate lock graphs without amending this freeze.
+Fixed order inside one create transaction. Do **not** invent alternate lock graphs without amending this freeze. **h.4.0 supersedes** the earlier h.1 ordering that placed metric `FOR UPDATE` before source `SHARE` (that inversion deadlocks with `commit_sku_daily_metric`: SHARE → metric upsert).
 
-1. **Store** row (`stores`) for `(organization_id, store_id)` — `SELECT … FOR SHARE` (timezone / existence).
-2. **Metric** row (`sku_daily_metrics`) for natural key `(organization_id, store_id, location_id, variant_id, metric_date, algorithm_version)` — `SELECT … FOR UPDATE`.
-3. **Recompute request** row(s) for the same grain + algorithm (if any) — `SELECT … FOR UPDATE` on matching `sku_daily_metric_recompute_requests`. If none exist, the create TX must still participate in a **proven** serialization that prevents a concurrent first insert of a dirty request from racing past freshness checks (see §1.3 / §1.6) — exact mechanism is **PROPOSED** (e.g. grain advisory shared with M5 enqueue paths, or equivalent).
-4. **Supplier product** serialization — see §2 (**PROPOSED**; create-side locks alone are insufficient).
-5. **Mandatory commerce / incoming source fencing for SA008-class evidence:** `LOCK … IN SHARE MODE` (or equivalent proven serialization) on the same source-table family used by M5.5 commit as extended by trusted-incoming (at minimum: orders, order_items, return_refunds, inventory_snapshots, plus PO / attestation inputs that participate in the create-bound source token). Prefer reusing `sku_daily_metric_source_snapshot` + token compare **under those locks**. This step is **not optional** for production create.
-6. **Final freshness revalidation** (§1.3) while locks from steps 2–5 are still held.
-7. **Insert** `inventory_actions` (+ reserved atomic `created` ActionEvent when that path is separately approved) only after step 6 passes.
+Successor create TX must set `lock_timeout` explicitly (default proposal: **2s**, align with M5.5/trusted-incoming commit) and a bounded `statement_timeout`.
 
-If any lock wait exceeds the project’s bounded create `lock_timeout` (successor must set an explicit timeout; default proposal: align with M5.5 2s commit posture unless a later freeze proves otherwise) → **abort / retry**; do not partial-commit.
+| Step | Acquisition (**PROPOSED**) | Notes |
+|---|---|---|
+| **1** | **Grain advisory** — `pg_advisory_xact_lock(71010402, hashtext(grain_key))` where `grain_key = organization_id \|\| ':' \|\| store_id \|\| ':' \|\| location_id \|\| ':' \|\| variant_id \|\| ':' \|\| metric_date::text \|\| ':' \|\| algorithm_version` | Shared with every enqueue path that INSERT/UPSERTs `sku_daily_metric_recompute_requests` for that grain (§3.4). Closes first dirty-request race when no request row exists. |
+| **2** | **Supplier org+variant advisory** — `pg_advisory_xact_lock(71010401, hashtext(organization_id::text \|\| ':' \|\| variant_id::text))` | Identical key to §2.3 trigger protocol. Create/approve **must** acquire before preferred/explicit supplier reads. |
+| **3** | **Source `LOCK TABLE … IN SHARE MODE`** in **canonical M5 commit order** (PROVEN in `commit_sku_daily_metric` / `20261108180000_trusted_incoming_evidence_v1.sql`): `stores` → `orders` → `order_items` → `return_refunds` → `inventory_snapshots` → `purchase_orders` → `purchase_order_items` → `store_incoming_evidence_attestations` | Mandatory. Holds through validate→insert. Reuse SA008 snapshot under these locks. |
+| **4** | **Metric** row — `SELECT … FOR UPDATE` on `sku_daily_metrics` natural key `(organization_id, store_id, location_id, variant_id, metric_date, algorithm_version)` | After SHARE to avoid create↔commit deadlock. |
+| **5** | **Recompute request** row — `SELECT … FOR UPDATE` on matching `sku_daily_metric_recompute_requests` **if present** | Absence is covered by step 1 grain advisory (not by metric row lock alone — parent metric `FOR UPDATE` does **not** block request INSERT). |
+| **6** | **Supplier row** — `SELECT … FOR UPDATE` on chosen / sole-preferred `supplier_products` row (after step 2) | Exact-row LT UPDATE/DELETE already **PROVEN** blocked under `FOR UPDATE` (h.3 A3). Phantoms require step 2 + trigger. |
+| **7** | **Final freshness revalidation** (§1.3) | While steps 1–6 remain held. |
+| **8** | **Hypothetical insert** `inventory_actions` (+ reserved atomic `created` ActionEvent when separately approved) | Only after step 7 passes. Today’s persist path still rejects production class. |
 
-**Abort / retry:** any lock timeout, SA008/token mismatch, generation/window failure, or supplier stale/phantom result → full TX rollback; caller may retry with fresh evidence. No insert on failed fence.
+Optional store-row `SELECT … FOR SHARE` for timezone/existence may occur **only** if it does not invert the SHARE/metric order above (prefer relying on step 3 `stores` SHARE + snapshot timezone).
+
+**Abort / retry:** any lock timeout (`55P03`), SA008/token mismatch, generation/window failure, or supplier stale/phantom/ambiguous result → full TX rollback; caller may retry with fresh evidence. No insert on failed fence.
+
+#### 1.2.1 Lock-order audit vs existing M5 writers (**PROVEN** today / **PROPOSED** create)
+
+| Existing writer | Locks today (PROVEN) | Create interaction under §1.2 |
+|---|---|---|
+| `commit_sku_daily_metric` | Table SHARE (canonical order) → SA008 → metric upsert; `lock_timeout=2s` | Compatible **if** create takes SHARE before metric `FOR UPDATE`. **Unresolved if** create reverts to metric-before-SHARE (**deadlock cycle**). |
+| `claim_sku_daily_metric_recompute_requests` | Global advisory `5606003` + `FOR UPDATE SKIP LOCKED` on request rows | Create holding request `FOR UPDATE` → claim skips that grain (busy exclusion) or waits; create timeout → abort/retry. Global `5606003` ≠ grain `71010402` (no intentional sharing). |
+| `consume_sku_daily_metric_source_events` | `FOR UPDATE SKIP LOCKED` on source events; UPSERT requests — **no** grain advisory today | **UNENFORCED** vs create until h.4.2 wraps enqueue with `71010402`. |
+| Planning / incoming / rollover enqueue RPCs | UPSERT requests — **no** grain advisory today | Same — must join §3.4 protocol. |
+| `csv_reconcile_supplier_product` | Exact `(org,supplier,variant)` `FOR UPDATE` only | **UNENFORCED** vs preferred-set until h.4.1 trigger / `71010401`. |
+| Source-event **capture** triggers (orders/PO/etc.) | Fire on source DML; take row locks via writer | Blocked while create holds source SHARE (PROVEN pattern h.3 B6/D2). |
+
+**Unresolved cycles / residual risks (do not claim closed):**
+
+1. Create using **pre-h.4.0** metric-before-SHARE order vs commit → **deadlock** (design forbids that order).
+2. Direct `INSERT` into `sku_daily_metric_recompute_requests` or `sku_daily_metric_source_events` bypassing enqueue RPCs / source tables → **bypass** until grants/DEFINER-only hardened (see §3.4).
+3. Coarse table SHARE stalls unrelated org writers during create (same blast-radius as M5 commit; accepted; row-grain SHARE not claimed).
+4. Hash advisory collision (theoretical) — see §2.3.2; mitigated by tenant+grain key width + dual-TX isolation tests, not by claiming perfect uniqueness.
 
 ### 1.3 Source reads + evidence validation (in-TX; **PROPOSED** until proven)
 
-After locks from §1.2 are held:
+After locks from §1.2 are held — **and held through** the validate→insert window:
 
 | Check | Fail closed when |
 |---|---|
@@ -87,17 +124,17 @@ After locks from §1.2 are held:
 | Timezone | Create `pinned_time_zone` ≠ trusted store timezone |
 | Metric watermark | Locked `updated_at` (and date/algo) ≠ create `metric_source_watermark` / provenance token |
 | Generations | Open request exists with `dirty_generation ≠ applied_generation` **or** status ∈ `{queued,claimed,running,retry_wait,failed}` for this grain → reject `PENDING_RECOMPUTE` |
-| Window pending (sales/inventory events) | Any **unconsumed** `sku_daily_metric_source_events` for this grain with `source_date ∈ [metric_date − 89, metric_date]` → reject (see §3) |
-| Source token / SA008 | **Mandatory** for production create: re-snapshot under §1.2 source locks; mismatch → `SA008` / `STALE_SOURCE_TOKEN` |
+| Window pending (sales/inventory/PO events) | Any **unconsumed** `sku_daily_metric_source_events` for this grain with `source_date ∈ [metric_date − 89, metric_date]` → reject (see §3) |
+| Source token / SA008 | **Mandatory** for production create: re-snapshot under §1.2 source SHARE; mismatch → `SA008` / `STALE_SOURCE_TOKEN` |
 | Incoming | Persisted `eligible_incoming_*` nullability/reason coupling intact; commercial REORDER/REDUCE require known incoming |
-| Supplier facts | §2 + §4 |
+| Supplier facts | §2 + §4 — including `supplier_products.updated_at` revision recheck |
 | Dual LT disclosure | §5 fields present on create payload / evidence provenance |
 | Engine | Frozen `decideInventoryAction` / binding rules only — **no formula fork** |
 | Body / provenance hashes | Re-derive in RPC; mismatch → reject (M7.2 posture) |
 
-**Final revalidation before INSERT (mandatory, still not sufficient alone):** immediately before step 7, re-check generations, in-window unconsumed events, metric watermark, and SA008/source token **while source + metric (+ supplier) locks remain held**.
+**Final revalidation before INSERT (mandatory, still not sufficient alone):** immediately before step 8, re-check generations, in-window unconsumed events, metric watermark, SA008/source token, algorithm/date, and supplier revision **while** grain advisory, supplier advisory, source SHARE, metric, request (if any), and supplier row locks remain held.
 
-**False-ready prohibition (normative):** a last-minute recheck **without** continuing to hold serialization against concurrent source writers is **insufficient**. Under `READ COMMITTED`, a source mutation can commit after a check statement and before INSERT unless writers are blocked by shared locks / shared advisory protocol / equivalent isolation for the entire validate→insert window. Production create remains **BLOCKED** until that protocol is implemented and adversarially proven (§1.6).
+**False-ready prohibition (normative):** a last-minute recheck **without** continuing to hold serialization against concurrent source writers is **insufficient**. Under `READ COMMITTED`, a source mutation can commit after a check statement and before INSERT unless writers are blocked by shared locks / shared advisory protocol / equivalent isolation for the entire validate→insert window. Production create remains **BLOCKED** until that protocol is implemented and adversarially proven (§1.6). PB1.h.3 B1–B5 / C1 reproduce this gap today.
 
 ### 1.4 Canonical decision binding
 
@@ -122,9 +159,10 @@ PB1 diagnostic loaders remain **out of band** and are **not** the production cre
 Repository today **cannot** claim atomic create-time freshness. Exit criteria (each owner-authorized):
 
 1. Create RPC implements §1.2–§1.3 with **mandatory** SA008/source serialization (not optional).
-2. Adversarial tests prove: concurrent order/PO/snapshot/attestation/planning mutations during validate→insert either block, abort create, or force retry — **never** a successful insert on stale evidence.
-3. Missing recompute-request race is covered (no false-ready when the first dirty request is inserted after an empty-request check).
-4. Explicit owner approval then still required to accept `m5_sku_daily_metric_bound_v1` (§7).
+2. Adversarial dual-TX tests prove §8.1 matrix: concurrent order/PO/snapshot/attestation/planning mutations during validate→insert either **BLOCK**, **ABORT** create, or force **RETRY** — **never** a successful insert on stale evidence.
+3. Missing recompute-request race is covered via grain advisory shared with enqueue paths (no false-ready when the first dirty request is inserted after an empty-request check).
+4. Supplier phantom protocol (§2.3) implemented and phantom-proven.
+5. Explicit owner approval then still required to accept `m5_sku_daily_metric_bound_v1` (§7).
 
 Until then: production create = **BLOCKED** (in addition to today’s `PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE`).
 
@@ -146,39 +184,65 @@ Production create/approve that consumes supplier LT must bind:
 
 Unique key today: `(organization_id, supplier_id, variant_id)` on `supplier_products` (`20261011133000_m2_5_suppliers_purchase_orders.sql`). **Not** unique on `preferred`.
 
+**PROVEN identity immutability:** `prevent_supplier_product_identity_reassignment` forbids UPDATE that changes `organization_id`, `supplier_id`, or `variant_id`. Successor protocol **preserves** that forbid. If identity reassignment were ever authorized in a future freeze, the writer **must** acquire advisories for **both** OLD and NEW `(organization_id, variant_id)` keys in **sorted key order** before mutation — until then, treat identity change as **forbidden**, not as an implemented dual-key path.
+
 ### 2.2 Explicit vs implicit selection
 
 | Mode | Create-time rule |
 |---|---|
-| **Explicit** | Caller supplies `supplier_id` (+ resolved `supplier_product_id`). Lock that exact row. Preference flags ignored except for audit echo. |
-| **Implicit preferred** | No `supplier_id`. Under a **proven** org+variant serialization protocol (§2.3), require **exactly one** row with `preferred = true` and non-null valid `lead_time_days`. 0 → `SUPPLIER_FACTS_ABSENT`; >1 → `SUPPLIER_FACTS_AMBIGUOUS`. |
+| **Explicit** | Caller supplies `supplier_id` (+ resolved `supplier_product_id`). Under §2.3 lock, `FOR UPDATE` that exact row. Preference flags ignored except for audit echo. |
+| **Implicit preferred** | No `supplier_id`. Under §2.3 org+variant serialization, require **exactly one** row with `preferred = true` and non-null valid `lead_time_days`. 0 → `SUPPLIER_FACTS_ABSENT`; >1 → `SUPPLIER_FACTS_AMBIGUOUS` (fail-closed; **multiple preferred remains allowed by schema today**). |
 
 Org planning defaults and `suppliers.default_lead_time_days` remain **forbidden** substitutes (`ORG_PLANNING_DEFAULTS_FORBIDDEN` / `SUPPLIER_DEFAULT_LEAD_TIME_FORBIDDEN`).
 
-### 2.3 Phantom preferred INSERT/UPDATE races — **PROPOSED** (not currently enforceable)
+### 2.3 Phantom preferred INSERT/UPDATE races — **PROPOSED** primary (h.4.0); **UNENFORCED** today
 
-**Problem (PROVEN):** non-transactional PB1.f reads allow TOCTOU (PB1.g). Schema allows multiple `preferred = true` rows per variant. Under `READ COMMITTED`, locking only existing rows does **not** block a concurrent **INSERT** of another preferred mapping (phantom).
+**Problem (PROVEN — h.3 A1/A2/A4/A5):** non-transactional PB1.f reads allow TOCTOU (PB1.g). Schema allows multiple `preferred = true` rows per variant. Under `READ COMMITTED`, locking only existing rows does **not** block a concurrent **INSERT** of another preferred mapping (phantom). Create-side advisory alone does **not** stop non-participating writers.
 
-**Proven writer behavior today:** `csv_reconcile_supplier_product` (`20261011184500_m3_9_csv_history_relationship_reconciliation.sql`) acquires `FOR UPDATE` on the exact `(organization_id, supplier_id, variant_id)` row (or inserts that row). It does **not** take an org+variant advisory lock, does **not** lock sibling preferred rows, and therefore does **not** participate in create-side preferred-set serialization. Direct SQL DML on `supplier_products` likewise has no shared protocol.
+**Proven writer behavior today:** `csv_reconcile_supplier_product` (`20261011184500_m3_9_csv_history_relationship_reconciliation.sql`) acquires `FOR UPDATE` on the exact `(organization_id, supplier_id, variant_id)` row (or inserts that row). It does **not** take an org+variant advisory lock, does **not** lock sibling preferred rows, and therefore does **not** participate in create-side preferred-set serialization. Direct SQL DML on `supplier_products` (service_role / superuser) likewise has no shared protocol. Authenticated browser INSERT/UPDATE/DELETE on `supplier_products` are **revoked** (M2.7) — residual writers are service_role RPCs and privileged SQL.
 
-**PROPOSED strategy (successor — do not claim safety before implementation + proof):**
+#### 2.3.1 Chosen primary strategy (**PROPOSED** — not implemented)
 
-1. Define one org+variant serialization protocol used by **all** relevant writers, including at minimum:
-   - future production create / approve revalidation paths;
-   - `csv_reconcile_supplier_product` (and any CSV batch wrappers);
-   - any other application or RPC path that INSERT/UPDATE/DELETE `supplier_products` or flips `preferred` / `lead_time_days`.
-2. Acceptable equivalents (choose and prove one; may combine):
-   - **Shared** transaction-scoped advisory lock keyed by `(organization_id, variant_id)` acquired by create **and** all writers before preferred reads/mutations; and/or
-   - DB-enforced partial unique constraint “at most one preferred per `(organization_id, variant_id)`” (separate owner-authorized migration); and/or
-   - stronger isolation (e.g. `SERIALIZABLE`) with proven retry mapping — only if adversarially tested for this workload.
-3. Create-side steps that become meaningful **only after** writer participation:
-   - `SELECT … FOR UPDATE` chosen row by PK + `updated_at` watermark compare;
-   - implicit path: under shared protocol, lock/evaluate preferred-with-LT cardinality; reject 0 / >1;
-   - concurrent DELETE of locked row → `SUPPLIER_MAPPING_NOT_FOUND`;
-   - concurrent LT/preferred UPDATE on locked row → wait → re-read → `SUPPLIER_FACTS_STALE` / `INVALID` if watermark/LT diverges.
-4. **Create-side advisory lock alone is insufficient** and must not be documented as enforceable.
+**A — DB-enforced org+variant transaction advisory via BEFORE trigger**
 
-**Proof obligation before any “phantom-safe” claim:** adversarial tests for concurrent preferred INSERT and preferred UPDATE/DELETE against create (and approve revalidation) must PASS with the shared protocol or DB constraint in place. Until then, supplier phantom prevention = **UNENFORCED / PROPOSED**; production REORDER create that depends on implicit preferred selection remains **BLOCKED**.
+1. Helper (illustrative name): `public.acquire_supplier_products_org_variant_xact_lock(p_organization_id uuid, p_variant_id uuid)` → `PERFORM pg_catalog.pg_advisory_xact_lock(71010401, pg_catalog.hashtext(p_organization_id::text || ':' || p_variant_id::text))`.
+2. `BEFORE INSERT OR UPDATE OR DELETE` **row** trigger on `public.supplier_products` calls the helper for the row’s `(organization_id, variant_id)` (INSERT/UPDATE: NEW; DELETE: OLD). This forces **all** DML paths — including direct SQL — to participate.
+3. Future production create / approve revalidation acquire the **identical** lock (§1.2 step 2) **before** preferred-set or explicit mapping reads.
+4. After the advisory: `SELECT … FOR UPDATE` chosen row by PK; compare `updated_at` + LT; implicit path evaluate preferred-with-LT cardinality (0 / 1 / >1).
+5. Concurrent DELETE of locked row → `SUPPLIER_MAPPING_NOT_FOUND`; concurrent LT/preferred UPDATE on locked row → wait → re-read → `SUPPLIER_FACTS_STALE` / `INVALID` if watermark/LT diverges.
+6. Optional explicit `PERFORM` inside `csv_reconcile_supplier_product` (redundant with trigger; clearer wait locus / error mapping).
+
+**Create-side advisory lock alone remains insufficient** and must not be documented as enforceable (h.3 A4).
+
+#### 2.3.2 Lock namespace + collision considerations (**PROPOSED**)
+
+| Item | Value |
+|---|---|
+| Namespace (int4 classid) | `71010401` — reserved for supplier org+variant fencing; **must not** reuse M5 claim `5606003`, rollover `5606004`, or forecast publication namespaces |
+| Key (int4) | `hashtext(organization_id::text || ':' || variant_id::text)` |
+| Scope | Transaction-scoped (`pg_advisory_xact_lock`) — released on commit/rollback |
+| Collision | `hashtext` is 32-bit; distinct `(org,variant)` pairs can theoretically collide. Mitigations: stable delimiter `':'`; dual-TX cross-tenant tests must show Org-B writers are not spuriously blocked by Org-A create **in practice**; if collision ever proven harmful, successor may migrate to `hashtextextended` dual-int form under a new namespace — requires contract amendment |
+| Tenant isolation | Key includes `organization_id`; no intentional cross-tenant sharing |
+
+#### 2.3.3 Rejected / deferred alternatives
+
+| Alternative | Status |
+|---|---|
+| **B. Partial unique** “at most one preferred per `(organization_id, variant_id)`” | **Deferred DiD** — requires multi-preferred data remediation policy first (schema allows multiples today). Multiple preferred remains **fail-closed** at create (`SUPPLIER_FACTS_AMBIGUOUS`), not DB-unique-enforced. |
+| **C. SERIALIZABLE + retry** | **Rejected as primary** — M5 workers/consume/claim are READ COMMITTED; SSI abort surface under SHARE/claim load unproven for this workload. |
+| Create-only advisory | **Rejected** as sole control (h.3 A4). |
+
+#### 2.3.4 Writers requiring participation (**PROPOSED** coverage list)
+
+| Writer / path | Today (PROVEN) | Required change |
+|---|---|---|
+| BEFORE trigger on `supplier_products` | Absent | **Required** — closes direct DML bypass |
+| `csv_reconcile_supplier_product` | Exact-row `FOR UPDATE` only | Covered by trigger; optional explicit acquire |
+| Future create / approve revalidation | N/A (blocked) | Must take `71010401` before supplier reads |
+| Authenticated client DML | Grants revoked (M2.7) | No change |
+| Privileged/service_role SQL | Unrestricted table DML | Covered **only if** trigger present |
+
+**Proof obligation:** §8.1 S-rows must PASS before any “phantom-safe” claim. Until then, supplier phantom prevention = **UNENFORCED / PROPOSED**; production REORDER create that depends on implicit preferred selection remains **BLOCKED**.
 
 No caching of supplier facts across create attempts.
 
@@ -198,24 +262,57 @@ Org-wide pending (`lib/metrics-activation/pending-work.ts`) remains an acceptabl
 
 | Source class | Invalidation / evidence axis (PROVEN mechanism today) | Create-time requirement (**PROPOSED** until §1.6) |
 |---|---|---|
-| **Historical sales** (orders / order_items / returns affecting velocity) | `sku_daily_metric_source_events` with relevance `source_date ∈ [metric_date − 89, metric_date]` | Grain + **90-day unconsumed event window** + generations as applicable; hold source serialization through validate→insert |
-| **Inventory** snapshots | Source events (same relevance window where enqueued) **and** SA008 source-token composition | Relevant **events + mandatory source token** under SHARE (or proven equivalent) |
-| **Planning** defaults | `enqueue_sku_daily_metric_planning_invalidation` bumps `dirty_generation` on store-local current grains — **not** the 89-day event window | **dirty / claimed / applied** generation equality (or no open request); do **not** assume window events cover planning |
-| **Incoming attestation** (PB1.e) | `store_incoming_evidence_attestations_invalidate_metrics` → `enqueue_sku_daily_metric_store_incoming_invalidation` bumps dirty — **not** the 89-day event window | **Generation** invalidation path; stale known-zero cannot qualify while dirty; token must include attestation when bound |
-| **PO / trusted incoming** | PO capture enqueues source events; SA008 token includes PO + attestation after trusted-incoming | **Events + dirty/generation state + SA008 token** — all three axes as applicable |
+| **Historical sales** (orders / order_items / returns affecting velocity) | Source-event **capture** into `sku_daily_metric_source_events`; relevance `source_date ∈ [metric_date − 89, metric_date]` | Hold source SHARE through validate→insert; reject unconsumed in-window events; SA008 as applicable |
+| **Inventory** snapshots | Source-event capture **and** SA008 token composition | Events + **mandatory** source token under SHARE |
+| **Planning** defaults | **Generation-only** via `enqueue_sku_daily_metric_planning_invalidation` — **not** in SA008 token; **not** the 89-day event window | Grain advisory + dirty/claimed/applied (or no open request); do **not** assume window events cover planning |
+| **Incoming attestation** (PB1.e) | **Generation** via trigger → `enqueue_sku_daily_metric_store_incoming_invalidation`; attestation also in SA008 token | Generation path + SHARE on attestation; token recheck when bound; stale known-zero cannot qualify while dirty |
+| **PO / trusted incoming** | PO capture enqueues source events; SA008 includes PO + attestation | Events + dirty/generation + SA008 — all as applicable |
+
+**Separation (normative):** source-event **capture** (commerce/PO/inventory writers → `sku_daily_metric_source_events`) is distinct from **generation-only invalidation** (planning upsert; attestation invalidate). Create must fence **both** families; SA008 alone does **not** cover planning.
 
 Every relevant mutation class above must be unable to commit “under” a successful create without either blocking on shared locks/protocol or causing create abort/retry. Current-date-only request checks remain a **false-ready** anti-pattern.
 
-### 3.3 Historical sales-window proof obligation
+### 3.3 Historical sales-window / axis proof obligation
 
-Successor tests must prove:
+Successor tests must prove (§8.1):
 
 1. Unconsumed sales event with `source_date` inside `[metric_date − 89, metric_date]` blocks create even when no **current-day-only** heuristic would.
 2. Planning-only dirty (no in-window sales event) still blocks via generation axis.
-3. Attestation-only dirty still blocks via generation axis.
+3. Attestation-only dirty still blocks via generation axis; attestation mutation also cannot slip under held SHARE / token.
 4. Inventory/PO token drift under SHARE fails SA008 even if event table momentarily empty.
 5. Unrelated-grain pending does **not** alone authorize create; diagnostic may still org-block.
 6. After consume+recompute brings generations current and required axes clean, freshness can pass **only as a fence result** — production class unlock remains separate (§7).
+
+### 3.4 Grain advisory + enqueue write-path coverage (**PROPOSED** / **UNENFORCED**)
+
+**Namespace:** `71010402` + `hashtext(grain_key)` per §1.2 step 1. Distinct from supplier `71010401` and M5 `5606003` / `5606004`.
+
+**Must acquire grain advisory before INSERT/UPSERT of `sku_daily_metric_recompute_requests` for that grain** (including first insert when row absent):
+
+| Caller (PROVEN exists today) | Role |
+|---|---|
+| `consume_sku_daily_metric_source_events` | Consumes source events → UPSERT requests (`20261016100000_m5_6b_…`) |
+| `enqueue_sku_daily_metric_daily_rollover` | Rollover dirties (`20261020100000_m5_6d_…`) |
+| `enqueue_sku_daily_metric_planning_invalidation` | Planning generation dirty (`20261108170000_…`); also invoked from `upsert_current_user_organization_planning_inputs` |
+| `enqueue_sku_daily_metric_store_incoming_invalidation` | Incoming/attestation generation dirty (`20261108180000_…`); PB1.e trigger `store_incoming_evidence_attestations_invalidate_metrics` (`20261109120000_…`) |
+
+**Direct-DML bypass risks (residual until hardened):**
+
+| Bypass | Risk |
+|---|---|
+| Direct `INSERT`/`UPDATE` on `sku_daily_metric_recompute_requests` | Skips grain advisory if not trigger-enforced; today table grants are service_role-centric — still a privileged SQL hole |
+| Direct `INSERT` on `sku_daily_metric_source_events` | Skips commerce SHARE; can dirty windows without blocking on create’s source locks |
+| Metric parent `FOR UPDATE` alone | **Insufficient** for first-request race (h.3 C1) — does not lock request inserts |
+
+Successor h.4.2 should prefer wrapping the enumerated RPCs; optional BEFORE trigger on `sku_daily_metric_recompute_requests` is an allowed DiD if owner-authorized, but is **not** a substitute for create holding `71010402` during validate→insert.
+
+### 3.5 SA008 / source token reuse (**PROPOSED** create mandatory; **PROVEN** on M5 commit)
+
+Reuse current M5 `sku_daily_metric_source_snapshot` + SHARE mechanism. **No new competing metric formulas or tokens** unless a separate freeze requires and justifies them.
+
+| Covered by token today (PROVEN) | Generation-only / not in token |
+|---|---|
+| Orders / order_items, return_refunds, inventory_snapshots, PO lines, incoming attestation | Planning defaults (`organization_planning_inputs`); recompute dirty/claimed/applied; supplier_products |
 
 ---
 
@@ -256,7 +353,7 @@ Today `inventory_action_is_merchant_approvable` is hard-coded `false` (**PROVEN*
 
 ### 6.1 Detect drift after create
 
-On merchant transition RPC (`SELECT action FOR UPDATE` then):
+On merchant transition RPC (`SELECT action FOR UPDATE` then), reuse **the same** §1.2 / §2.3 fencing protocol for freshness + supplier revision:
 
 | Drift | Detection |
 |---|---|
@@ -286,16 +383,17 @@ Human authorization remains `auth.uid()` consent; `service_role` never substitut
 
 All of the following — each separately owner-authorized. **Fail-closed gates stay closed** until every item is done:
 
-1. This fencing contract (including **h.1a**) accepted as design authority.
-2. §1.6 create TX freshness protocol **implemented and adversarially proven** (mandatory SA008/serialization; no false-ready validate→insert gap).
-3. §2.3 supplier shared-writer protocol **or** DB-enforced preferred constraint **implemented and phantom-proven**.
-4. Local pure fence validators + diagnostic adversarial tests as appropriate (§9) — helpers do **not** substitute for §1.6/§2.3.
+1. This fencing contract (including **h.1a** + **h.4.0**) accepted as design authority.
+2. §1.6 create TX freshness protocol **implemented and adversarially proven** (mandatory SA008/serialization; grain advisory; no false-ready validate→insert gap).
+3. §2.3 supplier BEFORE-trigger advisory protocol **implemented and phantom-proven** (partial unique remains deferred DiD, not a substitute unlock gate unless separately proven).
+4. Local pure fence validators (h.2) + gap tests (h.3) as diagnostics — helpers/tests do **not** substitute for §1.6/§2.3.
 5. Successor M7.2 writer freeze specifying the proven lock order + RPC surface.
-6. Migration implementing create-time revalidation (may ship with class still rejected until explicit enable).
+6. Migration implementing create-time revalidation (may ship with class still rejected until explicit enable) — slice h.4.3.
 7. Explicit owner approval to accept `m5_sku_daily_metric_bound_v1` (remove / gate `PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE`).
 8. Dual-LT disclosure fields persisted.
-9. Local four-version migration-ledger discrepancy resolved or explicitly waived (**separate blocker**).
+9. Local four-version migration-ledger discrepancy resolved or explicitly waived (**separate blocker**; **retained** — see §10).
 10. Hosted schema/runtime approvals as applicable (**separate**); workers/cron remain off unless separately approved.
+11. PE1.b.6b JWT J1–J13 remain **NO-GO / UNPROVEN** until a separate hosted session (**retained**).
 
 ### 7.2 Merchant-approvable predicate
 
@@ -316,13 +414,14 @@ All of §7.1 plus:
 |---|---|
 | Concurrent supplier LT UPDATE under shared protocol | Wait → watermark/LT mismatch → `SUPPLIER_FACTS_STALE` / `INVALID` |
 | Supplier DELETE / revoke mapping | `SUPPLIER_MAPPING_NOT_FOUND` |
-| Preferred flip / INSERT phantom without shared protocol | **UNENFORCED today**; must not claim prevention; production create **BLOCKED** |
-| Preferred flip / INSERT with proven shared protocol or unique-preferred | `SUPPLIER_FACTS_ABSENT` / `AMBIGUOUS` / stale reject |
+| Preferred flip / INSERT phantom without shared protocol | **UNENFORCED today** (h.3); must not claim prevention; production create **BLOCKED** |
+| Preferred flip / INSERT with proven §2.3 protocol | Wait / re-read → `SUPPLIER_FACTS_ABSENT` / `AMBIGUOUS` / stale reject |
 | Explicit supplierId with null LT | `SUPPLIER_FACTS_ABSENT` |
 | Org-default LT injection | `ORG_PLANNING_DEFAULTS_FORBIDDEN` |
 | Unconsumed in-window **sales** event | `PENDING_RECOMPUTE` / `METRIC_SOURCE_WINDOW_DIRTY` |
 | Planning/attestation dirty generation only | `PENDING_RECOMPUTE` |
 | dirty ≠ applied / open request | `PENDING_RECOMPUTE` |
+| First dirty-request INSERT racing empty check | Must **BLOCK** under grain advisory after h.4.2; today **GAP** (h.3 C1) |
 | SA008 / source token mismatch (mandatory) | `SA008` / `STALE_SOURCE_TOKEN` |
 | Source commit during validate→insert without held serialization | Must be impossible after §1.6; until then create **BLOCKED** |
 | Stale attestation after dirty | Generation fail; cannot create on stale known-zero |
@@ -336,6 +435,29 @@ All of §7.1 plus:
 | Approve after metric/supplier drift | `ACTION_EVIDENCE_STALE` (successor) |
 | Fixture / harness as production | Reject (existing M7.2/M7.3) |
 
+### 8.1 Dual-TX proof obligations (no shipping safety until PASS)
+
+Live dual-TX tests must demonstrate expected **BLOCK** / **ABORT** / **RETRY** outcomes. Passing h.2 validators or h.3 gap documentation does **not** satisfy this table.
+
+| ID | Scenario | Expect after implementation |
+|---|---|---|
+| S1 | Preferred INSERT phantom while create holds §2.3 lock | **BLOCK** contender or create **ABORT**/re-read `AMBIGUOUS` |
+| S2 | Sibling preferred UPDATE while create holds protocol | **BLOCK** / **ABORT** after re-read |
+| S3 | Exact-row LT UPDATE/DELETE under `FOR UPDATE` | **BLOCK** `55P03` (**PROVEN** today as A3; retain) |
+| S4 | `csv_reconcile_supplier_product` vs create | Serialize on `71010401` |
+| S5 | Cross-tenant preferred INSERT while Org-A locked | Org-B **COMMIT** (isolation) |
+| M1 | Historical in-window sales INSERT under create SHARE | **BLOCK** |
+| M2 | Inventory snapshot / SA008 drift | **BLOCK** writer; stale token → create **ABORT** `SA008` |
+| M3 | Planning upsert + enqueue under grain advisory | **BLOCK** or create **ABORT** `PENDING_RECOMPUTE` |
+| M4 | Attestation INSERT/UPDATE under SHARE | **BLOCK** |
+| M5 | PO item INSERT under SHARE | **BLOCK** |
+| R1 | First dirty-request INSERT vs `observed_absent` | **BLOCK** under `71010402` (closes C1) |
+| R2 | Claim vs create on same request row | Skip/wait; no false-ready create |
+| D1 | Create↔commit lock order | No deadlock under §1.2; wrong order must fail review |
+| D2 | `lock_timeout` | Contender/create **ABORT**/RETRY `55P03`; no partial action |
+
+Until S1, M1, and R1 **PASS** under real dual-TX: phantom / false-ready / first-request remain **UNENFORCED** — report **BLOCKED**, not safe.
+
 ---
 
 ## 9. Implementation slices
@@ -343,23 +465,27 @@ All of §7.1 plus:
 | Slice | Scope | Authorization |
 |---|---|---|
 | **PB1.h.1** | Initial fencing design freeze | Done @ `75db885` |
-| **PB1.h.1a** | This safety correction (docs) | **This amendment** |
-| **PB1.h.2** | Pure-TS fence validators: per-axis freshness helpers, supplier watermark/preferred cardinality (**read-model only**; no phantom/TX safety claim) | **DONE locally** — `lib/decision-engine/pb1-metric-freshness-fence.ts`, `lib/decision-engine/pb1-supplier-concurrency-fence.ts`; observed PASS ≠ create TX / phantom proof |
-| **PB1.h.3** | Local adversarial / live tests documenting current TOCTOU / false-ready gaps (still hard-false) | **LOCAL-ONLY** after explicit approval |
-| **PB1.h.4+** | Shared supplier-writer protocol and/or unique-preferred constraint; create TX with mandatory SA008 serialization; class enable; merchant predicate; UI; workers; hosted | **Separate owner authorization each**; production unlock **BLOCKED** until proven |
-| Ledger repair (`20261107090000`, `20261107120000`, `20261108180000`, `20261109120000`) | Objects-without-ledger risk | **Separate blocker** |
-| PE1.b.6b J1–J13 | Hosted JWT | **Separate session**; remains UNPROVEN |
+| **PB1.h.1a** | Safety correction (docs) | Done |
+| **PB1.h.2** | Pure-TS fence validators (**read-model only**) | **DONE locally** — `lib/decision-engine/pb1-metric-freshness-fence.ts`, `lib/decision-engine/pb1-supplier-concurrency-fence.ts` |
+| **PB1.h.3** | Local adversarial / live tests documenting TOCTOU / false-ready / first-request gaps | **DONE locally** @ `9558df7` — proves gaps; does not close them |
+| **PB1.h.4.0** | This transactional fencing protocol selection (docs only) | **This amendment** — still **PROPOSED/UNENFORCED** |
+| **PB1.h.4.1** | Supplier BEFORE trigger + `71010401` helper (+ optional csv_reconcile acquire) + local dual-TX S1–S5 | **Separate owner approval**; local SQL/tests only; **no** create unlock |
+| **PB1.h.4.2** | Grain advisory `71010402` on all §3.4 enqueue paths + local dual-TX R1/M3 | **Separate owner approval**; local only |
+| **PB1.h.4.3** | Future create TX scaffold implementing §1.2–§1.3; **production source class still rejected** | **Separate owner approval**; no class unlock |
+| **Later** | Partial unique preferred DiD; class enable; merchant predicate; UI; workers; hosted | **Separate owner authorization each**; production unlock **BLOCKED** until §8.1 proven |
+| Ledger repair (`20261107090000`, `20261107120000`, `20261108180000`, `20261109120000`) | Objects-without-ledger risk | **Separate blocker** (**retained**) |
+| PE1.b.6b J1–J13 | Hosted JWT | **Separate session**; remains **UNPROVEN** / **NO-GO** (**retained**) |
 
-Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-freshness-fence.ts`, `lib/decision-engine/pb1-supplier-concurrency-fence.ts`. Forbidden: persist adapters, lifecycle RPCs, workers, `app/**`, formula edits, claiming TX atomicity from pure helpers.
+Forbidden in h.4.0: TS/SQL/tests/schema edits, persist adapters, lifecycle RPCs, workers, `app/**`, formula edits, claiming TX atomicity from docs or pure helpers.
 
 ---
 
-## 10. Migration ledger + hosted / PE1.b.6b (out of scope)
+## 10. Migration ledger + hosted / PE1.b.6b (out of scope; retained)
 
 | Item | Status |
 |---|---|
 | Local ledger | **49** migration files vs **45** ledger entries; missing versions `20261107090000`, `20261107120000`, `20261108180000`, `20261109120000` with objects present — **separate blocker**; no repair here |
-| PE1.b.6b | Owner A1–A4+A6 may be YES on worksheet; **J1–J13 NOT EXECUTED**; JWT **UNPROVEN** |
+| PE1.b.6b | Owner A1–A4+A6 may be YES on worksheet; **J1–J13 NOT EXECUTED**; JWT **UNPROVEN** / **NO-GO** |
 | Hosted deploy / workers / cron / HTTP metric | **Not authorized** by this freeze |
 | Paying launch / purchasing | **NO-GO** |
 
@@ -371,13 +497,24 @@ Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-f
 |---|---|
 | `pb1-trusted-persisted-metric-promote-loader.ts` | Diagnostic membership load; org-wide pending — not create TX |
 | `pb1-trusted-supplier-planning-facts.ts` / lead-time loader | Read-time stated terms; no FOR UPDATE; no advisory |
+| `pb1-metric-freshness-fence.ts` / `pb1-supplier-concurrency-fence.ts` | h.2 read-model only; `transactionSafety=unproven` |
+| `m7-pb1h3-adversarial-concurrency.live.test.ts` | Proves supplier phantom / false-ready / first-request gaps |
 | `csv_reconcile_supplier_product` | Exact-row `FOR UPDATE` only — **no** shared org+variant preferred protocol |
 | `pb1-evidence-qualified-*-diagnostic.ts` | Hard-false diagnostic only |
-| `m7-pb1g-persisted-grain-reorder.live.test.ts` | Proves diagnostic REORDER + documents supplier TOCTOU |
 | `persist_inventory_action_recommendation` | Rejects production class (**PROVEN**) |
 | `inventory_action_is_merchant_approvable` | Always false (**PROVEN**) |
 | Planning / PB1.e invalidation | Generation dirty paths — distinct from sales event window |
-| M5.5 SA008 SHARE + token | Pattern to **reuse mandatorily** for production create — not optional |
+| M5.5 / trusted-incoming SA008 SHARE + token | Pattern to **reuse mandatorily** for production create — not optional |
+| `prevent_supplier_product_identity_reassignment` | **PROVEN** forbid org/supplier/variant UPDATE reassignment |
+
+### 11.1 Classification snapshot (h.4.0)
+
+| Class | Items |
+|---|---|
+| **Confirmed existing protections** | Exact-row supplier `FOR UPDATE` (h.3 A3); M5 SHARE+SA008 on commit; generation/open-status h.2 checks; production class reject; merchant approvable false; supplier identity reassignment forbid; browser supplier DML revoke |
+| **Proposed enforceable fixes** | Supplier BEFORE-trigger advisory `71010401`; grain advisory `71010402` on §3.4 paths; create SHARE-before-metric order; mandatory SA008 under held SHARE through insert |
+| **Contract amendments in this doc** | Lock-order correction; primary strategy A; first-request = grain advisory; planning ≠ SA008-only |
+| **Deferred** | Partial unique preferred; SERIALIZABLE primary; new tokens/formulas; row-level SHARE optimization; ledger repair; hosted/JWT |
 
 ---
 
@@ -385,13 +522,16 @@ Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-f
 
 | Item | Call |
 |---|---|
-| PB1.h.1a docs correction | **GO** |
+| PB1.h.1a docs correction | **GO** (prior) |
+| PB1.h.4.0 protocol freeze (docs only) | **GO** |
 | Claim phantom-safe / atomic-fresh create today | **NO-GO** |
-| Local pure validators (PB1.h.2) | **GO (done locally; helpers only; TX/phantom still UNPROVEN)** |
-| Local adversarial / gap tests (PB1.h.3) | **CONDITIONAL GO** after explicit approval |
+| Local pure validators (PB1.h.2) | **GO (done; helpers only)** |
+| Local adversarial gap tests (PB1.h.3) | **GO (done; documents gaps)** |
+| PB1.h.4.1 supplier trigger implementation | **CONDITIONAL GO** after explicit owner approval |
+| PB1.h.4.2 / h.4.3 | **CONDITIONAL GO** each after separate approval |
 | Production create / merchant approve unlock | **NO-GO** / **BLOCKED** |
 | Formula changes / org-default LT promotion / delivery fabrication | **NO-GO** |
-| Ledger repair / hosted JWT execution / workers | **NO-GO** (separate) |
+| Ledger repair / hosted JWT execution / workers | **NO-GO** (separate; retained) |
 
 ---
 
@@ -406,18 +546,23 @@ Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-f
 - `docs/M6_PE1_B6B_HOSTED_JWT_RUNTIME_EVIDENCE.md`
 - `lib/metrics-activation/pending-work.ts`
 - `lib/decision-engine/pb1-trusted-supplier-planning-facts.ts`
+- `lib/decision-engine/pb1-metric-freshness-fence.ts`
+- `lib/decision-engine/pb1-supplier-concurrency-fence.ts`
+- `tests/unit/m7-pb1h3-adversarial-concurrency.live.test.ts`
 - `supabase/migrations/20261031100000_m7_2b_inventory_action_persistence.sql`
 - `supabase/migrations/20261031130000_m7_3c_trusted_lifecycle_rpcs.sql`
 - `supabase/migrations/20261109120000_pb1e_attestation_freshness_invalidation.sql`
 - `supabase/migrations/20261108170000_planning_evidence_binding_v1.sql`
+- `supabase/migrations/20261108180000_trusted_incoming_evidence_v1.sql` (`commit_sku_daily_metric` SHARE order + SA008)
 - `supabase/migrations/20261011133000_m2_5_suppliers_purchase_orders.sql`
 - `supabase/migrations/20261011184500_m3_9_csv_history_relationship_reconciliation.sql` (`csv_reconcile_supplier_product`)
+- `supabase/migrations/20261016100000_m5_6b_metric_recompute_requests.sql` (`consume_sku_daily_metric_source_events`)
 
 ---
 
-## 14. Immutability note (h.1a)
+## 14. Immutability note (h.1a / h.4.0)
 
-Contract text may be corrected for **safety honesty** (this amendment). Claims of shipping concurrency/freshness safety become immutable only after the corresponding **PROPOSED** protocols are implemented, adversarially tested, and separately owner-authorized. Until then, overclaiming is forbidden; production create/approve remain fail-closed.
+Contract text may be corrected for **safety honesty** and **protocol selection** (h.1a, h.4.0). Claims of shipping concurrency/freshness safety become immutable only after the corresponding **PROPOSED** protocols are implemented, adversarially dual-TX tested (§8.1), and separately owner-authorized. Until then, overclaiming is forbidden; production create/approve remain fail-closed.
 
 ---
 
@@ -425,4 +570,12 @@ Contract text may be corrected for **safety honesty** (this amendment). Claims o
 
 Pure validators are **LOCAL read-model checks only**. They accept caller-supplied projections, return structured PASS/FAIL with stable reason codes, and always set `transactionSafety: "unproven"` / `productionCreateEligible: false`. They do **not** replace §1.6 create TX serialization, §2.3 shared supplier-writer / phantom proof, M7.2 source-of-create unlock, or M7.3 merchant-approvable unlock.
 
-**STOP.** Await owner review before PB1.h.3 adversarial gap tests or any production unlock.
+### PB1.h.3 local implementation note
+
+Adversarial live tests document **current** UNENFORCED / GAP boundaries. Observed COMMIT of phantom preferred INSERT, unlocked source mutations, and first dirty-request INSERT prove the need for h.4.1–h.4.3 — they do **not** implement those protocols.
+
+### PB1.h.4.0 docs note
+
+This amendment freezes the **chosen** serialization design only. Namespaces `71010401` / `71010402`, trigger shape, and lock order are **PROPOSED**. No SQL objects are created by this docs change.
+
+**STOP.** Await owner authorization before PB1.h.4.1 supplier trigger implementation or any production unlock.
