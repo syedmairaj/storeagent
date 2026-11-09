@@ -25,7 +25,7 @@ This freeze does **not** authorize TypeScript, SQL, tests, schema, UI, migration
 | Freeze fencing **design** + h.1a clarifications (docs only) | **GO** |
 | Claim supplier preferred phantoms are prevented today | **NO-GO** (§2.3 **PROPOSED**) |
 | Claim atomic create-time freshness is solved today | **NO-GO** (§1.6 **BLOCKED** / **PROPOSED**) |
-| Implement pure-TS fence validators (read-model helpers only) | **GO** only after explicit local slice approval — validators ≠ production TX proof |
+| Implement pure-TS fence validators (read-model helpers only) | **DONE locally (PB1.h.2)** — validators ≠ production TX proof; `transactionSafety` always unproven |
 | Unlock `m5_sku_daily_metric_bound_v1` create path | **NO-GO** / **BLOCKED** until §1.6 + §2.3 + §7 proven |
 | Flip `inventory_action_is_merchant_approvable` | **NO-GO** |
 | Repair local migration ledger / hosted deploy / PE1.b.6b J-matrix | **NO-GO** (separate tracks) |
@@ -344,7 +344,7 @@ All of §7.1 plus:
 |---|---|---|
 | **PB1.h.1** | Initial fencing design freeze | Done @ `75db885` |
 | **PB1.h.1a** | This safety correction (docs) | **This amendment** |
-| **PB1.h.2** | Pure-TS fence validators: per-axis freshness helpers, supplier watermark/preferred cardinality (**read-model only**; no phantom/TX safety claim) | **LOCAL-ONLY** after explicit approval |
+| **PB1.h.2** | Pure-TS fence validators: per-axis freshness helpers, supplier watermark/preferred cardinality (**read-model only**; no phantom/TX safety claim) | **DONE locally** — `lib/decision-engine/pb1-metric-freshness-fence.ts`, `lib/decision-engine/pb1-supplier-concurrency-fence.ts`; observed PASS ≠ create TX / phantom proof |
 | **PB1.h.3** | Local adversarial / live tests documenting current TOCTOU / false-ready gaps (still hard-false) | **LOCAL-ONLY** after explicit approval |
 | **PB1.h.4+** | Shared supplier-writer protocol and/or unique-preferred constraint; create TX with mandatory SA008 serialization; class enable; merchant predicate; UI; workers; hosted | **Separate owner authorization each**; production unlock **BLOCKED** until proven |
 | Ledger repair (`20261107090000`, `20261107120000`, `20261108180000`, `20261109120000`) | Objects-without-ledger risk | **Separate blocker** |
@@ -387,7 +387,8 @@ Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-f
 |---|---|
 | PB1.h.1a docs correction | **GO** |
 | Claim phantom-safe / atomic-fresh create today | **NO-GO** |
-| Local pure validators / gap tests after approval | **CONDITIONAL GO** (helpers only) |
+| Local pure validators (PB1.h.2) | **GO (done locally; helpers only; TX/phantom still UNPROVEN)** |
+| Local adversarial / gap tests (PB1.h.3) | **CONDITIONAL GO** after explicit approval |
 | Production create / merchant approve unlock | **NO-GO** / **BLOCKED** |
 | Formula changes / org-default LT promotion / delivery fabrication | **NO-GO** |
 | Ledger repair / hosted JWT execution / workers | **NO-GO** (separate) |
@@ -420,4 +421,8 @@ Contract text may be corrected for **safety honesty** (this amendment). Claims o
 
 ---
 
-**STOP.** Await owner review before PB1.h.2 implementation.
+### PB1.h.2 local implementation note
+
+Pure validators are **LOCAL read-model checks only**. They accept caller-supplied projections, return structured PASS/FAIL with stable reason codes, and always set `transactionSafety: "unproven"` / `productionCreateEligible: false`. They do **not** replace §1.6 create TX serialization, §2.3 shared supplier-writer / phantom proof, M7.2 source-of-create unlock, or M7.3 merchant-approvable unlock.
+
+**STOP.** Await owner review before PB1.h.3 adversarial gap tests or any production unlock.
