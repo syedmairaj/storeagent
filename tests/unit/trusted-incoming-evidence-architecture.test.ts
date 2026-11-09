@@ -14,11 +14,15 @@ describe("Trusted Incoming Evidence V1 architecture", () => {
   const migration = read(
     "supabase/migrations/20261108180000_trusted_incoming_evidence_v1.sql",
   );
+  const freshnessMigration = read(
+    "supabase/migrations/20261109120000_pb1e_attestation_freshness_invalidation.sql",
+  );
   const resolve = read("lib/metrics/resolve-eligible-incoming.ts");
   const record = read("lib/metrics/sku-daily-metric-record.ts");
   const recompute = read("lib/persistence/recompute-sku-daily-metric.ts");
   const aggregates = read("lib/metrics/inventory-aggregates.ts");
   const assess = read("lib/inventory-readiness/assess.ts");
+  const binding = read("lib/decision-engine/metric-decision-binding.ts");
 
   it("adds completeness attestation before empty sets become known zero", () => {
     expect(migration).toContain("store_incoming_evidence_attestations");
@@ -81,5 +85,27 @@ describe("Trusted Incoming Evidence V1 architecture", () => {
   it("does not treat snapshot incoming as trusted", () => {
     expect(recompute).not.toContain("incomingQuantity");
     expect(assess).toMatch(/CSV snapshot incoming/i);
+  });
+
+  it("PB1.e invalidates metrics on any attestation INSERT/UPDATE/DELETE", () => {
+    expect(freshnessMigration).toContain(
+      "store_incoming_evidence_attestations_invalidate_metrics",
+    );
+    expect(freshnessMigration).toContain("after insert or update or delete");
+    expect(freshnessMigration).toContain(
+      "enqueue_sku_daily_metric_store_incoming_invalidation",
+    );
+    expect(freshnessMigration).toContain("ON DELETE CASCADE");
+    expect(freshnessMigration).toMatch(
+      /Invalidation is performed by[\s\S]*store_incoming_evidence_attestations_invalidate_metrics/,
+    );
+    expect(freshnessMigration).toContain("set search_path = ''");
+    expect(freshnessMigration).toContain("security definer");
+  });
+
+  it("PB1.e accepts UTC/Etc/UTC in binding consistently with M5", () => {
+    expect(binding).toContain('timeZone === "UTC"');
+    expect(binding).toContain('timeZone === "Etc/UTC"');
+    expect(binding).toContain('supportedValuesOf("timeZone")');
   });
 });

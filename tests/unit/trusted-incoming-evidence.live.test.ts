@@ -112,6 +112,12 @@ describeLive("Trusted Incoming Evidence V1 live", () => {
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
       delete from public.sku_daily_metric_source_events
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
+      delete from public.forecast_coverage_correction_events
+      where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
+      delete from public.forecast_day_coverage_evidence
+      where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
+      delete from public.forecast_day_promotion_evidence
+      where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
       delete from public.product_variants
       where organization_id in (${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid);
       delete from public.products

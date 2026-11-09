@@ -798,6 +798,12 @@ function isRecognizedIanaTimeZone(timeZone: string): boolean {
   if (timeZone.length === 0) {
     return false;
   }
+  // Node omits UTC and Etc/UTC from supportedValuesOf("timeZone") even
+  // though both are IANA zones. Match M5 sales-aggregates / recompute.
+  // Legacy abbreviations such as EST and GMT stay rejected.
+  if (timeZone === "UTC" || timeZone === "Etc/UTC") {
+    return true;
+  }
   try {
     return Intl.supportedValuesOf("timeZone").includes(timeZone);
   } catch {

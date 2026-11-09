@@ -325,6 +325,8 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 - Local M5 current-day path resolves trusted incoming via `resolveEligibleIncoming` (destination-scoped PO aggregate; empty set → known zero **only** with store `evidence_complete=true`; historical `metric_date` forced unknown; SA008 source-token fences PO + attestation).
 
+- **PB1.e (local):** attestation INSERT/UPDATE/DELETE (including direct SQL) atomically dirties store-local current-day grains via `store_incoming_evidence_attestations_invalidate_metrics` → `enqueue_sku_daily_metric_store_incoming_invalidation` (migration `20261109120000_pb1e_attestation_freshness_invalidation.sql`). Stale known-zero cannot qualify while dirty; SA008/claim-lease fencing preserved. PB1 binding accepts `UTC` / `Etc/UTC` consistently with M5. **Grain-level pending deferred:** org-wide pending fence retained — exact current-date grain checks have a false-ready gap because historical source events for the same grain still affect current-day velocity windows; unrelated-grain false-blocks remain a documented limitation (safety over precision).
+
 - Readiness reports known / known-zero incoming grain counts; commercial actions remain hard-false.
 
 - REORDER still needs trusted supplier lead-time on the PB1 path (org defaults must not fill `TrustedSupplierPlanningFacts`). REDUCE needs known incoming **> 0**. Local PB1.b evidence-qualified **PROMOTE** diagnostic and PB1.c trusted persisted-metric loader are available for one current-day grain with known incoming + overstock derive + demand pressure — still **diagnostic only** (no persist / approve / UI unlock). PE1.b.6b JWT remains **NO-GO / NOT EXECUTED**.
@@ -385,7 +387,7 @@ Until step 4 (and REORDER supplier-lead binding if buying is the product goal), 
 
 |---|---|
 
-| **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults; current-day trusted incoming; PB1.b evidence-qualified PROMOTE diagnostic (hard-false); PB1.c trusted persisted-metric PROMOTE loader (hard-false) |
+| **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults; current-day trusted incoming; PB1.b evidence-qualified PROMOTE diagnostic (hard-false); PB1.c trusted persisted-metric PROMOTE loader (hard-false); PB1.e attestation freshness invalidation + UTC timezone align (hard-false; grain-level pending deferred) |
 
 | **CURRENT** | Local diagnostic preparation only — no M7 production activation |
 
@@ -403,7 +405,7 @@ Until step 4 (and REORDER supplier-lead binding if buying is the product goal), 
 
 
 
-**PLANNING EVIDENCE BINDING V1** — locally implemented (org defaults → M5 thresholds + current-metric invalidation). **Trusted current-day incoming V1** — locally implemented. **PB1.b evidence-qualified PROMOTE diagnostic** — locally implemented (**diagnostic only**; `productionApprovalEligible=false`). **PB1.c trusted persisted-metric PROMOTE loader** — locally implemented (`loadPb1TrustedPersistedMetricPromoteDiagnostic`; membership-scoped one-row read → PB1.b; **diagnostic only**; no UI/worker/HTTP wiring). Commercial create/approve, PB1 supplier attestation loader, workers/cron, and PE1.b.6b JWT remain **NO-GO / blocked**.
+**PLANNING EVIDENCE BINDING V1** — locally implemented (org defaults → M5 thresholds + current-metric invalidation). **Trusted current-day incoming V1** — locally implemented. **PB1.b evidence-qualified PROMOTE diagnostic** — locally implemented (**diagnostic only**; `productionApprovalEligible=false`). **PB1.c trusted persisted-metric PROMOTE loader** — locally implemented (`loadPb1TrustedPersistedMetricPromoteDiagnostic`; membership-scoped one-row read → PB1.b; **diagnostic only**; no UI/worker/HTTP wiring). **PB1.e attestation freshness + UTC align** — locally implemented (trigger invalidation on all attestation mutations; `UTC`/`Etc/UTC` accepted in PB1 binding; org-wide pending retained). Commercial create/approve, PB1 supplier attestation loader, workers/cron, and PE1.b.6b JWT remain **NO-GO / blocked**.
 
 ## Current milestone
 

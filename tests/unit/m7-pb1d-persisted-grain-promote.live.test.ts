@@ -50,8 +50,7 @@ const USER_OUTSIDER = "ab1d0000-0000-4000-8000-000000000026";
 const ORDER = "ab1d0000-0000-4000-8000-000000000007";
 const ORDER_ITEM = "ab1d0000-0000-4000-8000-000000000008";
 
-// PB1 binding uses Intl.supportedValuesOf("timeZone"); plain "UTC" is rejected
-// on current Node even though DateTimeFormat accepts it. Use a listed IANA zone.
+// Regional IANA zone (UTC/Etc/UTC also accepted by PB1.e-aligned binding).
 const TZ = "America/New_York";
 const TENANTS = `(${quote(ORG)}::uuid, ${quote(ORG_B)}::uuid)`;
 const USERS = `(${quote(USER_A)}::uuid, ${quote(USER_B)}::uuid, ${quote(USER_OUTSIDER)}::uuid)`;
@@ -926,9 +925,8 @@ describeLive("M7-PB1.d persisted-grain PROMOTE diagnostic live", () => {
       )->>'sourceToken')
     `);
 
-    // Raw DELETE changes the source token but does NOT enqueue invalidation
-    // (only upsert_current_user_store_incoming_evidence_attestation does).
-    // Freshness risk: without enqueue, PB1 could still read stale known-zero.
+    // PB1.e: raw DELETE must atomically enqueue current-day invalidation
+    // (same dirty_generation fencing as the upsert RPC path).
     await psql(`
       delete from public.store_incoming_evidence_attestations
       where organization_id = ${quote(ORG)}::uuid
@@ -946,31 +944,8 @@ describeLive("M7-PB1.d persisted-grain PROMOTE diagnostic live", () => {
     expect(afterToken).not.toBe(beforeToken);
 
     const pendingAfterRawDelete = await pendingCounts(ORG);
-    // Documented freshness gap: raw attestation delete alone may leave
-    // pending=0 while source token already moved — do not loosen gates.
-    // Canonical path: enqueue store incoming invalidation (same as upsert RPC).
-    if (pendingAfterRawDelete.events + pendingAfterRawDelete.requests === 0) {
-      const staleRead = await loadPromote({ userId: USER_A });
-      expect(staleRead.ok).toBe(true);
-      if (staleRead.ok) {
-        // Stale persisted known-zero still visible — freshness risk evidence.
-        expect(staleRead.decisionInput.incomingStateKnown).toBe(true);
-        expect(staleRead.decisionInput.validIncomingQuantity).toBe(0);
-      }
-
-      await psql(`
-        set role service_role;
-        select public.enqueue_sku_daily_metric_store_incoming_invalidation(
-          ${quote(ORG)}::uuid,
-          ${quote(STORE)}::uuid
-        );
-        reset role;
-      `);
-    }
-
-    const pendingAfterEnqueue = await pendingCounts(ORG);
     expect(
-      pendingAfterEnqueue.events + pendingAfterEnqueue.requests,
+      pendingAfterRawDelete.events + pendingAfterRawDelete.requests,
     ).toBeGreaterThan(0);
 
     const blockedWhileDirty = await loadPromote({ userId: USER_A });

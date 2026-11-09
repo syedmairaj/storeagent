@@ -235,6 +235,42 @@ describe("M7-PB1.a bindMetricToDecisionInput", () => {
     expect(mismatch.code).toBe("TIMEZONE_MISMATCH");
   });
 
+  it("accepts UTC, Etc/UTC, and regional IANA zones; rejects legacy abbreviations", () => {
+    for (const zone of ["UTC", "Etc/UTC", "America/New_York", "Asia/Dubai"] as const) {
+      const result = bindMetricToDecisionInput(
+        request({
+          trustedScope: {
+            organizationId: ORG,
+            storeId: STORE,
+            storeTimeZone: zone,
+          },
+          pinnedTimeZone: zone,
+        }),
+      );
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.pinnedTimeZone).toBe(zone);
+      }
+    }
+
+    for (const zone of ["EST", "GMT", "Not/A_Zone"] as const) {
+      const rejected = bindMetricToDecisionInput(
+        request({
+          trustedScope: {
+            organizationId: ORG,
+            storeId: STORE,
+            storeTimeZone: zone,
+          },
+          pinnedTimeZone: zone,
+        }),
+      );
+      expect(rejected.ok).toBe(false);
+      if (!rejected.ok) {
+        expect(rejected.code).toBe("TIMEZONE_INVALID");
+      }
+    }
+  });
+
   it("rejects incoming nullability/reason coupling violations", () => {
     const bothPresent = bindMetricToDecisionInput(
       request({
