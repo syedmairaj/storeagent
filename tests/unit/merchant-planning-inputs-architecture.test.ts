@@ -108,8 +108,10 @@ describe("merchant planning inputs architecture", () => {
     expect(recompute).not.toContain("decideInventoryAction");
 
     const persisted = read("lib/metrics/sku-daily-metric-record.ts");
-    expect(persisted).toContain('eligibleIncomingQuantity: null');
-    expect(persisted).toContain('"incoming_state_unknown"');
+    expect(persisted).toContain("EligibleIncomingEvidence");
+    expect(persisted).toContain("INCOMING_STATE_UNKNOWN");
+    expect(recompute).toContain("resolveEligibleIncoming");
+    expect(recompute).not.toContain("decideInventoryAction");
 
     const refresh = read(
       "lib/planning-inputs/refresh-metrics-after-planning-change.ts",

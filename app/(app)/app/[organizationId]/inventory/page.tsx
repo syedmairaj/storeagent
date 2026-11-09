@@ -8,10 +8,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { IncomingEvidenceEditor } from "@/components/inventory/incoming-evidence-editor";
 import { InventoryIntelligenceWorkspace } from "@/components/inventory/inventory-intelligence-workspace";
 import { PlanningInputsEditor } from "@/components/inventory/planning-inputs-editor";
 import { DecisionReadinessPanel } from "@/components/inventory-readiness/decision-readiness-panel";
 import { requireAppIdentity } from "@/lib/auth/app-route";
+import { loadStoreIncomingEvidenceAttestations } from "@/lib/incoming-evidence/load";
 import { loadMerchantInventoryIntelligence } from "@/lib/inventory-intelligence";
 import { loadMerchantDecisionReadiness } from "@/lib/inventory-readiness";
 import { AppError } from "@/lib/observability/app-error";
@@ -84,11 +86,13 @@ export default async function InventoryPage({
     "organization.manage",
   );
 
-  const [readiness, intelligence, planning] = await Promise.all([
-    loadMerchantDecisionReadiness(organizationId),
-    loadMerchantInventoryIntelligence(organizationId),
-    loadMerchantPlanningInputs(organizationId),
-  ]);
+  const [readiness, intelligence, planning, incomingAttestations] =
+    await Promise.all([
+      loadMerchantDecisionReadiness(organizationId),
+      loadMerchantInventoryIntelligence(organizationId),
+      loadMerchantPlanningInputs(organizationId),
+      loadStoreIncomingEvidenceAttestations(organizationId),
+    ]);
 
   const primaryRow = intelligence.rows[0] ?? null;
   let activationScope: { storeId: string; locationId: string } | null =
@@ -175,6 +179,14 @@ export default async function InventoryPage({
             safetyStockDays: planning.safetyStockDays,
             reviewPeriodDays: planning.reviewPeriodDays,
           }}
+        />
+      </section>
+
+      <section className="border-b border-zinc-200 py-8 sm:py-10">
+        <IncomingEvidenceEditor
+          organizationId={organizationId}
+          canEdit={canEditPlanning}
+          initial={incomingAttestations}
         />
       </section>
 

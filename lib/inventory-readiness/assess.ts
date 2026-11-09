@@ -4,6 +4,7 @@ import type {
   EvidencePresence,
   EvidenceSufficiency,
   MerchantDecisionReadiness,
+  TrustedIncomingEvidencePresence,
 } from "@/lib/inventory-readiness/types";
 
 function inputStatus(
@@ -45,13 +46,22 @@ export function assessMerchantDecisionReadiness(input: {
     : presence.grainAlignedKnownDemandCount;
 
   // Planning days come only from durable merchant inputs (null ≠ 0).
-  // Forecast / trusted incoming are never inferred from CSV alone.
+  // Forecast is never inferred. Trusted incoming comes only from current-day
+  // PO evidence (+ completeness attestation for known zero) — never CSV
+  // snapshot incomingQuantity.
   const planning = presence.planning;
   const hasLeadTime = planning.leadTimeDays !== null;
   const hasSafetyDays = planning.safetyStockDays !== null;
   const hasReviewPeriod = planning.reviewPeriodDays !== null;
-  const hasTrustedIncoming = false;
+  const incoming = presence.trustedIncoming;
+  const hasTrustedIncoming = incoming.knownIncomingGrainCount > 0;
   const hasForecast = false;
+  const trustedIncomingStatus: EvidenceSufficiency = hasTrustedIncoming
+    ? "available"
+    : incoming.hasPurchaseOrderItemRows ||
+        incoming.evidenceCompleteStoreCount > 0
+      ? "insufficient"
+      : "missing";
 
   const inventoryStatus: EvidenceSufficiency = !hasInventoryRows
     ? "missing"
@@ -158,13 +168,19 @@ export function assessMerchantDecisionReadiness(input: {
         ? null
         : "Configure a merchant review-period assumption before target stock can be calculated.",
     }),
-    inputStatus(hasTrustedIncoming ? "available" : "missing", {
+    inputStatus(trustedIncomingStatus, {
       key: "trusted_incoming",
       label: "Trusted incoming stock",
       detail:
-        "CSV optional incoming columns are observations only. M7 REORDER and REDUCE require trusted incoming state; PROMOTE does not invent or require incoming.",
+        trustedIncomingStatus === "available"
+          ? describeTrustedIncoming(incoming)
+          : trustedIncomingStatus === "insufficient"
+            ? "Purchase-order rows or completeness attestation exist, but current-day metrics do not yet show known incoming (unknown stays unknown; empty sets are not verified zero without attestation). CSV snapshot incoming is not trusted."
+            : "No trusted purchase-order incoming yet. CSV optional incoming columns are observations only — not M5 eligible incoming. Empty or absent PO records are not verified zero.",
       nextStep:
-        "Connect purchase orders before REORDER/REDUCE can use trusted incoming quantities.",
+        trustedIncomingStatus === "available"
+          ? null
+          : "Import destination-scoped purchase orders, then attest store PO evidence complete only when the empty set should count as known zero. Historical metric dates stay unknown without as-of history.",
     }),
     inputStatus(hasForecast ? "available" : "missing", {
       key: "forecast",
@@ -239,7 +255,11 @@ export function assessMerchantDecisionReadiness(input: {
           : [
               "Configure lead time, safety-stock days, and review period before reorder/target thresholds unlock.",
             ]),
-        "Connect trusted purchase-order incoming before REORDER or REDUCE can use incoming state (PROMOTE does not require incoming).",
+        ...(hasTrustedIncoming
+          ? []
+          : [
+              "Import destination-scoped purchase orders (and attest completeness for known-zero empty sets) before REORDER or REDUCE can use incoming state. PROMOTE does not require incoming.",
+            ]),
         "Use Actions only as a labeled synthetic demo until commercial evaluation is independently authorized.",
       ];
 
@@ -262,4 +282,25 @@ export function assessMerchantDecisionReadiness(input: {
     summary,
     nextSteps,
   };
+}
+
+function describeTrustedIncoming(
+  incoming: TrustedIncomingEvidencePresence,
+): string {
+  const parts: string[] = [];
+  if (incoming.positiveIncomingGrainCount > 0) {
+    parts.push(
+      `${incoming.positiveIncomingGrainCount} current grain(s) with positive trusted incoming`,
+    );
+  }
+  if (incoming.knownZeroGrainCount > 0) {
+    parts.push(
+      `${incoming.knownZeroGrainCount} with trusted known-zero incoming`,
+    );
+  }
+  const body =
+    parts.length > 0
+      ? parts.join("; ")
+      : `${incoming.knownIncomingGrainCount} current grain(s) with known trusted incoming`;
+  return `${body}. CSV snapshot incoming is not used. This does not authorize REORDER/REDUCE/PROMOTE commercial actions.`;
 }

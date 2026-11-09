@@ -1,11 +1,13 @@
 import "server-only";
 
+import type { PurchaseOrderStatus } from "@/lib/commerce-domain/types";
 import { aggregateInventoryMetrics } from "@/lib/metrics/inventory-aggregates";
 import type {
   InventoryDemandDay,
   InventoryPlanningSettings,
   InventorySnapshotFact,
 } from "@/lib/metrics/inventory-aggregates";
+import { resolveEligibleIncoming } from "@/lib/metrics/resolve-eligible-incoming";
 import { aggregateSales } from "@/lib/metrics/sales-aggregates";
 import type {
   SalesAggregateInput,
@@ -15,12 +17,23 @@ import type {
   SalesAggregateReturnRefund,
 } from "@/lib/metrics/sales-aggregates";
 import { toPersistedSkuDailyMetric } from "@/lib/metrics/sku-daily-metric-record";
+import type { IncomingPurchaseOrderLineInput } from "@/lib/metrics/types";
 import { toInventoryPlanningSettings } from "@/lib/planning-inputs/to-inventory-planning-settings";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const SKU_DAILY_METRIC_SOURCE_MISMATCH = "SA008";
 
 const SOURCE_READ_ATTEMPTS = 3;
+
+const PURCHASE_ORDER_STATUSES = new Set<PurchaseOrderStatus>([
+  "draft",
+  "submitted",
+  "confirmed",
+  "partially_received",
+  "received",
+  "cancelled",
+  "unknown",
+]);
 
 export class SkuDailyMetricSourceChangedError extends Error {
   readonly sqlState = SKU_DAILY_METRIC_SOURCE_MISMATCH;
@@ -39,6 +52,18 @@ export interface RecomputeSkuDailyMetricInput {
   metricDate: string;
 }
 
+interface SourcePurchaseOrderLine {
+  id: string;
+  organizationId: string;
+  storeId: string;
+  purchaseOrderId: string;
+  variantId: string;
+  locationId: string;
+  status: string;
+  orderedQuantity: number;
+  receivedQuantity: number | null;
+}
+
 interface SourceSnapshot {
   timeZone: string;
   sourceToken: string;
@@ -46,6 +71,8 @@ interface SourceSnapshot {
   orderItems: SalesAggregateOrderItem[];
   returnRefunds: SalesAggregateReturnRefund[];
   inventorySnapshots: SalesAggregateInventorySnapshot[];
+  purchaseOrderLines?: SourcePurchaseOrderLine[];
+  incomingEvidenceComplete?: boolean;
 }
 
 type RpcResult = PromiseLike<{
@@ -125,11 +152,20 @@ export async function recomputeSkuDailyMetric(
       },
       planning,
     });
+
+    const incoming = resolveEligibleIncoming({
+      metricDate: input.metricDate,
+      timeZone: snapshot.timeZone,
+      purchaseOrderLines: toIncomingLines(snapshot.purchaseOrderLines ?? []),
+      incomingEvidenceComplete: snapshot.incomingEvidenceComplete === true,
+    });
+
     const metric = toPersistedSkuDailyMetric(
       input.metricDate,
       snapshot.timeZone,
       sales,
       inventory,
+      incoming,
     );
     const committed = await client.rpc(
       "commit_sku_daily_metric",
@@ -206,6 +242,24 @@ async function readOrganizationPlanningSettings(
   }
 
   return toInventoryPlanningSettings(result.data);
+}
+
+function toIncomingLines(
+  rows: readonly SourcePurchaseOrderLine[],
+): IncomingPurchaseOrderLineInput[] {
+  return rows.map((row) => {
+    const status = PURCHASE_ORDER_STATUSES.has(
+      row.status as PurchaseOrderStatus,
+    )
+      ? (row.status as PurchaseOrderStatus)
+      : "unknown";
+
+    return {
+      status,
+      orderedQuantity: row.orderedQuantity,
+      receivedQuantity: row.receivedQuantity,
+    };
+  });
 }
 
 function isSourceMismatch(error: {

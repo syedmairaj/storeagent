@@ -1,5 +1,7 @@
 import type { InventoryAggregateResult } from "./inventory-aggregates";
 import type { SalesAggregateResult } from "./sales-aggregates";
+import type { EligibleIncomingEvidence } from "./resolve-eligible-incoming";
+import { inventoryPositionFromParts } from "./resolve-eligible-incoming";
 import type { MetricReasonCode } from "./types";
 
 export const SKU_DAILY_METRIC_ALGORITHM_VERSION =
@@ -45,9 +47,14 @@ export interface PersistedSkuDailyMetric {
   salesVelocity30dReasonCode: string | null;
   salesVelocity90dReasonCode: string | null;
   availableQuantity: number | null;
-  eligibleIncomingQuantity: null;
-  eligibleIncomingReasonCode: "incoming_state_unknown";
-  inventoryPosition: null;
+  /**
+   * Trusted current-day incoming when PO evidence qualifies; otherwise null
+   * with a reason. Known zero requires completeness attestation when no
+   * destination-scoped lines exist.
+   */
+  eligibleIncomingQuantity: number | null;
+  eligibleIncomingReasonCode: string | null;
+  inventoryPosition: number | null;
   daysOfStock: number | null;
   daysOfStockReasonCode: string | null;
   sellThroughRate: number | null;
@@ -69,12 +76,16 @@ export interface PersistedSkuDailyMetric {
  * Maps one M5.3 sales result and one M5.4 inventory result to the
  * existing sku_daily_metrics columns. Coverage is not included.
  * PostgreSQL computes it from the eligible-day counts.
+ *
+ * Incoming defaults to unknown unless `incoming` is supplied from
+ * resolveEligibleIncoming (frozen PO formulas + completeness contract).
  */
 export function toPersistedSkuDailyMetric(
   metricDate: string,
   timeZone: string,
   sales: SalesAggregateResult,
   inventory: InventoryAggregateResult,
+  incoming?: EligibleIncomingEvidence | null,
 ): PersistedSkuDailyMetric {
   const day = sales.days.find(
     (candidate) => candidate.metricDate === metricDate,
@@ -85,6 +96,12 @@ export function toPersistedSkuDailyMetric(
       "sales aggregate is missing the metric date.",
     );
   }
+
+  const resolvedIncoming: EligibleIncomingEvidence = incoming ?? {
+    eligibleIncomingQuantity: null,
+    eligibleIncomingReasonCode: "INCOMING_STATE_UNKNOWN",
+    incomingStateKnown: false,
+  };
 
   return {
     timeZone,
@@ -112,9 +129,14 @@ export function toPersistedSkuDailyMetric(
       sales.windows[90].reasonCode,
     ),
     availableQuantity: inventory.availableQuantity,
-    eligibleIncomingQuantity: null,
-    eligibleIncomingReasonCode: "incoming_state_unknown",
-    inventoryPosition: null,
+    eligibleIncomingQuantity: resolvedIncoming.eligibleIncomingQuantity,
+    eligibleIncomingReasonCode: persistedReason(
+      resolvedIncoming.eligibleIncomingReasonCode,
+    ),
+    inventoryPosition: inventoryPositionFromParts(
+      inventory.availableQuantity,
+      resolvedIncoming.eligibleIncomingQuantity,
+    ),
     daysOfStock: inventory.daysOfStock,
     daysOfStockReasonCode: persistedReason(
       inventory.daysOfStockReasonCode,

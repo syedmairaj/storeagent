@@ -10,4 +10,5 @@ export type {
   EvidenceSufficiency,
   MerchantDecisionReadiness,
   PlanningEvidencePresence,
+  TrustedIncomingEvidencePresence,
 } from "@/lib/inventory-readiness/types";

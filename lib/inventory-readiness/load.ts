@@ -37,6 +37,12 @@ type MetricGrainRow = {
   variant_id: string;
   metric_date: string;
   sales_velocity_30d: number | null;
+  eligible_incoming_quantity: number | null;
+};
+
+type AttestationRow = {
+  store_id: string;
+  evidence_complete: boolean;
 };
 
 type StoreTimezoneRow = {
@@ -135,6 +141,8 @@ export async function loadMerchantDecisionReadiness(
     { data: metrics, error: metricRowsError },
     { data: stores, error: storesError },
     { data: planningRow, error: planningError },
+    { count: poItemCount, error: poItemError },
+    { data: attestationRows, error: attestationError },
   ] = await Promise.all([
     supabase
       .from("order_items")
@@ -147,7 +155,7 @@ export async function loadMerchantDecisionReadiness(
     supabase
       .from("sku_daily_metrics")
       .select(
-        "store_id,location_id,variant_id,metric_date,sales_velocity_30d",
+        "store_id,location_id,variant_id,metric_date,sales_velocity_30d,eligible_incoming_quantity",
       )
       .eq("organization_id", organizationId)
       .order("metric_date", { ascending: false })
@@ -162,6 +170,17 @@ export async function loadMerchantDecisionReadiness(
       .select("lead_time_days,safety_stock_days,review_period_days")
       .eq("organization_id", organizationId)
       .maybeSingle(),
+    supabase
+      .from("purchase_order_items")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", organizationId)
+      .not("destination_location_id", "is", null),
+    supabase
+      .from("store_incoming_evidence_attestations")
+      .select("store_id,evidence_complete")
+      .eq("organization_id", organizationId)
+      .eq("evidence_complete", true)
+      .limit(100),
   ]);
 
   if (salesError) {
@@ -208,6 +227,17 @@ export async function loadMerchantDecisionReadiness(
     });
   }
 
+  if (poItemError || attestationError) {
+    throw new AppError({
+      code: "DATA_LOAD_FAILED",
+      kind: "operational",
+      message: "Unable to load trusted incoming evidence for decision readiness.",
+      publicMessage: "Unable to assess decision readiness right now.",
+      httpStatus: 500,
+      cause: poItemError ?? attestationError,
+    });
+  }
+
   const asOfMetricDateByStoreId = new Map<string, string>();
   const now = new Date();
   for (const store of (stores ?? []) as StoreTimezoneRow[]) {
@@ -244,6 +274,27 @@ export async function loadMerchantDecisionReadiness(
 
   const planning = (planningRow ?? null) as PlanningRow | null;
 
+  let knownIncomingGrainCount = 0;
+  let knownZeroGrainCount = 0;
+  let positiveIncomingGrainCount = 0;
+  if (!pendingWork) {
+    for (const metric of metricRows) {
+      const asOf = asOfMetricDateByStoreId.get(metric.store_id);
+      if (asOf === undefined || metric.metric_date !== asOf) {
+        continue;
+      }
+      if (metric.eligible_incoming_quantity === null) {
+        continue;
+      }
+      knownIncomingGrainCount += 1;
+      if (metric.eligible_incoming_quantity === 0) {
+        knownZeroGrainCount += 1;
+      } else if (metric.eligible_incoming_quantity > 0) {
+        positiveIncomingGrainCount += 1;
+      }
+    }
+  }
+
   const presence: EvidencePresence = {
     inventorySnapshotCount: rows.length,
     distinctSkuCount: new Set(latest.map((row) => row.variant_id)).size,
@@ -263,6 +314,15 @@ export async function loadMerchantDecisionReadiness(
           reviewPeriodDays: planning.review_period_days,
         }
       : { ...EMPTY_MERCHANT_PLANNING_INPUTS },
+    trustedIncoming: {
+      hasPurchaseOrderItemRows: (poItemCount ?? 0) > 0,
+      evidenceCompleteStoreCount: (
+        (attestationRows ?? []) as AttestationRow[]
+      ).length,
+      knownIncomingGrainCount,
+      knownZeroGrainCount,
+      positiveIncomingGrainCount,
+    },
   };
 
   return assessMerchantDecisionReadiness({

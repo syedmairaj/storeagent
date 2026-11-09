@@ -335,13 +335,15 @@ describeLive("M5.6A metric source event capture", () => {
       where organization_id = ${quote(ORG)}::uuid
     `);
     expect(after).toBe(before);
-    expect(await psql(`
+    // Trusted Incoming Evidence V1 attaches PO metric-source triggers.
+    // This case still proves null order_item locations emit no events.
+    expect(Number(await psql(`
       select count(*)::text
       from pg_catalog.pg_trigger
       where tgrelid = 'public.purchase_orders'::regclass
         and not tgisinternal
         and tgname like '%metric_source%'
-    `)).toBe("0");
+    `))).toBeGreaterThan(0);
   });
 
   it("captures return changes and snapshot inserts, including delete", async () => {

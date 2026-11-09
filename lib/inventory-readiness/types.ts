@@ -42,6 +42,23 @@ export type PlanningEvidencePresence = {
   reviewPeriodDays: number | null;
 };
 
+/**
+ * Trusted current-day incoming presence for readiness copy.
+ * Snapshot CSV incomingQuantity is never counted here.
+ */
+export type TrustedIncomingEvidencePresence = {
+  /** Destination-scoped purchase_order_items exist for the org. */
+  hasPurchaseOrderItemRows: boolean;
+  /** Stores with evidence_complete=true attestation. */
+  evidenceCompleteStoreCount: number;
+  /** Current as-of metric grains with known incoming (qty not null). */
+  knownIncomingGrainCount: number;
+  /** Subset of known grains with qty === 0. */
+  knownZeroGrainCount: number;
+  /** Subset of known grains with qty > 0. */
+  positiveIncomingGrainCount: number;
+};
+
 export type EvidencePresence = {
   inventorySnapshotCount: number;
   distinctSkuCount: number;
@@ -70,6 +87,7 @@ export type EvidencePresence = {
    * Absence of a row is represented as all-null (unknown).
    */
   planning: PlanningEvidencePresence;
+  trustedIncoming: TrustedIncomingEvidencePresence;
 };
 
 export type EvidenceInputStatus = {

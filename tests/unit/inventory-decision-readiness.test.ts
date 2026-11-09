@@ -6,13 +6,21 @@ import type { EvidencePresence } from "@/lib/inventory-readiness/types";
 import { EMPTY_MERCHANT_PLANNING_INPUTS } from "@/lib/planning-inputs/types";
 
 function presence(
-  partial: Omit<EvidencePresence, "planning"> & {
+  partial: Omit<EvidencePresence, "planning" | "trustedIncoming"> & {
     planning?: EvidencePresence["planning"];
+    trustedIncoming?: EvidencePresence["trustedIncoming"];
   },
 ): EvidencePresence {
   return {
     ...partial,
     planning: partial.planning ?? { ...EMPTY_MERCHANT_PLANNING_INPUTS },
+    trustedIncoming: partial.trustedIncoming ?? {
+      hasPurchaseOrderItemRows: false,
+      evidenceCompleteStoreCount: 0,
+      knownIncomingGrainCount: 0,
+      knownZeroGrainCount: 0,
+      positiveIncomingGrainCount: 0,
+    },
   };
 }
 
@@ -378,5 +386,81 @@ describe("merchant decision readiness", () => {
     });
 
     expect(aligned).toBe(1);
+  });
+
+  it("distinguishes missing, unknown, trusted zero, and positive incoming without unlocking commercial actions", () => {
+    const missing = assessMerchantDecisionReadiness({
+      organizationId: "11111111-1111-4111-8111-111111111111",
+      presence: presence({
+        inventorySnapshotCount: 1,
+        distinctSkuCount: 1,
+        distinctStoreCount: 1,
+        distinctLocationCount: 1,
+        knownAvailableSkuCount: 1,
+        hasSalesHistory: true,
+        hasSkuDailyMetrics: true,
+        grainAlignedKnownDemandCount: 1,
+        hasPendingMetricWork: false,
+      }),
+    });
+    expect(
+      missing.inputs.find((item) => item.key === "trusted_incoming")?.status,
+    ).toBe("missing");
+    expect(missing.commercialActionsEligible).toBe(false);
+
+    const insufficient = assessMerchantDecisionReadiness({
+      organizationId: "11111111-1111-4111-8111-111111111111",
+      presence: presence({
+        inventorySnapshotCount: 1,
+        distinctSkuCount: 1,
+        distinctStoreCount: 1,
+        distinctLocationCount: 1,
+        knownAvailableSkuCount: 1,
+        hasSalesHistory: true,
+        hasSkuDailyMetrics: true,
+        grainAlignedKnownDemandCount: 1,
+        hasPendingMetricWork: false,
+        trustedIncoming: {
+          hasPurchaseOrderItemRows: true,
+          evidenceCompleteStoreCount: 0,
+          knownIncomingGrainCount: 0,
+          knownZeroGrainCount: 0,
+          positiveIncomingGrainCount: 0,
+        },
+      }),
+    });
+    expect(
+      insufficient.inputs.find((item) => item.key === "trusted_incoming")
+        ?.status,
+    ).toBe("insufficient");
+
+    const known = assessMerchantDecisionReadiness({
+      organizationId: "11111111-1111-4111-8111-111111111111",
+      presence: presence({
+        inventorySnapshotCount: 1,
+        distinctSkuCount: 1,
+        distinctStoreCount: 1,
+        distinctLocationCount: 1,
+        knownAvailableSkuCount: 1,
+        hasSalesHistory: true,
+        hasSkuDailyMetrics: true,
+        grainAlignedKnownDemandCount: 1,
+        hasPendingMetricWork: false,
+        trustedIncoming: {
+          hasPurchaseOrderItemRows: true,
+          evidenceCompleteStoreCount: 1,
+          knownIncomingGrainCount: 2,
+          knownZeroGrainCount: 1,
+          positiveIncomingGrainCount: 1,
+        },
+      }),
+    });
+    const incoming = known.inputs.find(
+      (item) => item.key === "trusted_incoming",
+    );
+    expect(incoming?.status).toBe("available");
+    expect(incoming?.detail).toMatch(/positive trusted incoming/i);
+    expect(incoming?.detail).toMatch(/known-zero/i);
+    expect(known.commercialActionsEligible).toBe(false);
   });
 });

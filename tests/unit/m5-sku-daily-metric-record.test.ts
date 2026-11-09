@@ -102,6 +102,71 @@ describe("M5.5 persisted metric record", () => {
     expect(metric).not.toHaveProperty("coverageRatio7d");
   });
 
+  it("persists trusted incoming and inventory position when evidence qualifies", () => {
+    const sales = aggregateSales({
+      organizationId: "org",
+      storeId: "store",
+      locationId: "loc",
+      variantId: "variant",
+      metricDate: METRIC_DATE,
+      timeZone: "UTC",
+      orders: [],
+      orderItems: [],
+      returnRefunds: [],
+      inventorySnapshots: [
+        {
+          id: "snap",
+          organizationId: "org",
+          storeId: "store",
+          locationId: "loc",
+          variantId: "variant",
+          observedAt: `${METRIC_DATE}T12:00:00.000Z`,
+          availableQuantity: 4,
+        },
+      ],
+    });
+    const inventory = aggregateInventoryMetrics({
+      organizationId: "org",
+      storeId: "store",
+      locationId: "loc",
+      variantId: "variant",
+      metricDate: METRIC_DATE,
+      timeZone: "UTC",
+      snapshots: [
+        {
+          id: "snap",
+          organizationId: "org",
+          storeId: "store",
+          locationId: "loc",
+          variantId: "variant",
+          observedAt: `${METRIC_DATE}T12:00:00.000Z`,
+          availableQuantity: 4,
+        },
+      ],
+      demand: {
+        netUnitsSold: 0,
+        salesVelocity30d: 0,
+        days: sales.days,
+      },
+    });
+    const metric = toPersistedSkuDailyMetric(
+      METRIC_DATE,
+      "UTC",
+      sales,
+      inventory,
+      {
+        eligibleIncomingQuantity: 6,
+        eligibleIncomingReasonCode: null,
+        incomingStateKnown: true,
+      },
+    );
+
+    expect(metric.availableQuantity).toBe(4);
+    expect(metric.eligibleIncomingQuantity).toBe(6);
+    expect(metric.eligibleIncomingReasonCode).toBeNull();
+    expect(metric.inventoryPosition).toBe(10);
+  });
+
   it("lowercases an unknown-demand reason without turning it into zero", () => {
     const sales = aggregateSales({
       organizationId: "org",
