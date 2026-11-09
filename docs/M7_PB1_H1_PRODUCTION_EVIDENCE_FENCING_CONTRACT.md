@@ -1,9 +1,11 @@
 # M7-PB1.h.1 — Production Evidence-Fencing Contract Freeze
 
-**Status:** FROZEN for subsequent local fencing validators / writer design (docs only until separately approved)
-**Baseline verified:** `main` @ `b0e70590912a1bae27a77e18f3863d723f9a34c4` — `test(m7): verify persisted-grain REORDER diagnostic locally`
+**Status:** FROZEN for **design intent** + **PB1.h.1a safety clarifications**; several create-time guarantees remain **PROPOSED / UNENFORCED** until cooperating writers + TX protocol are implemented and proven (see §0.1, §1.6, §2.3, §14)
+**Baseline verified (h.1a correction):** `main` @ `75db88553bb4774b1afe40b6ce324343a9875c5a` — `docs(m7): freeze PB1 production evidence fencing contract`
+**Prior h.1 baseline:** `b0e70590912a1bae27a77e18f3863d723f9a34c4`
+**Amendment:** **PB1.h.1a** — corrects supplier-phantom overclaim, optional SA008/false-ready wording, and conflated freshness axes (docs only)
 **Origin:** PB1.h production readiness & evidence-fencing audit (local diagnostic PROMOTE/REORDER proven; production create/approve blocked)
-**Authority when docs conflict:** this freeze for **future** create-time / approval-time evidence fencing, supplier phantom-race strategy, metric freshness coverage, dual lead-time disclosure, and unlock prerequisites. Existing freezes remain authoritative for current behavior:
+**Authority when docs conflict:** this freeze for **future** create-time / approval-time evidence fencing design, dual lead-time disclosure, and unlock prerequisites. Existing freezes remain authoritative for current behavior:
 - PB1 diagnostic binding: `docs/M7_PB1_TRUSTED_METRIC_DECISION_BINDING_CONTRACT.md`
 - M7.2 persistence (dormant / harness): `docs/M7_2A_IMMUTABLE_DECISION_PERSISTENCE_CONTRACT.md`
 - M7.3 lifecycle (fail-closed merchant approve): `docs/M7_3A_HUMAN_APPROVAL_LIFECYCLE_CONTRACT.md`
@@ -12,26 +14,40 @@
 
 This freeze does **not** authorize TypeScript, SQL, tests, schema, UI, migrations, ledger repair, hosted access, workers/cron/HTTP enablement, M7.2 production create, M7.3 merchant-approvable success, formula changes, purchasing, inventory mutation, or Git operations.
 
+**Legend:** **PROVEN** = true in current repo behavior. **PROPOSED** = required successor design; **not** currently enforceable; must not be treated as shipping safety. **BLOCKED** = production create/approve must not proceed until proven.
+
 ---
 
 ## 0. Verdict
 
 | Gate | Result |
 |---|---|
-| Freeze create-time + approval-time evidence-fencing contract (docs only) | **GO** |
-| Implement pure-TS fence validators under this contract | **GO** only after explicit local slice approval |
-| Unlock `m5_sku_daily_metric_bound_v1` create path | **NO-GO** (successor prerequisite listed; not granted) |
+| Freeze fencing **design** + h.1a clarifications (docs only) | **GO** |
+| Claim supplier preferred phantoms are prevented today | **NO-GO** (§2.3 **PROPOSED**) |
+| Claim atomic create-time freshness is solved today | **NO-GO** (§1.6 **BLOCKED** / **PROPOSED**) |
+| Implement pure-TS fence validators (read-model helpers only) | **GO** only after explicit local slice approval — validators ≠ production TX proof |
+| Unlock `m5_sku_daily_metric_bound_v1` create path | **NO-GO** / **BLOCKED** until §1.6 + §2.3 + §7 proven |
 | Flip `inventory_action_is_merchant_approvable` | **NO-GO** |
 | Repair local migration ledger / hosted deploy / PE1.b.6b J-matrix | **NO-GO** (separate tracks) |
 | Invent verified supplier delivery performance or org-default LT as supplier facts | **FORBIDDEN** |
 
-**Product intent:** Freeze the **minimum safe** metric + supplier fencing design required before any future trusted production decision create or merchant approval, without enabling either. PB1.c/f/d/g remain **diagnostic preparation only**.
+**Product intent:** Document the **minimum safe** metric + supplier fencing design required before any future trusted production decision create or merchant approval, without enabling either, and without overclaiming concurrency safety the repository cannot yet prove. PB1.c/f/d/g remain **diagnostic preparation only**.
+
+### 0.1 PB1.h.1a correction summary (source-backed)
+
+| Gap | Correction |
+|---|---|
+| Create-only advisory lock claimed “enforceable” | **PROPOSED**; `csv_reconcile_supplier_product` does **not** share org+variant advisory serialization (proven: `FOR UPDATE` on exact supplier+variant only) |
+| SA008 / source `SHARE` marked optional | **Mandatory** for production create; last-moment recheck alone insufficient |
+| Freshness axes conflated under one event window | Split: sales window vs inventory token+events vs planning generation vs attestation generation vs PO events+dirty+token |
 
 ---
 
-## 1. Create-time transaction (normative successor)
+## 1. Create-time transaction (**PROPOSED** successor; production create **BLOCKED**)
 
-Applies only to a **future** approved production create writer that persists `evidence_source_class = m5_sku_daily_metric_bound_v1`. Today’s RPC **always rejects** that class (`PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE`).
+Applies only to a **future** approved production create writer that persists `evidence_source_class = m5_sku_daily_metric_bound_v1`. Today’s RPC **always rejects** that class (`PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE`) — **PROVEN** fail-closed.
+
+Until §1.6 exit criteria are met, treat the protocol below as **PROPOSED design**, not a solved shipping guarantee.
 
 ### 1.1 Authorization (before TX body)
 
@@ -44,22 +60,25 @@ Applies only to a **future** approved production create writer that persists `ev
 | `service_role` meaning | Privilege ≠ evidence provenance (unchanged from M7.2a) |
 | Forecast | `forecast_run_id` remains null until separate M6 production eligibility approval |
 
-### 1.2 Lock order (deadlock-safe)
+### 1.2 Lock order (**PROPOSED**; deadlock-safe target)
 
-Fixed order inside one transaction. Do not invent alternate lock graphs without amending this freeze.
+Fixed order inside one create transaction. Do not invent alternate lock graphs without amending this freeze.
 
 1. **Store** row (`stores`) for `(organization_id, store_id)` — `SELECT … FOR SHARE` (timezone / existence).
 2. **Metric** row (`sku_daily_metrics`) for natural key `(organization_id, store_id, location_id, variant_id, metric_date, algorithm_version)` — `SELECT … FOR UPDATE`.
-3. **Recompute request** row(s) for the same grain + algorithm (if any) — `SELECT … FOR UPDATE` on matching `sku_daily_metric_recompute_requests`.
-4. **Supplier product** row (when decision uses supplier LT / REORDER constraints) — see §2.
-5. **Optional SHARE** on commerce source tables only if create revalidates an SA008-class source token in-TX (same five-table family as M5.5 commit: stores already held; orders / order_items / return_refunds / inventory_snapshots). Prefer reusing `sku_daily_metric_source_snapshot` + token compare under those locks rather than a new lock protocol.
-6. **Insert** `inventory_actions` (+ reserved atomic `created` ActionEvent when that path is separately approved).
+3. **Recompute request** row(s) for the same grain + algorithm (if any) — `SELECT … FOR UPDATE` on matching `sku_daily_metric_recompute_requests`. If none exist, the create TX must still participate in a **proven** serialization that prevents a concurrent first insert of a dirty request from racing past freshness checks (see §1.3 / §1.6) — exact mechanism is **PROPOSED** (e.g. grain advisory shared with M5 enqueue paths, or equivalent).
+4. **Supplier product** serialization — see §2 (**PROPOSED**; create-side locks alone are insufficient).
+5. **Mandatory commerce / incoming source fencing for SA008-class evidence:** `LOCK … IN SHARE MODE` (or equivalent proven serialization) on the same source-table family used by M5.5 commit as extended by trusted-incoming (at minimum: orders, order_items, return_refunds, inventory_snapshots, plus PO / attestation inputs that participate in the create-bound source token). Prefer reusing `sku_daily_metric_source_snapshot` + token compare **under those locks**. This step is **not optional** for production create.
+6. **Final freshness revalidation** (§1.3) while locks from steps 2–5 are still held.
+7. **Insert** `inventory_actions` (+ reserved atomic `created` ActionEvent when that path is separately approved) only after step 6 passes.
 
-If any lock wait exceeds the project’s bounded create `lock_timeout` (successor must set an explicit timeout; default proposal: align with M5.5 2s commit posture unless a later freeze proves otherwise) → abort; do not partial-commit.
+If any lock wait exceeds the project’s bounded create `lock_timeout` (successor must set an explicit timeout; default proposal: align with M5.5 2s commit posture unless a later freeze proves otherwise) → **abort / retry**; do not partial-commit.
 
-### 1.3 Source reads + evidence validation (in-TX)
+**Abort / retry:** any lock timeout, SA008/token mismatch, generation/window failure, or supplier stale/phantom result → full TX rollback; caller may retry with fresh evidence. No insert on failed fence.
 
-After locks:
+### 1.3 Source reads + evidence validation (in-TX; **PROPOSED** until proven)
+
+After locks from §1.2 are held:
 
 | Check | Fail closed when |
 |---|---|
@@ -68,13 +87,17 @@ After locks:
 | Timezone | Create `pinned_time_zone` ≠ trusted store timezone |
 | Metric watermark | Locked `updated_at` (and date/algo) ≠ create `metric_source_watermark` / provenance token |
 | Generations | Open request exists with `dirty_generation ≠ applied_generation` **or** status ∈ `{queued,claimed,running,retry_wait,failed}` for this grain → reject `PENDING_RECOMPUTE` |
-| Window pending | Any **unconsumed** `sku_daily_metric_source_events` for this grain with `source_date ∈ [metric_date − 89, metric_date]` → reject (see §3) |
-| Source token | If create binds SA008 token: re-snapshot under locks; mismatch → `SA008` / `STALE_SOURCE_TOKEN` |
+| Window pending (sales/inventory events) | Any **unconsumed** `sku_daily_metric_source_events` for this grain with `source_date ∈ [metric_date − 89, metric_date]` → reject (see §3) |
+| Source token / SA008 | **Mandatory** for production create: re-snapshot under §1.2 source locks; mismatch → `SA008` / `STALE_SOURCE_TOKEN` |
 | Incoming | Persisted `eligible_incoming_*` nullability/reason coupling intact; commercial REORDER/REDUCE require known incoming |
 | Supplier facts | §2 + §4 |
 | Dual LT disclosure | §5 fields present on create payload / evidence provenance |
 | Engine | Frozen `decideInventoryAction` / binding rules only — **no formula fork** |
 | Body / provenance hashes | Re-derive in RPC; mismatch → reject (M7.2 posture) |
+
+**Final revalidation before INSERT (mandatory, still not sufficient alone):** immediately before step 7, re-check generations, in-window unconsumed events, metric watermark, and SA008/source token **while source + metric (+ supplier) locks remain held**.
+
+**False-ready prohibition (normative):** a last-minute recheck **without** continuing to hold serialization against concurrent source writers is **insufficient**. Under `READ COMMITTED`, a source mutation can commit after a check statement and before INSERT unless writers are blocked by shared locks / shared advisory protocol / equivalent isolation for the entire validate→insert window. Production create remains **BLOCKED** until that protocol is implemented and adversarially proven (§1.6).
 
 ### 1.4 Canonical decision binding
 
@@ -93,6 +116,17 @@ After locks:
 | Partial writer crash after insert | Replay uses idempotency; no overwrite of immutable fields |
 
 PB1 diagnostic loaders remain **out of band** and are **not** the production create RPC.
+
+### 1.6 Production create freshness — **BLOCKED** until proven
+
+Repository today **cannot** claim atomic create-time freshness. Exit criteria (each owner-authorized):
+
+1. Create RPC implements §1.2–§1.3 with **mandatory** SA008/source serialization (not optional).
+2. Adversarial tests prove: concurrent order/PO/snapshot/attestation/planning mutations during validate→insert either block, abort create, or force retry — **never** a successful insert on stale evidence.
+3. Missing recompute-request race is covered (no false-ready when the first dirty request is inserted after an empty-request check).
+4. Explicit owner approval then still required to accept `m5_sku_daily_metric_bound_v1` (§7).
+
+Until then: production create = **BLOCKED** (in addition to today’s `PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE`).
 
 ---
 
@@ -117,24 +151,34 @@ Unique key today: `(organization_id, supplier_id, variant_id)` on `supplier_prod
 | Mode | Create-time rule |
 |---|---|
 | **Explicit** | Caller supplies `supplier_id` (+ resolved `supplier_product_id`). Lock that exact row. Preference flags ignored except for audit echo. |
-| **Implicit preferred** | No `supplier_id`. Under transactional lock coverage (§2.3), require **exactly one** row with `preferred = true` and non-null valid `lead_time_days`. 0 → `SUPPLIER_FACTS_ABSENT`; >1 → `SUPPLIER_FACTS_AMBIGUOUS`. |
+| **Implicit preferred** | No `supplier_id`. Under a **proven** org+variant serialization protocol (§2.3), require **exactly one** row with `preferred = true` and non-null valid `lead_time_days`. 0 → `SUPPLIER_FACTS_ABSENT`; >1 → `SUPPLIER_FACTS_AMBIGUOUS`. |
 
 Org planning defaults and `suppliers.default_lead_time_days` remain **forbidden** substitutes (`ORG_PLANNING_DEFAULTS_FORBIDDEN` / `SUPPLIER_DEFAULT_LEAD_TIME_FORBIDDEN`).
 
-### 2.3 Phantom preferred INSERT/UPDATE races
+### 2.3 Phantom preferred INSERT/UPDATE races — **PROPOSED** (not currently enforceable)
 
-**Problem (proven by schema):** two sessions can flip/insert preferred rows between non-transactional PB1.f reads (PB1.g TOCTOU documentation). A naïve `SELECT preferred …` without range protection allows phantoms.
+**Problem (PROVEN):** non-transactional PB1.f reads allow TOCTOU (PB1.g). Schema allows multiple `preferred = true` rows per variant. Under `READ COMMITTED`, locking only existing rows does **not** block a concurrent **INSERT** of another preferred mapping (phantom).
 
-**Frozen strategy (enforceable successor):**
+**Proven writer behavior today:** `csv_reconcile_supplier_product` (`20261011184500_m3_9_csv_history_relationship_reconciliation.sql`) acquires `FOR UPDATE` on the exact `(organization_id, supplier_id, variant_id)` row (or inserts that row). It does **not** take an org+variant advisory lock, does **not** lock sibling preferred rows, and therefore does **not** participate in create-side preferred-set serialization. Direct SQL DML on `supplier_products` likewise has no shared protocol.
 
-1. **Always lock the chosen `supplier_products` row** with `SELECT … FOR UPDATE` by primary key after identity resolution.
-2. **Implicit preferred path — serialization:** before counting preferred rows, take a **transaction-scoped advisory lock** keyed by `(organization_id, variant_id)` (deterministic hash; document exact lock namespace in implementation slice). Then:
-   - `SELECT … FOR UPDATE` **all** `supplier_products` rows for that org+variant (or at least all `preferred = true` rows plus any candidate being promoted).
-   - Re-evaluate preferred-with-LT cardinality under those locks.
-3. **Explicit path:** advisory lock optional; PK `FOR UPDATE` + watermark compare is mandatory.
-4. **Constraint follow-up (separate owner-authorized migration, not this freeze):** optional partial unique index “at most one preferred per (organization_id, variant_id)” as defense-in-depth. Until present, advisory + multi-row `FOR UPDATE` remains the concurrency authority.
-5. Concurrent DELETE of locked row → not found → `SUPPLIER_MAPPING_NOT_FOUND` / revoked.
-6. Concurrent LT/preferred UPDATE → wait on lock → re-read; if `updated_at` ≠ create watermark or LT invalid → reject `SUPPLIER_FACTS_STALE` / `SUPPLIER_FACTS_INVALID`.
+**PROPOSED strategy (successor — do not claim safety before implementation + proof):**
+
+1. Define one org+variant serialization protocol used by **all** relevant writers, including at minimum:
+   - future production create / approve revalidation paths;
+   - `csv_reconcile_supplier_product` (and any CSV batch wrappers);
+   - any other application or RPC path that INSERT/UPDATE/DELETE `supplier_products` or flips `preferred` / `lead_time_days`.
+2. Acceptable equivalents (choose and prove one; may combine):
+   - **Shared** transaction-scoped advisory lock keyed by `(organization_id, variant_id)` acquired by create **and** all writers before preferred reads/mutations; and/or
+   - DB-enforced partial unique constraint “at most one preferred per `(organization_id, variant_id)`” (separate owner-authorized migration); and/or
+   - stronger isolation (e.g. `SERIALIZABLE`) with proven retry mapping — only if adversarially tested for this workload.
+3. Create-side steps that become meaningful **only after** writer participation:
+   - `SELECT … FOR UPDATE` chosen row by PK + `updated_at` watermark compare;
+   - implicit path: under shared protocol, lock/evaluate preferred-with-LT cardinality; reject 0 / >1;
+   - concurrent DELETE of locked row → `SUPPLIER_MAPPING_NOT_FOUND`;
+   - concurrent LT/preferred UPDATE on locked row → wait → re-read → `SUPPLIER_FACTS_STALE` / `INVALID` if watermark/LT diverges.
+4. **Create-side advisory lock alone is insufficient** and must not be documented as enforceable.
+
+**Proof obligation before any “phantom-safe” claim:** adversarial tests for concurrent preferred INSERT and preferred UPDATE/DELETE against create (and approve revalidation) must PASS with the shared protocol or DB constraint in place. Until then, supplier phantom prevention = **UNENFORCED / PROPOSED**; production REORDER create that depends on implicit preferred selection remains **BLOCKED**.
 
 No caching of supplier facts across create attempts.
 
@@ -146,30 +190,32 @@ No caching of supplier facts across create attempts.
 
 `docs/IMPLEMENTATION_STATUS.md` already records: exact current-date grain checks have a **false-ready gap** because historical source events for the same grain still affect current-day velocity windows (`source_date ∈ [metric_date − 89, metric_date]` per M5.6C completion / M5.6B dirtying).
 
-**Frozen rule:** production create freshness **must** use **grain + 90-day relevance window + generation state**, not “current-day request only.”
+**Rule:** production create must not use a current-date-only shortcut. Coverage must span **every relevant source class** through the create transaction boundary (§1.2–§1.6), using the **correct axis** per class (§3.2).
 
-Org-wide pending (`lib/metrics-activation/pending-work.ts`) remains an acceptable **conservative diagnostic** fence (false-blocks unrelated grains). It is **not** sufficient as the sole production create definition once grain-scoped fencing exists.
+Org-wide pending (`lib/metrics-activation/pending-work.ts`) remains an acceptable **conservative diagnostic** fence (false-blocks unrelated grains). It is **not** a production create freshness proof.
 
-### 3.2 Mandatory create-time freshness checks
+### 3.2 Freshness axes (separated; do not conflate)
 
-| Axis | Pass condition |
-|---|---|
-| Source token / SA008 | Create watermark matches in-TX snapshot when token-bound; includes inventory snapshots, orders/items/returns, and (after trusted-incoming) PO + attestation contributions to the token |
-| Generations | No open dirty work: for the grain, either no request row or `dirty_generation = claimed_generation = applied_generation` with terminal success semantics; any `dirty ≠ applied` or open status → reject |
-| Window events | Zero unconsumed events for grain with `source_date` between `metric_date − 89` and `metric_date` inclusive |
-| Store-local date | Metric date equals store-local as-of; date rollover mid-TX → reject `METRIC_DATE_NOT_CURRENT` |
-| Algorithm | `m5-derived-metrics-v1` only |
-| Planning invalidation | Planning upsert dirties via `enqueue_sku_daily_metric_planning_invalidation` — covered by generation / window / pending checks after dirty |
-| Incoming attestation | PB1.e trigger dirties store-local current grains on attestation INSERT/UPDATE/DELETE — covered by generation/window; stale known-zero cannot qualify while dirty |
-| PO mutations | Trusted-incoming capture path enqueues metric source events — covered by window unconsumed check |
+| Source class | Invalidation / evidence axis (PROVEN mechanism today) | Create-time requirement (**PROPOSED** until §1.6) |
+|---|---|---|
+| **Historical sales** (orders / order_items / returns affecting velocity) | `sku_daily_metric_source_events` with relevance `source_date ∈ [metric_date − 89, metric_date]` | Grain + **90-day unconsumed event window** + generations as applicable; hold source serialization through validate→insert |
+| **Inventory** snapshots | Source events (same relevance window where enqueued) **and** SA008 source-token composition | Relevant **events + mandatory source token** under SHARE (or proven equivalent) |
+| **Planning** defaults | `enqueue_sku_daily_metric_planning_invalidation` bumps `dirty_generation` on store-local current grains — **not** the 89-day event window | **dirty / claimed / applied** generation equality (or no open request); do **not** assume window events cover planning |
+| **Incoming attestation** (PB1.e) | `store_incoming_evidence_attestations_invalidate_metrics` → `enqueue_sku_daily_metric_store_incoming_invalidation` bumps dirty — **not** the 89-day event window | **Generation** invalidation path; stale known-zero cannot qualify while dirty; token must include attestation when bound |
+| **PO / trusted incoming** | PO capture enqueues source events; SA008 token includes PO + attestation after trusted-incoming | **Events + dirty/generation state + SA008 token** — all three axes as applicable |
+
+Every relevant mutation class above must be unable to commit “under” a successful create without either blocking on shared locks/protocol or causing create abort/retry. Current-date-only request checks remain a **false-ready** anti-pattern.
 
 ### 3.3 Historical sales-window proof obligation
 
 Successor tests must prove:
 
-1. Unconsumed sales/inventory event with `source_date` inside `[metric_date − 89, metric_date]` blocks create even when no **current-day** request exists.
-2. Unrelated-grain pending does **not** alone authorize create (grain fence required); diagnostic may still org-block.
-3. After consume+recompute brings `applied_generation` current and window empty, create fence can pass **freshness** (production class unlock still separate).
+1. Unconsumed sales event with `source_date` inside `[metric_date − 89, metric_date]` blocks create even when no **current-day-only** heuristic would.
+2. Planning-only dirty (no in-window sales event) still blocks via generation axis.
+3. Attestation-only dirty still blocks via generation axis.
+4. Inventory/PO token drift under SHARE fails SA008 even if event table momentarily empty.
+5. Unrelated-grain pending does **not** alone authorize create; diagnostic may still org-block.
+6. After consume+recompute brings generations current and required axes clean, freshness can pass **only as a fence result** — production class unlock remains separate (§7).
 
 ---
 
@@ -204,9 +250,9 @@ Merchant-visible disclosure is mandatory before merchant-approvable REORDER. **N
 
 ---
 
-## 6. Approval-time revalidation (M7.3 successor)
+## 6. Approval-time revalidation (M7.3 successor — **PROPOSED**)
 
-Today `inventory_action_is_merchant_approvable` is hard-coded `false`. When a future unlock allows merchant accept/edit/dismiss/complete:
+Today `inventory_action_is_merchant_approvable` is hard-coded `false` (**PROVEN**). When a future unlock allows merchant accept/edit/dismiss/complete:
 
 ### 6.1 Detect drift after create
 
@@ -215,8 +261,8 @@ On merchant transition RPC (`SELECT action FOR UPDATE` then):
 | Drift | Detection |
 |---|---|
 | Metric changed | Current locked metric watermark ≠ action `metric_source_watermark` / provenance |
-| Pending work | Grain generation/window freshness fails (§3) |
-| Supplier changed | Locked `supplier_products.updated_at` / id / LT ≠ action supplier provenance |
+| Pending work | Grain freshness fails on the correct §3.2 axes |
+| Supplier changed | Locked `supplier_products.updated_at` / id / LT ≠ action supplier provenance under §2.3 protocol |
 | Quantity / body | Action immutable fields unchanged (already M7.3); edited quantity only via `accepted_with_edit` rules |
 | Authorization | `auth.uid()` + membership + decide role; foreign tenant reject |
 | Provenance / source class | Still approved production class; trust flags still satisfy §7 |
@@ -238,27 +284,29 @@ Human authorization remains `auth.uid()` consent; `service_role` never substitut
 
 ### 7.1 Trusted production source-of-create
 
-All of the following — each separately owner-authorized:
+All of the following — each separately owner-authorized. **Fail-closed gates stay closed** until every item is done:
 
-1. This fencing contract accepted.
-2. Local pure fence validators + adversarial tests green (§9).
-3. Successor M7.2 writer freeze specifying in-TX lock order + RPC surface.
-4. Migration implementing create-time revalidation (still may ship with class rejected until explicit enable).
-5. Explicit owner approval to accept `m5_sku_daily_metric_bound_v1` (remove / gate `PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE`).
-6. Dual-LT disclosure fields persisted.
-7. Local four-version migration-ledger discrepancy resolved or explicitly waived (**separate blocker**).
-8. Hosted schema/runtime approvals as applicable (**separate**); workers/cron remain off unless separately approved.
+1. This fencing contract (including **h.1a**) accepted as design authority.
+2. §1.6 create TX freshness protocol **implemented and adversarially proven** (mandatory SA008/serialization; no false-ready validate→insert gap).
+3. §2.3 supplier shared-writer protocol **or** DB-enforced preferred constraint **implemented and phantom-proven**.
+4. Local pure fence validators + diagnostic adversarial tests as appropriate (§9) — helpers do **not** substitute for §1.6/§2.3.
+5. Successor M7.2 writer freeze specifying the proven lock order + RPC surface.
+6. Migration implementing create-time revalidation (may ship with class still rejected until explicit enable).
+7. Explicit owner approval to accept `m5_sku_daily_metric_bound_v1` (remove / gate `PRODUCTION_SOURCE_OF_CREATE_UNAVAILABLE`).
+8. Dual-LT disclosure fields persisted.
+9. Local four-version migration-ledger discrepancy resolved or explicitly waived (**separate blocker**).
+10. Hosted schema/runtime approvals as applicable (**separate**); workers/cron remain off unless separately approved.
 
 ### 7.2 Merchant-approvable predicate
 
 All of §7.1 plus:
 
-1. Successor M7.3 freeze for approve-time revalidation (§6).
+1. Successor M7.3 freeze for approve-time revalidation (§6) with the same freshness/supplier protocols.
 2. Predicate returns true **only** for approved production source class + required trust columns + passing revalidation.
 3. Harness / fixture / dormant rows remain unapprovable forever.
 4. No UI wiring until predicate + create path approved.
 
-**This document grants none of the unlocks above.**
+**This document grants none of the unlocks above.** M7.2 production class rejection and M7.3 always-false merchant predicate remain **PROVEN** fail-closed.
 
 ---
 
@@ -266,16 +314,18 @@ All of §7.1 plus:
 
 | Scenario | Expected code / disposition |
 |---|---|
-| Concurrent supplier LT UPDATE under lock | Wait → watermark/LT mismatch → `SUPPLIER_FACTS_STALE` / `INVALID` |
+| Concurrent supplier LT UPDATE under shared protocol | Wait → watermark/LT mismatch → `SUPPLIER_FACTS_STALE` / `INVALID` |
 | Supplier DELETE / revoke mapping | `SUPPLIER_MAPPING_NOT_FOUND` |
-| Preferred flip 0↔2 mid create (phantom) | Advisory+FOR UPDATE → `SUPPLIER_FACTS_ABSENT` / `AMBIGUOUS` |
-| Preferred INSERT race (second preferred) | Same → `SUPPLIER_FACTS_AMBIGUOUS` |
+| Preferred flip / INSERT phantom without shared protocol | **UNENFORCED today**; must not claim prevention; production create **BLOCKED** |
+| Preferred flip / INSERT with proven shared protocol or unique-preferred | `SUPPLIER_FACTS_ABSENT` / `AMBIGUOUS` / stale reject |
 | Explicit supplierId with null LT | `SUPPLIER_FACTS_ABSENT` |
 | Org-default LT injection | `ORG_PLANNING_DEFAULTS_FORBIDDEN` |
-| Unconsumed in-window source event | `PENDING_RECOMPUTE` / `METRIC_SOURCE_WINDOW_DIRTY` |
+| Unconsumed in-window **sales** event | `PENDING_RECOMPUTE` / `METRIC_SOURCE_WINDOW_DIRTY` |
+| Planning/attestation dirty generation only | `PENDING_RECOMPUTE` |
 | dirty ≠ applied / open request | `PENDING_RECOMPUTE` |
-| SA008 / source token mismatch | `SA008` / `STALE_SOURCE_TOKEN` |
-| Stale attestation after dirty | Pending/generation fail; cannot create on stale known-zero |
+| SA008 / source token mismatch (mandatory) | `SA008` / `STALE_SOURCE_TOKEN` |
+| Source commit during validate→insert without held serialization | Must be impossible after §1.6; until then create **BLOCKED** |
+| Stale attestation after dirty | Generation fail; cannot create on stale known-zero |
 | Foreign tenant / store | `FOREIGN_TENANT_REJECTED` / scope error |
 | Metric date ≠ store-local as-of / rollover | `METRIC_DATE_NOT_CURRENT` |
 | Wrong algorithm | `UNSUPPORTED_METRIC_ALGORITHM` |
@@ -292,14 +342,15 @@ All of §7.1 plus:
 
 | Slice | Scope | Authorization |
 |---|---|---|
-| **PB1.h.1** | This docs freeze | **Done when this file lands** |
-| **PB1.h.2** | Pure-TS fence validators: grain window pending, generation equality, supplier watermark/preferred cardinality helpers (no RPC unlock) | **LOCAL-ONLY** after explicit approval |
-| **PB1.h.3** | Local adversarial / live tests for TOCTOU, window false-ready, preferred phantoms (diagnostic composition; still hard-false) | **LOCAL-ONLY** after explicit approval |
-| **PB1.h.4+** | SQL create writer, class enable, merchant predicate, UI, workers, hosted | **Separate owner authorization each** |
-| Ledger repair (`20261107090000`, `20261107120000`, `20261108180000`, `20261109120000`) | Objects-without-ledger risk | **Separate blocker** — not part of h.2/h.3 |
+| **PB1.h.1** | Initial fencing design freeze | Done @ `75db885` |
+| **PB1.h.1a** | This safety correction (docs) | **This amendment** |
+| **PB1.h.2** | Pure-TS fence validators: per-axis freshness helpers, supplier watermark/preferred cardinality (**read-model only**; no phantom/TX safety claim) | **LOCAL-ONLY** after explicit approval |
+| **PB1.h.3** | Local adversarial / live tests documenting current TOCTOU / false-ready gaps (still hard-false) | **LOCAL-ONLY** after explicit approval |
+| **PB1.h.4+** | Shared supplier-writer protocol and/or unique-preferred constraint; create TX with mandatory SA008 serialization; class enable; merchant predicate; UI; workers; hosted | **Separate owner authorization each**; production unlock **BLOCKED** until proven |
+| Ledger repair (`20261107090000`, `20261107120000`, `20261108180000`, `20261109120000`) | Objects-without-ledger risk | **Separate blocker** |
 | PE1.b.6b J1–J13 | Hosted JWT | **Separate session**; remains UNPROVEN |
 
-Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-freshness-fence.ts`, `lib/decision-engine/pb1-supplier-concurrency-fence.ts`. Forbidden: persist adapters, lifecycle RPCs, workers, `app/**`, formula edits.
+Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-freshness-fence.ts`, `lib/decision-engine/pb1-supplier-concurrency-fence.ts`. Forbidden: persist adapters, lifecycle RPCs, workers, `app/**`, formula edits, claiming TX atomicity from pure helpers.
 
 ---
 
@@ -319,12 +370,14 @@ Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-f
 | Component | Role vs this freeze |
 |---|---|
 | `pb1-trusted-persisted-metric-promote-loader.ts` | Diagnostic membership load; org-wide pending — not create TX |
-| `pb1-trusted-supplier-planning-facts.ts` / lead-time loader | Read-time stated terms; no FOR UPDATE |
+| `pb1-trusted-supplier-planning-facts.ts` / lead-time loader | Read-time stated terms; no FOR UPDATE; no advisory |
+| `csv_reconcile_supplier_product` | Exact-row `FOR UPDATE` only — **no** shared org+variant preferred protocol |
 | `pb1-evidence-qualified-*-diagnostic.ts` | Hard-false diagnostic only |
 | `m7-pb1g-persisted-grain-reorder.live.test.ts` | Proves diagnostic REORDER + documents supplier TOCTOU |
-| `persist_inventory_action_recommendation` | Rejects production class |
-| `inventory_action_is_merchant_approvable` | Always false |
-| PB1.e attestation invalidation | Necessary dirty path; covered by §3 once create fence exists |
+| `persist_inventory_action_recommendation` | Rejects production class (**PROVEN**) |
+| `inventory_action_is_merchant_approvable` | Always false (**PROVEN**) |
+| Planning / PB1.e invalidation | Generation dirty paths — distinct from sales event window |
+| M5.5 SA008 SHARE + token | Pattern to **reuse mandatorily** for production create — not optional |
 
 ---
 
@@ -332,9 +385,10 @@ Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-f
 
 | Item | Call |
 |---|---|
-| Freeze PB1.h.1 fencing contract | **GO** |
-| Local pure validators / adversarial tests after approval | **CONDITIONAL GO** |
-| Production create / merchant approve unlock | **NO-GO** |
+| PB1.h.1a docs correction | **GO** |
+| Claim phantom-safe / atomic-fresh create today | **NO-GO** |
+| Local pure validators / gap tests after approval | **CONDITIONAL GO** (helpers only) |
+| Production create / merchant approve unlock | **NO-GO** / **BLOCKED** |
 | Formula changes / org-default LT promotion / delivery fabrication | **NO-GO** |
 | Ledger repair / hosted JWT execution / workers | **NO-GO** (separate) |
 
@@ -354,7 +408,15 @@ Suggested paths for h.2 (non-normative names): `lib/decision-engine/pb1-metric-f
 - `supabase/migrations/20261031100000_m7_2b_inventory_action_persistence.sql`
 - `supabase/migrations/20261031130000_m7_3c_trusted_lifecycle_rpcs.sql`
 - `supabase/migrations/20261109120000_pb1e_attestation_freshness_invalidation.sql`
+- `supabase/migrations/20261108170000_planning_evidence_binding_v1.sql`
 - `supabase/migrations/20261011133000_m2_5_suppliers_purchase_orders.sql`
+- `supabase/migrations/20261011184500_m3_9_csv_history_relationship_reconciliation.sql` (`csv_reconcile_supplier_product`)
+
+---
+
+## 14. Immutability note (h.1a)
+
+Contract text may be corrected for **safety honesty** (this amendment). Claims of shipping concurrency/freshness safety become immutable only after the corresponding **PROPOSED** protocols are implemented, adversarially tested, and separately owner-authorized. Until then, overclaiming is forbidden; production create/approve remain fail-closed.
 
 ---
 
