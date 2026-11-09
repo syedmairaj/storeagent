@@ -577,9 +577,9 @@ Focused vitest + `tsc` + eslint + `git diff --check` on the implementation PR.
 | **PB1.0** | This contract freeze | Done when this doc lands |
 | **PB1.a** | Pure mapper + failure codes + unit/architecture tests (no diagnostic engine call) | Mapping acceptance 1–15, 19–22 |
 | **PB1.b** | Optional `runDiagnosticDecision` + evidence snapshot + tests 16–18 | Diagnostic gated; still no persist/UI |
-| **PB1.c** | (Optional, separate approval) Trusted loader helper that reads one M5 row under tenant scope — still no HTTP worker ENABLE | Loader tests; no production writer |
+| **PB1.c** | Trusted loader helper that reads one M5 row under tenant scope — still no HTTP worker ENABLE | **DONE locally** (`lib/decision-engine/pb1-trusted-persisted-metric-promote-loader.ts`); loader + architecture tests; no production writer; PE1.b.6b JWT and M7 create/approve remain **NO-GO** |
 
-Stop after PB1.a unless PB1.b/c explicitly approved. **No UI slice** in PB1.
+Stop after PB1.a unless PB1.b/c explicitly approved. **No UI slice** in PB1. PB1.c remains **diagnostic preparation only**.
 
 ---
 
@@ -615,11 +615,13 @@ These do **not** block PB1.a contract freeze; they block later production create
 |---|---|
 | Freeze PB1 contract | **GO** |
 | Implement PB1.a pure mapper after approval | **GO** |
+| PB1.c trusted persisted-metric loader (local diagnostic) | **GO (done locally)** |
 | Production decision create / persist | **NO-GO** |
 | M7.3 approval success | **NO-GO** |
 | E4 engine-bound Brief | **NO-GO** |
 | Live AI | **NO-GO** |
 | Hosted workers / canary drain | **NO-GO** |
+| PE1.b.6b hosted JWT verification | **NO-GO / NOT EXECUTED** |
 | Invent forecast / incoming / lead-time defaults | **NO-GO** |
 | Purchasing / payments / inventory mutation | **NO-GO** |
 
@@ -634,6 +636,8 @@ These do **not** block PB1.a contract freeze; they block later production create
 - `docs/DECISION_ENGINE.md`
 - `lib/decision-engine/types.ts`
 - `lib/decision-engine/fixture-evaluation.ts`
+- `lib/decision-engine/pb1-trusted-persisted-metric-promote-loader.ts`
+- `lib/decision-engine/pb1-evidence-qualified-promote-diagnostic.ts`
 - `lib/decision-engine/reorder-rule.ts`
 - `lib/decision-engine/watch-healthy-rule.ts`
 - `lib/metrics/sku-daily-metric-record.ts`

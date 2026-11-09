@@ -271,7 +271,7 @@ Provider roadmap (subject to canonical roadmap + integration feasibility): CSV /
 
 | M7 engine | Deterministic orchestration + action rules | `decideInventoryAction` (`lib/decision-engine/decide.ts`); `evaluateReorderRule` / `evaluateReduceRule` / `evaluatePromoteRule` / `evaluateWatchHealthyRule` |
 
-| M7 binding (prep only) | Trusted M5 → decision input mapper; offline diagnostic only | `bindMetricToDecisionInput` (`lib/decision-engine/metric-decision-binding.ts`); `evaluatePb1OfflineDiagnosticDecision`; evidence-qualified PROMOTE harness `evaluatePb1EvidenceQualifiedPromoteDiagnostic` — **diagnostic only**; optional `supplierPlanning` attestation — **not** org planning-inputs table |
+| M7 binding (prep only) | Trusted M5 → decision input mapper; offline diagnostic only | `bindMetricToDecisionInput` (`lib/decision-engine/metric-decision-binding.ts`); `evaluatePb1OfflineDiagnosticDecision`; evidence-qualified PROMOTE harness `evaluatePb1EvidenceQualifiedPromoteDiagnostic`; PB1.c trusted loader `loadPb1TrustedPersistedMetricPromoteDiagnostic` (`lib/decision-engine/pb1-trusted-persisted-metric-promote-loader.ts`) — **diagnostic only**; optional `supplierPlanning` attestation — **not** org planning-inputs table |
 
 | Planning inputs | Org defaults, null≠0 parse, member read, owner/admin RPC write | `parseMerchantPlanningInputs`, `loadMerchantPlanningInputs`, `saveMerchantPlanningInputsAction`; migration `20261108160000_merchant_planning_inputs_v1.sql` |
 
@@ -327,7 +327,7 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 - Readiness reports known / known-zero incoming grain counts; commercial actions remain hard-false.
 
-- REORDER still needs trusted supplier lead-time on the PB1 path (org defaults must not fill `TrustedSupplierPlanningFacts`). REDUCE needs known incoming **> 0**. Local PB1.b evidence-qualified **PROMOTE** diagnostic is available for one current-day grain with known incoming + overstock derive + demand pressure — still **diagnostic only** (no persist / approve / UI unlock). PE1.b.6b JWT remains **NO-GO / NOT EXECUTED**.
+- REORDER still needs trusted supplier lead-time on the PB1 path (org defaults must not fill `TrustedSupplierPlanningFacts`). REDUCE needs known incoming **> 0**. Local PB1.b evidence-qualified **PROMOTE** diagnostic and PB1.c trusted persisted-metric loader are available for one current-day grain with known incoming + overstock derive + demand pressure — still **diagnostic only** (no persist / approve / UI unlock). PE1.b.6b JWT remains **NO-GO / NOT EXECUTED**.
 
 
 
@@ -367,6 +367,8 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 3. Use PB1 binding + diagnostic `decideInventoryAction` on one grain with hard-false production claims — **DONE locally** as evidence-qualified **PROMOTE** diagnostic (`evaluatePb1EvidenceQualifiedPromoteDiagnostic`; deriveOverstockRisk=true; production gates hard-false).
 
+3b. Trusted one-row persisted-metric loader into that diagnostic — **DONE locally** as PB1.c (`loadPb1TrustedPersistedMetricPromoteDiagnostic` / `evaluatePb1TrustedPersistedMetricPromoteFromLoadedRow`; membership + store TZ + current-day row + pending-work fail-closed; still hard-false; not merchant-facing).
+
 4. Only after a separately approved **trusted source-of-create** + merchant-approvable predicate: persist one action and exercise **human approve** (M7.3). Demo no-save ≠ durable approval.
 
 
@@ -383,7 +385,7 @@ Until step 4 (and REORDER supplier-lead binding if buying is the product goal), 
 
 |---|---|
 
-| **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults; current-day trusted incoming; PB1.b evidence-qualified PROMOTE diagnostic (hard-false) |
+| **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults; current-day trusted incoming; PB1.b evidence-qualified PROMOTE diagnostic (hard-false); PB1.c trusted persisted-metric PROMOTE loader (hard-false) |
 
 | **CURRENT** | Local diagnostic preparation only — no M7 production activation |
 
@@ -401,7 +403,7 @@ Until step 4 (and REORDER supplier-lead binding if buying is the product goal), 
 
 
 
-**PLANNING EVIDENCE BINDING V1** — locally implemented (org defaults → M5 thresholds + current-metric invalidation). **Trusted current-day incoming V1** — locally implemented. **PB1.b evidence-qualified PROMOTE diagnostic** — locally implemented (**diagnostic only**; `productionApprovalEligible=false`). Commercial create/approve, PB1 supplier attestation loader, workers/cron, and PE1.b.6b JWT remain **NO-GO / blocked**.
+**PLANNING EVIDENCE BINDING V1** — locally implemented (org defaults → M5 thresholds + current-metric invalidation). **Trusted current-day incoming V1** — locally implemented. **PB1.b evidence-qualified PROMOTE diagnostic** — locally implemented (**diagnostic only**; `productionApprovalEligible=false`). **PB1.c trusted persisted-metric PROMOTE loader** — locally implemented (`loadPb1TrustedPersistedMetricPromoteDiagnostic`; membership-scoped one-row read → PB1.b; **diagnostic only**; no UI/worker/HTTP wiring). Commercial create/approve, PB1 supplier attestation loader, workers/cron, and PE1.b.6b JWT remain **NO-GO / blocked**.
 
 ## Current milestone
 
