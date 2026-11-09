@@ -578,8 +578,9 @@ Focused vitest + `tsc` + eslint + `git diff --check` on the implementation PR.
 | **PB1.a** | Pure mapper + failure codes + unit/architecture tests (no diagnostic engine call) | Mapping acceptance 1–15, 19–22 |
 | **PB1.b** | Optional `runDiagnosticDecision` + evidence snapshot + tests 16–18 | Diagnostic gated; still no persist/UI |
 | **PB1.c** | Trusted loader helper that reads one M5 row under tenant scope — still no HTTP worker ENABLE | **DONE locally** (`lib/decision-engine/pb1-trusted-persisted-metric-promote-loader.ts`); loader + architecture tests; no production writer; PE1.b.6b JWT and M7 create/approve remain **NO-GO** |
+| **PB1.f** | Membership-scoped `supplier_products.lead_time_days` → `TrustedSupplierPlanningFacts` + evidence-qualified **REORDER** diagnostic | **DONE locally** (`pb1-trusted-supplier-planning-facts.ts`, `pb1-evidence-qualified-reorder-diagnostic.ts`, `pb1-trusted-supplier-lead-time-loader.ts`). Provenance = **stated supplier/SKU terms** (`pb1_trusted_supplier_planning_v1`), **not** verified delivery performance; never org planning defaults / supplier defaults / PO latency. Dual-source note: M5 ROP/target may still reflect org-default LT; PB1 decision `leadTimeDays` uses supplier_products only (thresholds not recalculated). Hard-false create/approve; PE1.b.6b JWT and M7 production create/approve remain **NO-GO**. |
 
-Stop after PB1.a unless PB1.b/c explicitly approved. **No UI slice** in PB1. PB1.c remains **diagnostic preparation only**.
+Stop after PB1.a unless later slices are explicitly approved. **No UI slice** in PB1. PB1.c / PB1.f remain **diagnostic preparation only**.
 
 ---
 
@@ -616,6 +617,7 @@ These do **not** block PB1.a contract freeze; they block later production create
 | Freeze PB1 contract | **GO** |
 | Implement PB1.a pure mapper after approval | **GO** |
 | PB1.c trusted persisted-metric loader (local diagnostic) | **GO (done locally)** |
+| PB1.f supplier_products lead-time → REORDER diagnostic (local) | **GO (done locally; stated terms only)** |
 | Production decision create / persist | **NO-GO** |
 | M7.3 approval success | **NO-GO** |
 | E4 engine-bound Brief | **NO-GO** |
@@ -638,6 +640,9 @@ These do **not** block PB1.a contract freeze; they block later production create
 - `lib/decision-engine/fixture-evaluation.ts`
 - `lib/decision-engine/pb1-trusted-persisted-metric-promote-loader.ts`
 - `lib/decision-engine/pb1-evidence-qualified-promote-diagnostic.ts`
+- `lib/decision-engine/pb1-trusted-supplier-planning-facts.ts`
+- `lib/decision-engine/pb1-evidence-qualified-reorder-diagnostic.ts`
+- `lib/decision-engine/pb1-trusted-supplier-lead-time-loader.ts`
 - `lib/decision-engine/reorder-rule.ts`
 - `lib/decision-engine/watch-healthy-rule.ts`
 - `lib/metrics/sku-daily-metric-record.ts`

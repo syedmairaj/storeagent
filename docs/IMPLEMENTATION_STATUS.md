@@ -193,7 +193,7 @@ Provider roadmap (subject to canonical roadmap + integration feasibility): CSV /
 
 - Real REORDER / REDUCE / PROMOTE / WATCH execution against live merchant grains (PB1.b evidence-qualified PROMOTE diagnostic is **local preparation only**; not merchant-facing execution)
 
-- Supplier lead-time reliability scoring and PB1 `TrustedSupplierPlanningFacts` loader (org planning defaults must not fill supplier lead time). Local current-day trusted incoming is implemented via `resolveEligibleIncoming` + attestation; historical metric dates remain unknown by design
+- Supplier lead-time **reliability scoring / observed PO performance** (PB1.f binds stated `supplier_products.lead_time_days` only — not verified delivery). Org planning defaults must not fill supplier lead time. Local current-day trusted incoming is implemented via `resolveEligibleIncoming` + attestation; historical metric dates remain unknown by design
 
 - Proven forecasting accuracy / production forecast operation
 
@@ -271,7 +271,7 @@ Provider roadmap (subject to canonical roadmap + integration feasibility): CSV /
 
 | M7 engine | Deterministic orchestration + action rules | `decideInventoryAction` (`lib/decision-engine/decide.ts`); `evaluateReorderRule` / `evaluateReduceRule` / `evaluatePromoteRule` / `evaluateWatchHealthyRule` |
 
-| M7 binding (prep only) | Trusted M5 → decision input mapper; offline diagnostic only | `bindMetricToDecisionInput` (`lib/decision-engine/metric-decision-binding.ts`); `evaluatePb1OfflineDiagnosticDecision`; evidence-qualified PROMOTE harness `evaluatePb1EvidenceQualifiedPromoteDiagnostic`; PB1.c trusted loader `loadPb1TrustedPersistedMetricPromoteDiagnostic` (`lib/decision-engine/pb1-trusted-persisted-metric-promote-loader.ts`) — **diagnostic only**; optional `supplierPlanning` attestation — **not** org planning-inputs table |
+| M7 binding (prep only) | Trusted M5 → decision input mapper; offline diagnostic only | `bindMetricToDecisionInput` (`lib/decision-engine/metric-decision-binding.ts`); `evaluatePb1OfflineDiagnosticDecision`; evidence-qualified PROMOTE harness `evaluatePb1EvidenceQualifiedPromoteDiagnostic`; PB1.c trusted loader `loadPb1TrustedPersistedMetricPromoteDiagnostic`; PB1.f stated supplier LT resolver/loader + REORDER diagnostic (`pb1-trusted-supplier-planning-facts.ts`, `pb1-trusted-supplier-lead-time-loader.ts`, `pb1-evidence-qualified-reorder-diagnostic.ts`) — **diagnostic only**; `supplierPlanning` from `supplier_products` stated terms — **not** org planning-inputs / verified performance |
 
 | Planning inputs | Org defaults, null≠0 parse, member read, owner/admin RPC write | `parseMerchantPlanningInputs`, `loadMerchantPlanningInputs`, `saveMerchantPlanningInputsAction`; migration `20261108160000_merchant_planning_inputs_v1.sql` |
 
@@ -329,7 +329,7 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 - Readiness reports known / known-zero incoming grain counts; commercial actions remain hard-false.
 
-- REORDER still needs trusted supplier lead-time on the PB1 path (org defaults must not fill `TrustedSupplierPlanningFacts`). REDUCE needs known incoming **> 0**. Local PB1.b evidence-qualified **PROMOTE** diagnostic and PB1.c trusted persisted-metric loader are available for one current-day grain with known incoming + overstock derive + demand pressure — still **diagnostic only** (no persist / approve / UI unlock). PE1.b.6b JWT remains **NO-GO / NOT EXECUTED**.
+- REORDER diagnostic lead time is available via PB1.f stated `supplier_products` terms (org defaults must not fill `TrustedSupplierPlanningFacts`; not verified PO performance). REDUCE needs known incoming **> 0**. Local PB1.b **PROMOTE**, PB1.c persisted-metric PROMOTE loader, and PB1.f **REORDER** diagnostics are available for qualifying current-day grains — still **diagnostic only** (no persist / approve / UI unlock). PE1.b.6b JWT remains **NO-GO / NOT EXECUTED**.
 
 
 
@@ -387,17 +387,17 @@ Until step 4 (and REORDER supplier-lead binding if buying is the product goal), 
 
 |---|---|
 
-| **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults; current-day trusted incoming; PB1.b evidence-qualified PROMOTE diagnostic (hard-false); PB1.c trusted persisted-metric PROMOTE loader (hard-false); PB1.e attestation freshness invalidation + UTC timezone align (hard-false; grain-level pending deferred) |
+| **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults; current-day trusted incoming; PB1.b evidence-qualified PROMOTE diagnostic (hard-false); PB1.c trusted persisted-metric PROMOTE loader (hard-false); PB1.e attestation freshness invalidation + UTC timezone align (hard-false; grain-level pending deferred); PB1.f supplier_products stated lead-time → evidence-qualified REORDER diagnostic (hard-false; not verified performance) |
 
 | **CURRENT** | Local diagnostic preparation only — no M7 production activation |
 
-| **PROPOSED NEXT** | (1) Trusted supplier lead-time binding for REORDER (not org defaults); (2) Activate the smallest independently authorized real M7 decision with human approval |
+| **PROPOSED NEXT** | Activate the smallest independently authorized real M7 decision with human approval (still blocked on trusted source-of-create + M7.3 merchant-approvable predicate; PE1.b.6b JWT NO-GO) |
 
 | **LATER** | Supplier Intelligence; purchasing workflows; stronger forecasts; provider connectors |
 
 
 
-**Order rationale (code-justified):** thresholds require planning binding (done). Current-day incoming is available locally for overstock/REDUCE/REORDER evidence. REORDER still needs PB1 supplier lead-time facts (must not steal org defaults). Production human approval cannot succeed while M7.3 approvable predicate / source-of-create remain fail-closed. Local PROMOTE diagnostic proves one commercial-rule success path without unlocking create/approve.
+**Order rationale (code-justified):** thresholds require planning binding (done). Current-day incoming is available locally for overstock/REDUCE/REORDER evidence. PB1.f binds stated `supplier_products.lead_time_days` into diagnostic REORDER (org defaults still must not fill `TrustedSupplierPlanningFacts`; M5 thresholds may separately use org-default LT). Production human approval cannot succeed while M7.3 approvable predicate / source-of-create remain fail-closed. Local PROMOTE + REORDER diagnostics prove commercial-rule success paths without unlocking create/approve.
 
 
 
@@ -405,7 +405,7 @@ Until step 4 (and REORDER supplier-lead binding if buying is the product goal), 
 
 
 
-**PLANNING EVIDENCE BINDING V1** — locally implemented (org defaults → M5 thresholds + current-metric invalidation). **Trusted current-day incoming V1** — locally implemented. **PB1.b evidence-qualified PROMOTE diagnostic** — locally implemented (**diagnostic only**; `productionApprovalEligible=false`). **PB1.c trusted persisted-metric PROMOTE loader** — locally implemented (`loadPb1TrustedPersistedMetricPromoteDiagnostic`; membership-scoped one-row read → PB1.b; **diagnostic only**; no UI/worker/HTTP wiring). **PB1.e attestation freshness + UTC align** — locally implemented (trigger invalidation on all attestation mutations; `UTC`/`Etc/UTC` accepted in PB1 binding; org-wide pending retained). Commercial create/approve, PB1 supplier attestation loader, workers/cron, and PE1.b.6b JWT remain **NO-GO / blocked**.
+**PLANNING EVIDENCE BINDING V1** — locally implemented (org defaults → M5 thresholds + current-metric invalidation). **Trusted current-day incoming V1** — locally implemented. **PB1.b evidence-qualified PROMOTE diagnostic** — locally implemented (**diagnostic only**; `productionApprovalEligible=false`). **PB1.c trusted persisted-metric PROMOTE loader** — locally implemented (`loadPb1TrustedPersistedMetricPromoteDiagnostic`; membership-scoped one-row read → PB1.b; **diagnostic only**; no UI/worker/HTTP wiring). **PB1.e attestation freshness + UTC align** — locally implemented (trigger invalidation on all attestation mutations; `UTC`/`Etc/UTC` accepted in PB1 binding; org-wide pending retained). **PB1.f supplier lead-time → REORDER diagnostic** — locally implemented (`resolvePb1TrustedSupplierPlanningFacts` + `evaluatePb1EvidenceQualifiedReorderDiagnostic` + membership `loadPb1TrustedSupplierPlanningFacts`; stated `supplier_products` terms only; dual-source LT note; **diagnostic only**; no UI/worker/HTTP wiring). Commercial create/approve, workers/cron, and PE1.b.6b JWT remain **NO-GO / blocked**.
 
 ## Current milestone
 
