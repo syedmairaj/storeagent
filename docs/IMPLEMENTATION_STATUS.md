@@ -145,7 +145,7 @@ Provider roadmap (subject to canonical roadmap + integration feasibility): CSV /
 
 | 3 | **WHAT TO PURCHASE** | **Not live-ready** | Canonical M7 engine (`decideInventoryAction`), demo review controls, and merchant planning inputs exist. Real commercial decisions and purchasing workflows remain gated (M7.2/M7.3 hard-false; Actions = synthetic demo). |
 
-| 4 | **SUPPLIER LEAD-TIME UNCERTAINTY** | **Partially ready** | Secure merchant **organization-default** assumptions exist and bind into local M5 threshold recompute (`organization_planning_inputs`, planning-evidence binding V1). Verified supplier performance, supplier/SKU overrides, PB1 attested supplier facts, and trusted incoming integration remain incomplete. |
+| 4 | **SUPPLIER LEAD-TIME UNCERTAINTY** | **Partially ready** | Secure merchant **organization-default** assumptions exist and bind into local M5 threshold recompute (`organization_planning_inputs`, planning-evidence binding V1). Local current-day trusted incoming (PO aggregate + empty-set attestation) exists on the M5 path; verified supplier performance, supplier/SKU overrides, and PB1 attested supplier lead-time facts remain incomplete. |
 
 | 5 | **UNTRUSTWORTHY FORECASTS** | **Foundation ready for evidence transparency** | Eligible history, missing inputs, freshness, and data sufficiency are exposed (`lib/forecasting/history-sufficiency.ts`, readiness/forecast disposition contracts). Do **not** claim proven forecast accuracy or production forecasting readiness (M6 production operation **NOT APPROVED**). |
 
@@ -191,9 +191,9 @@ Provider roadmap (subject to canonical roadmap + integration feasibility): CSV /
 
 - Verified cost-based excess working-capital analysis
 
-- Real REORDER / REDUCE / PROMOTE / WATCH execution against live merchant grains
+- Real REORDER / REDUCE / PROMOTE / WATCH execution against live merchant grains (PB1.b evidence-qualified PROMOTE diagnostic is **local preparation only**; not merchant-facing execution)
 
-- Supplier lead-time reliability scoring and trusted incoming PO evidence on the M5 path (`eligibleIncomingQuantity` still forced unknown in `toPersistedSkuDailyMetric`)
+- Supplier lead-time reliability scoring and PB1 `TrustedSupplierPlanningFacts` loader (org planning defaults must not fill supplier lead time). Local current-day trusted incoming is implemented via `resolveEligibleIncoming` + attestation; historical metric dates remain unknown by design
 
 - Proven forecasting accuracy / production forecast operation
 
@@ -263,7 +263,7 @@ Provider roadmap (subject to canonical roadmap + integration feasibility): CSV /
 
 |---|---|---|
 
-| M5 velocity / cover / ROP / target | Frozen inventory math + aggregates; persist forces incoming unknown | `lib/metrics/inventory-math.ts` (`calculateSalesVelocity`, `calculateDaysOfStock`, `calculateSafetyStock`, `calculateReorderPoint`, `calculateTargetStock`, ROQ/risk helpers); `aggregateInventoryMetrics` (`lib/metrics/inventory-aggregates.ts`); `toPersistedSkuDailyMetric` (`lib/metrics/sku-daily-metric-record.ts`) |
+| M5 velocity / cover / ROP / target | Frozen inventory math + aggregates; incoming defaults unknown unless `resolveEligibleIncoming` qualifies | `lib/metrics/inventory-math.ts` (`calculateSalesVelocity`, `calculateDaysOfStock`, `calculateSafetyStock`, `calculateReorderPoint`, `calculateTargetStock`, ROQ/risk helpers); `aggregateInventoryMetrics` (`lib/metrics/inventory-aggregates.ts`); `resolveEligibleIncoming`; `toPersistedSkuDailyMetric` (`lib/metrics/sku-daily-metric-record.ts`) |
 
 | Freshness / alignment | Grain-aligned known demand; pending work blocks cover | `loadMerchantInventoryIntelligence`, `classifyInventoryCoverStatus`, `loadMerchantDecisionReadiness` / `assessMerchantDecisionReadiness` |
 
@@ -271,11 +271,11 @@ Provider roadmap (subject to canonical roadmap + integration feasibility): CSV /
 
 | M7 engine | Deterministic orchestration + action rules | `decideInventoryAction` (`lib/decision-engine/decide.ts`); `evaluateReorderRule` / `evaluateReduceRule` / `evaluatePromoteRule` / `evaluateWatchHealthyRule` |
 
-| M7 binding (prep only) | Trusted M5 → decision input mapper; diagnostic only | `bindMetricToDecisionInput` (`lib/decision-engine/metric-decision-binding.ts`); optional `supplierPlanning` attestation — **not** org planning-inputs table |
+| M7 binding (prep only) | Trusted M5 → decision input mapper; offline diagnostic only | `bindMetricToDecisionInput` (`lib/decision-engine/metric-decision-binding.ts`); `evaluatePb1OfflineDiagnosticDecision`; evidence-qualified PROMOTE harness `evaluatePb1EvidenceQualifiedPromoteDiagnostic` — **diagnostic only**; optional `supplierPlanning` attestation — **not** org planning-inputs table |
 
 | Planning inputs | Org defaults, null≠0 parse, member read, owner/admin RPC write | `parseMerchantPlanningInputs`, `loadMerchantPlanningInputs`, `saveMerchantPlanningInputsAction`; migration `20261108160000_merchant_planning_inputs_v1.sql` |
 
-| PO / suppliers | Canonical tables + CSV reconcile exist; not trusted M5 incoming | `purchase_orders` / `purchase_order_items` / suppliers (M2); CSV reconcile RPCs; readiness hard-codes `hasTrustedIncoming = false` |
+| PO / suppliers | Canonical tables + CSV reconcile; local current-day trusted incoming | `purchase_orders` / `purchase_order_items` / suppliers (M2); `resolveEligibleIncoming` + `store_incoming_evidence_attestations` (`20261108180000_*`); readiness counts known/known-zero grains (commercialActionsEligible remains hard-false) |
 
 | Workspaces | Inventory (live evidence) vs Actions (demo) | `inventory/page.tsx` + intelligence/readiness/planning editors; `actions/page.tsx` + `loadM7DecisionDemoDataset` |
 
@@ -297,7 +297,7 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 | **REDUCE** | Known available; **incoming known and > 0**; known target; position above target; overstock medium/high | Existing excess with **no** incoming is **not** REDUCE (PROMOTE path); cost/capital **not** in engine |
 
-| **PROMOTE** | Known available **> 0**; known target; known demand; available above target; overstock medium/high; demand pressure (age ≥ 90 **or** falling **or** known-zero demand) | **Does not** require trusted incoming; inventory age currently unavailable on M5 persist path → age pressure often blocked |
+| **PROMOTE** | Known available **> 0**; known target; known demand; available above target; overstock medium/high; demand pressure (age ≥ 90 **or** falling **or** known-zero demand) | Rule gate does not check incoming; **honest M5→PB1 derive** still needs known incoming because `calculateOverstockRisk` fails closed when incoming unknown. Inventory age unavailable on M5 persist path → use falling / zero demand for pressure |
 
 | **WATCH** | Fallback after no commercial candidate, **or** conflict among REORDER/REDUCE/PROMOTE; material uncertainty codes (missing inventory/incoming/demand/lead/ROP/target/forecast signals) | Must not be marketed as a purchase recommendation |
 
@@ -309,7 +309,7 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 - Persisted org defaults **match** `InventoryPlanningSettings` field names and null≠0 semantics and are bound into trusted M5 recompute via `sku_daily_metric_organization_planning_settings` → `aggregateInventoryMetrics({ planning })` (migration `20261108170000_planning_evidence_binding_v1.sql`).
 
-- Planning upsert dirties **store-local current** metric grains through `enqueue_sku_daily_metric_planning_invalidation` (same dirty_generation / lease semantics as M5.6B/C). Save action drains via existing org-scoped merchant recompute tick. Incoming remains forced unknown; formulas unchanged.
+- Planning upsert dirties **store-local current** metric grains through `enqueue_sku_daily_metric_planning_invalidation` (same dirty_generation / lease semantics as M5.6B/C). Save action drains via existing org-scoped merchant recompute tick. Incoming is resolved separately via `resolveEligibleIncoming` (unknown unless qualified); formulas unchanged.
 
 - Readiness treats planning presence as **capability evidence only** (`reorder_thresholds` ready ≠ executable M7 action; `commercialActionsEligible` hard-false).
 
@@ -317,17 +317,17 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 
 
-### Trusted incoming / PO gaps
+### Trusted incoming / PO status
 
 
 
 - PO schema + CSV purchase-order normalization/reconcile exist.
 
-- M5 persist path still sets `eligibleIncomingQuantity: null` + `incoming_state_unknown`.
+- Local M5 current-day path resolves trusted incoming via `resolveEligibleIncoming` (destination-scoped PO aggregate; empty set → known zero **only** with store `evidence_complete=true`; historical `metric_date` forced unknown; SA008 source-token fences PO + attestation).
 
-- Readiness always reports trusted incoming **missing**.
+- Readiness reports known / known-zero incoming grain counts; commercial actions remain hard-false.
 
-- Therefore REORDER and REDUCE cannot be evidence-qualified on the live M5→decision path today; PROMOTE remains the only commercial rule that does not require incoming (still blocked by production create/approval gates and often by missing target/age).
+- REORDER still needs trusted supplier lead-time on the PB1 path (org defaults must not fill `TrustedSupplierPlanningFacts`). REDUCE needs known incoming **> 0**. Local PB1.b evidence-qualified **PROMOTE** diagnostic is available for one current-day grain with known incoming + overstock derive + demand pressure — still **diagnostic only** (no persist / approve / UI unlock). PE1.b.6b JWT remains **NO-GO / NOT EXECUTED**.
 
 
 
@@ -363,15 +363,15 @@ Authority: `docs/M7_0_CONTRACT_ADDENDUM.md` §B + rule modules.
 
 1. **Bind org planning defaults into M5 threshold recompute** — **DONE locally** (null≠0; no formula change; no commercial unlock; planning upsert invalidates current metrics).
 
-2. Establish **trusted incoming state** for grains that need REORDER/REDUCE — or deliberately choose **PROMOTE-only** local diagnostic if incoming remains unknown (still requires known target + demand pressure; age may stay unavailable).
+2. Establish **trusted incoming state** for grains that need REORDER/REDUCE — **DONE locally** for current-day PO/attestation path; historical dates remain unknown.
 
-3. Use PB1 binding + diagnostic `decideInventoryAction` on one grain with hard-false production claims.
+3. Use PB1 binding + diagnostic `decideInventoryAction` on one grain with hard-false production claims — **DONE locally** as evidence-qualified **PROMOTE** diagnostic (`evaluatePb1EvidenceQualifiedPromoteDiagnostic`; deriveOverstockRisk=true; production gates hard-false).
 
 4. Only after a separately approved **trusted source-of-create** + merchant-approvable predicate: persist one action and exercise **human approve** (M7.3). Demo no-save ≠ durable approval.
 
 
 
-Until steps 2–3 (and production create approval) land, the only merchant-visible “action” remains the **synthetic Actions demo**.
+Until step 4 (and REORDER supplier-lead binding if buying is the product goal), the only merchant-visible “action” remains the **synthetic Actions demo**.
 
 
 
@@ -383,17 +383,17 @@ Until steps 2–3 (and production create approval) land, the only merchant-visib
 
 |---|---|
 
-| **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults |
+| **COMPLETED LOCALLY** | Inventory/sales imports; M5 metrics; Inventory intelligence; planning defaults; current-day trusted incoming; PB1.b evidence-qualified PROMOTE diagnostic (hard-false) |
 
-| **CURRENT** | Planning Evidence Binding V1 (org defaults → M5 thresholds; commercial gates unchanged) |
+| **CURRENT** | Local diagnostic preparation only — no M7 production activation |
 
-| **PROPOSED NEXT** | (1) Establish verified incoming/PO evidence where required by the chosen action; (2) Activate the smallest independently authorized real M7 decision with human approval |
+| **PROPOSED NEXT** | (1) Trusted supplier lead-time binding for REORDER (not org defaults); (2) Activate the smallest independently authorized real M7 decision with human approval |
 
 | **LATER** | Supplier Intelligence; purchasing workflows; stronger forecasts; provider connectors |
 
 
 
-**Order rationale (code-justified):** thresholds cannot become known on the recompute path until planning is bound (slice 1). REORDER/REDUCE additionally cannot clear eligibility without trusted incoming (slice 2). Production human approval cannot succeed while M7.3 approvable predicate / source-of-create remain fail-closed (slice 3). If product intentionally ships **PROMOTE-first**, slice 2 may narrow to “incoming not required for PROMOTE” but target/demand/overstock/age-or-trend pressure and create/approve gates remain; do **not** skip slice 1 if targets stay unknown.
+**Order rationale (code-justified):** thresholds require planning binding (done). Current-day incoming is available locally for overstock/REDUCE/REORDER evidence. REORDER still needs PB1 supplier lead-time facts (must not steal org defaults). Production human approval cannot succeed while M7.3 approvable predicate / source-of-create remain fail-closed. Local PROMOTE diagnostic proves one commercial-rule success path without unlocking create/approve.
 
 
 
@@ -401,7 +401,7 @@ Until steps 2–3 (and production create approval) land, the only merchant-visib
 
 
 
-**PLANNING EVIDENCE BINDING V1** — locally implemented (org defaults → M5 thresholds + current-metric invalidation). Commercial actions, PB1 supplier attestation, incoming, workers/cron remain unchanged / blocked.
+**PLANNING EVIDENCE BINDING V1** — locally implemented (org defaults → M5 thresholds + current-metric invalidation). **Trusted current-day incoming V1** — locally implemented. **PB1.b evidence-qualified PROMOTE diagnostic** — locally implemented (**diagnostic only**; `productionApprovalEligible=false`). Commercial create/approve, PB1 supplier attestation loader, workers/cron, and PE1.b.6b JWT remain **NO-GO / blocked**.
 
 ## Current milestone
 
