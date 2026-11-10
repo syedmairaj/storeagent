@@ -106,6 +106,9 @@ type ConcurrentMatrixRow = {
 
 const MATRIX: ConcurrentMatrixRow[] = [];
 
+/** True when PB1.h.4.1 org+variant serialization objects are present locally. */
+let supplierSerializationEnforced = false;
+
 function record(row: ConcurrentMatrixRow): void {
   MATRIX.push(row);
 }
@@ -591,6 +594,26 @@ describeLive("M7-PB1.h.3 adversarial concurrency live", () => {
       `select (pg_catalog.timezone(${quote(TZ)}, pg_catalog.now()))::date::text`,
     );
 
+    const serializationFlag = await psql(`
+      select (
+        to_regprocedure(
+          'public.acquire_supplier_products_org_variant_xact_lock(uuid,uuid)'
+        ) is not null
+        and exists (
+          select 1
+          from pg_trigger t
+          join pg_class c on t.tgrelid = c.oid
+          join pg_namespace n on c.relnamespace = n.oid
+          where n.nspname = 'public'
+            and c.relname = 'supplier_products'
+            and t.tgname = 'supplier_products_serialize_org_variant_xact_lock'
+            and not t.tgisinternal
+        )
+      )::text
+    `);
+    supplierSerializationEnforced =
+      serializationFlag === "t" || serializationFlag === "true";
+
     await cleanupFixture();
     await seedBaseFixture(metricDate);
     baselineInventoryActions = await globalInventoryActionCount();
@@ -695,7 +718,9 @@ describeLive("M7-PB1.h.3 adversarial concurrency live", () => {
           txB: "INSERT second preferred same org+variant",
           outcome: "COMMITTED",
           classification: "UNENFORCED",
-          detail: "exact-row lock alone does not prevent preferred phantom INSERT",
+          detail: supplierSerializationEnforced
+            ? "exact-row FOR UPDATE alone still allows phantom INSERT; h.4.1 closes only when selection holds acquire_supplier_products_org_variant_xact_lock (see h.4.1 S1)"
+            : "exact-row lock alone does not prevent preferred phantom INSERT",
         });
       } finally {
         await txA.close();
@@ -764,7 +789,9 @@ describeLive("M7-PB1.h.3 adversarial concurrency live", () => {
           txB: "UPDATE sibling mapping preferred=true",
           outcome: "COMMITTED",
           classification: "UNENFORCED",
-          detail: "sibling preferred flip commits while locked preferred row held",
+          detail: supplierSerializationEnforced
+            ? "sibling preferred flip still commits under FOR UPDATE-only; h.4.1 S2 requires selection advisory"
+            : "sibling preferred flip commits while locked preferred row held",
         });
       } finally {
         await txA.close();
@@ -880,7 +907,9 @@ describeLive("M7-PB1.h.3 adversarial concurrency live", () => {
           txB: "INSERT preferred without advisory",
           outcome: "COMMITTED",
           classification: "UNENFORCED",
-          detail: "create-side advisory alone insufficient without writer participation",
+          detail: supplierSerializationEnforced
+            ? "non-namespaced/create-only advisory still insufficient; writers participate only on 71010401 via h.4.1 trigger/helper"
+            : "create-side advisory alone insufficient without writer participation",
         });
       } finally {
         await txA.close();

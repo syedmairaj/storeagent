@@ -201,18 +201,19 @@ Org planning defaults and `suppliers.default_lead_time_days` remain **forbidden*
 
 **Proven writer behavior today:** `csv_reconcile_supplier_product` (`20261011184500_m3_9_csv_history_relationship_reconciliation.sql`) acquires `FOR UPDATE` on the exact `(organization_id, supplier_id, variant_id)` row (or inserts that row). It does **not** take an org+variant advisory lock, does **not** lock sibling preferred rows, and therefore does **not** participate in create-side preferred-set serialization. Direct SQL DML on `supplier_products` (service_role / superuser) likewise has no shared protocol. Authenticated browser INSERT/UPDATE/DELETE on `supplier_products` are **revoked** (M2.7) — residual writers are service_role RPCs and privileged SQL.
 
-#### 2.3.1 Chosen primary strategy (**PROPOSED** — not implemented)
+#### 2.3.1 Chosen primary strategy (**PROPOSED** → h.4.1 SQL authored; **UNENFORCED** until migration applied + §8.1 PASS)
 
-**A — DB-enforced org+variant transaction advisory via BEFORE trigger**
+**A — DB-enforced org+variant transaction advisory via BEFORE trigger + writer prelock**
 
-1. Helper (illustrative name): `public.acquire_supplier_products_org_variant_xact_lock(p_organization_id uuid, p_variant_id uuid)` → `PERFORM pg_catalog.pg_advisory_xact_lock(71010401, pg_catalog.hashtext(p_organization_id::text || ':' || p_variant_id::text))`.
-2. `BEFORE INSERT OR UPDATE OR DELETE` **row** trigger on `public.supplier_products` calls the helper for the row’s `(organization_id, variant_id)` (INSERT/UPDATE: NEW; DELETE: OLD). This forces **all** DML paths — including direct SQL — to participate.
-3. Future production create / approve revalidation acquire the **identical** lock (§1.2 step 2) **before** preferred-set or explicit mapping reads.
-4. After the advisory: `SELECT … FOR UPDATE` chosen row by PK; compare `updated_at` + LT; implicit path evaluate preferred-with-LT cardinality (0 / 1 / >1).
-5. Concurrent DELETE of locked row → `SUPPLIER_MAPPING_NOT_FOUND`; concurrent LT/preferred UPDATE on locked row → wait → re-read → `SUPPLIER_FACTS_STALE` / `INVALID` if watermark/LT diverges.
-6. Optional explicit `PERFORM` inside `csv_reconcile_supplier_product` (redundant with trigger; clearer wait locus / error mapping).
+1. Helper: `public.acquire_supplier_products_org_variant_xact_lock(p_organization_id uuid, p_variant_id uuid)` → `PERFORM pg_catalog.pg_advisory_xact_lock(71010401, pg_catalog.hashtext(p_organization_id::text || ':' || p_variant_id::text))` (blocking; selection + writer prelock).
+2. Deadlock amendment (h.4.1 preflight): PostgreSQL locks the row **before** BEFORE ROW triggers on UPDATE/DELETE. Trigger-only **blocking** advisory after that row lock deadlocks with selection (`advisory → FOR UPDATE`). **Rejected.** Trigger instead uses `pg_try_advisory_xact_lock` (reentrant if prelocked; acquire if free; `55P03` if held by another TX). Writers that must wait call the blocking helper **before** row locks.
+3. `BEFORE INSERT OR UPDATE OR DELETE` **row** trigger on `public.supplier_products` try-acquires for the row’s `(organization_id, variant_id)` (INSERT/UPDATE: NEW; DELETE: OLD). Direct DML cannot silently bypass.
+4. Future production create / approve revalidation acquire the **identical** lock (§1.2 step 2) **before** preferred-set or explicit mapping reads.
+5. After the advisory: `SELECT … FOR UPDATE` chosen row by PK; compare `updated_at` + LT; implicit path evaluate preferred-with-LT cardinality (0 / 1 / >1).
+6. Concurrent DELETE of locked row → `SUPPLIER_MAPPING_NOT_FOUND`; concurrent LT/preferred UPDATE on locked row → wait → re-read → `SUPPLIER_FACTS_STALE` / `INVALID` if watermark/LT diverges.
+7. Explicit `PERFORM` inside `csv_reconcile_supplier_product` **before** exact-row `FOR UPDATE` (required wait locus; trigger remains DiD).
 
-**Create-side advisory lock alone remains insufficient** and must not be documented as enforceable (h.3 A4).
+**Create-side advisory lock alone remains insufficient** and must not be documented as enforceable (h.3 A4). FOR UPDATE alone remains insufficient even after h.4.1 (h.3 A1/A2).
 
 #### 2.3.2 Lock namespace + collision considerations (**PROPOSED**)
 
@@ -236,8 +237,8 @@ Org planning defaults and `suppliers.default_lead_time_days` remain **forbidden*
 
 | Writer / path | Today (PROVEN) | Required change |
 |---|---|---|
-| BEFORE trigger on `supplier_products` | Absent | **Required** — closes direct DML bypass |
-| `csv_reconcile_supplier_product` | Exact-row `FOR UPDATE` only | Covered by trigger; optional explicit acquire |
+| BEFORE trigger on `supplier_products` | Absent (until h.4.1 applied) | **Required** — try-acquire closes direct DML bypass without row→advisory deadlock |
+| `csv_reconcile_supplier_product` | Exact-row `FOR UPDATE` only (until h.4.1 applied) | Blocking prelock before `FOR UPDATE` + trigger DiD |
 | Future create / approve revalidation | N/A (blocked) | Must take `71010401` before supplier reads |
 | Authenticated client DML | Grants revoked (M2.7) | No change |
 | Privileged/service_role SQL | Unrestricted table DML | Covered **only if** trigger present |
@@ -469,7 +470,7 @@ Until S1, M1, and R1 **PASS** under real dual-TX: phantom / false-ready / first-
 | **PB1.h.2** | Pure-TS fence validators (**read-model only**) | **DONE locally** — `lib/decision-engine/pb1-metric-freshness-fence.ts`, `lib/decision-engine/pb1-supplier-concurrency-fence.ts` |
 | **PB1.h.3** | Local adversarial / live tests documenting TOCTOU / false-ready / first-request gaps | **DONE locally** @ `9558df7` — proves gaps; does not close them |
 | **PB1.h.4.0** | This transactional fencing protocol selection (docs only) | **This amendment** — still **PROPOSED/UNENFORCED** |
-| **PB1.h.4.1** | Supplier BEFORE trigger + `71010401` helper (+ optional csv_reconcile acquire) + local dual-TX S1–S5 | **Separate owner approval**; local SQL/tests only; **no** create unlock |
+| **PB1.h.4.1** | Supplier BEFORE trigger + `71010401` helper (+ csv_reconcile prelock) + local dual-TX S1–S10 | **SQL + tests authored**; deadlock-safe protocol = **writer/selection blocking prelock + BEFORE ROW try-acquire**. **Isolated live S1–S10 PASS on disposable PG 17.11** (`sa-pb1h41-pg17` → `127.0.0.1:55432` / `pb1h41_isolated_verify` / `pb1test`; schema-only from local Supabase + h.4.1 SQL only). Existing `55322` **untouched** (`h41:false`, ledger 45). Opposite-order multi-variant direct DML may `40P01` (fail-closed; no torn writes). Migration **not** applied to local Supabase/`55322`. **no** create unlock |
 | **PB1.h.4.2** | Grain advisory `71010402` on all §3.4 enqueue paths + local dual-TX R1/M3 | **Separate owner approval**; local only |
 | **PB1.h.4.3** | Future create TX scaffold implementing §1.2–§1.3; **production source class still rejected** | **Separate owner approval**; no class unlock |
 | **Later** | Partial unique preferred DiD; class enable; merchant predicate; UI; workers; hosted | **Separate owner authorization each**; production unlock **BLOCKED** until §8.1 proven |
@@ -527,7 +528,7 @@ Forbidden in h.4.0: TS/SQL/tests/schema edits, persist adapters, lifecycle RPCs,
 | Claim phantom-safe / atomic-fresh create today | **NO-GO** |
 | Local pure validators (PB1.h.2) | **GO (done; helpers only)** |
 | Local adversarial gap tests (PB1.h.3) | **GO (done; documents gaps)** |
-| PB1.h.4.1 supplier trigger implementation | **CONDITIONAL GO** after explicit owner approval |
+| PB1.h.4.1 supplier trigger implementation | **SQL+tests authored**; **CONDITIONAL GO** to apply + live-prove after explicit owner approval; until then **UNENFORCED** |
 | PB1.h.4.2 / h.4.3 | **CONDITIONAL GO** each after separate approval |
 | Production create / merchant approve unlock | **NO-GO** / **BLOCKED** |
 | Formula changes / org-default LT promotion / delivery fabrication | **NO-GO** |
