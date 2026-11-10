@@ -101,8 +101,8 @@ Optional store-row `SELECT … FOR SHARE` for timezone/existence may occur **onl
 |---|---|---|
 | `commit_sku_daily_metric` | Table SHARE (canonical order) → SA008 → metric upsert; `lock_timeout=2s` | Compatible **if** create takes SHARE before metric `FOR UPDATE`. **Unresolved if** create reverts to metric-before-SHARE (**deadlock cycle**). |
 | `claim_sku_daily_metric_recompute_requests` | Global advisory `5606003` + `FOR UPDATE SKIP LOCKED` on request rows | Create holding request `FOR UPDATE` → claim skips that grain (busy exclusion) or waits; create timeout → abort/retry. Global `5606003` ≠ grain `71010402` (no intentional sharing). |
-| `consume_sku_daily_metric_source_events` | `FOR UPDATE SKIP LOCKED` on source events; UPSERT requests — **no** grain advisory today | **UNENFORCED** vs create until h.4.2 wraps enqueue with `71010402`. |
-| Planning / incoming / rollover enqueue RPCs | UPSERT requests — **no** grain advisory today | Same — must join §3.4 protocol. |
+| `consume_sku_daily_metric_source_events` | `FOR UPDATE SKIP LOCKED` on source events; **then** sorted `71010402` prelock; UPSERT requests (h.4.2) | Compatible with create holding grain advisory (enqueue waits or `55P03`). |
+| Planning / incoming / rollover enqueue RPCs | Sorted `71010402` prelock then UPSERT (h.4.2) | Same. |
 | `csv_reconcile_supplier_product` | Exact `(org,supplier,variant)` `FOR UPDATE` only | **UNENFORCED** vs preferred-set until h.4.1 trigger / `71010401`. |
 | Source-event **capture** triggers (orders/PO/etc.) | Fire on source DML; take row locks via writer | Blocked while create holds source SHARE (PROVEN pattern h.3 B6/D2). |
 
@@ -284,28 +284,31 @@ Successor tests must prove (§8.1):
 5. Unrelated-grain pending does **not** alone authorize create; diagnostic may still org-block.
 6. After consume+recompute brings generations current and required axes clean, freshness can pass **only as a fence result** — production class unlock remains separate (§7).
 
-### 3.4 Grain advisory + enqueue write-path coverage (**PROPOSED** / **UNENFORCED**)
+### 3.4 Grain advisory + enqueue write-path coverage (**IMPLEMENTED locally** / **UNENFORCED on 55322 until owner apply**)
 
 **Namespace:** `71010402` + `hashtext(grain_key)` per §1.2 step 1. Distinct from supplier `71010401` and M5 `5606003` / `5606004`.
 
+**Protocol (h.4.2, mirrors h.4.1 deadlock amendment):** cooperating enqueue writers call blocking `acquire_sku_daily_metric_grain_xact_lock` in **deterministic grain-key order** before INSERT/UPSERT; `BEFORE INSERT` trigger uses `pg_try_advisory_xact_lock` (55P03 if held) so direct INSERT cannot silently bypass. Blocking BEFORE ROW after row lock is **rejected** (row→advisory vs advisory→row deadlock). Claim/complete UPDATE paths are intentionally **not** trigger-wrapped (M5 worker compatibility). Migration: `20261110130000_pb1h42_metric_grain_enqueue_serialization.sql`. Test-only reader = same blocking helper (not wired to production create).
+
 **Must acquire grain advisory before INSERT/UPSERT of `sku_daily_metric_recompute_requests` for that grain** (including first insert when row absent):
 
-| Caller (PROVEN exists today) | Role |
+| Caller | Role after h.4.2 |
 |---|---|
-| `consume_sku_daily_metric_source_events` | Consumes source events → UPSERT requests (`20261016100000_m5_6b_…`) |
-| `enqueue_sku_daily_metric_daily_rollover` | Rollover dirties (`20261020100000_m5_6d_…`) |
-| `enqueue_sku_daily_metric_planning_invalidation` | Planning generation dirty (`20261108170000_…`); also invoked from `upsert_current_user_organization_planning_inputs` |
-| `enqueue_sku_daily_metric_store_incoming_invalidation` | Incoming/attestation generation dirty (`20261108180000_…`); PB1.e trigger `store_incoming_evidence_attestations_invalidate_metrics` (`20261109120000_…`) |
+| `consume_sku_daily_metric_source_events` | Sorted grain prelock after source-event `FOR UPDATE SKIP LOCKED`, then UPSERT |
+| `enqueue_sku_daily_metric_daily_rollover` | Sorted grain prelock on newly enrolled grains, then UPSERT |
+| `enqueue_sku_daily_metric_planning_invalidation` | Sorted grain prelock, then UPSERT (also via planning upsert RPC) |
+| `enqueue_sku_daily_metric_store_incoming_invalidation` | Sorted grain prelock, then UPSERT (also via PB1.e attestation trigger) |
 
-**Direct-DML bypass risks (residual until hardened):**
+**Direct-DML bypass (residual):**
 
-| Bypass | Risk |
+| Bypass | Status after h.4.2 |
 |---|---|
-| Direct `INSERT`/`UPDATE` on `sku_daily_metric_recompute_requests` | Skips grain advisory if not trigger-enforced; today table grants are service_role-centric — still a privileged SQL hole |
-| Direct `INSERT` on `sku_daily_metric_source_events` | Skips commerce SHARE; can dirty windows without blocking on create’s source locks |
-| Metric parent `FOR UPDATE` alone | **Insufficient** for first-request race (h.3 C1) — does not lock request inserts |
+| Direct `INSERT` on `sku_daily_metric_recompute_requests` | Covered by BEFORE INSERT try-trigger + table still `service_role` **SELECT only** |
+| Direct privileged `UPDATE` of `dirty_generation` (no INSERT) | Residual owner/superuser hole — not used by M5 workers |
+| Direct `INSERT` on `sku_daily_metric_source_events` | Unchanged — create must still hold source SHARE / SA008 |
+| Metric parent `FOR UPDATE` alone | Still insufficient without grain advisory |
 
-Successor h.4.2 should prefer wrapping the enumerated RPCs; optional BEFORE trigger on `sku_daily_metric_recompute_requests` is an allowed DiD if owner-authorized, but is **not** a substitute for create holding `71010402` during validate→insert.
+Create must still hold `71010402` during validate→insert (h.4.3); enqueue wrapping is necessary but not a substitute for create-side acquisition.
 
 ### 3.5 SA008 / source token reuse (**PROPOSED** create mandatory; **PROVEN** on M5 commit)
 
@@ -471,7 +474,7 @@ Until S1, M1, and R1 **PASS** under real dual-TX: phantom / false-ready / first-
 | **PB1.h.3** | Local adversarial / live tests documenting TOCTOU / false-ready / first-request gaps | **DONE locally** @ `9558df7` — proves gaps; does not close them |
 | **PB1.h.4.0** | This transactional fencing protocol selection (docs only) | **This amendment** — still **PROPOSED/UNENFORCED** |
 | **PB1.h.4.1** | Supplier BEFORE trigger + `71010401` helper (+ csv_reconcile prelock) + local dual-TX S1–S10 | **SQL + tests authored**; deadlock-safe protocol = **writer/selection blocking prelock + BEFORE ROW try-acquire**. **Isolated live S1–S10 PASS on disposable PG 17.11** (`sa-pb1h41-pg17` → `127.0.0.1:55432` / `pb1h41_isolated_verify` / `pb1test`; schema-only from local Supabase + h.4.1 SQL only). Existing `55322` **untouched** (`h41:false`, ledger 45). Opposite-order multi-variant direct DML may `40P01` (fail-closed; no torn writes). Migration **not** applied to local Supabase/`55322`. **no** create unlock |
-| **PB1.h.4.2** | Grain advisory `71010402` on all §3.4 enqueue paths + local dual-TX R1/M3 | **Separate owner approval**; local only |
+| **PB1.h.4.2** | Grain advisory `71010402` on all §3.4 enqueue paths + local dual-TX R1–R10 | **SQL + tests authored**; deadlock-safe protocol = **sorted blocking writer prelock + BEFORE INSERT try-acquire**. Isolated live target: disposable PG 17.11 (`127.0.0.1:55432` / `pb1h41_isolated_verify`). Existing `55322` **untouched**. **no** create unlock |
 | **PB1.h.4.3** | Future create TX scaffold implementing §1.2–§1.3; **production source class still rejected** | **Separate owner approval**; no class unlock |
 | **Later** | Partial unique preferred DiD; class enable; merchant predicate; UI; workers; hosted | **Separate owner authorization each**; production unlock **BLOCKED** until §8.1 proven |
 | Ledger repair (`20261107090000`, `20261107120000`, `20261108180000`, `20261109120000`) | Objects-without-ledger risk | **Separate blocker** (**retained**) |
