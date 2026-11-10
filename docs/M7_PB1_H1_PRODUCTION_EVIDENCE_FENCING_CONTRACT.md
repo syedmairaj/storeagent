@@ -475,7 +475,7 @@ Until S1, M1, and R1 **PASS** under real dual-TX: phantom / false-ready / first-
 | **PB1.h.4.0** | This transactional fencing protocol selection (docs only) | **This amendment** — still **PROPOSED/UNENFORCED** |
 | **PB1.h.4.1** | Supplier BEFORE trigger + `71010401` helper (+ csv_reconcile prelock) + local dual-TX S1–S10 | **SQL + tests authored**; deadlock-safe protocol = **writer/selection blocking prelock + BEFORE ROW try-acquire**. **Isolated live S1–S10 PASS on disposable PG 17.11** (`sa-pb1h41-pg17` → `127.0.0.1:55432` / `pb1h41_isolated_verify` / `pb1test`; schema-only from local Supabase + h.4.1 SQL only). Existing `55322` **untouched** (`h41:false`, ledger 45). Opposite-order multi-variant direct DML may `40P01` (fail-closed; no torn writes). Migration **not** applied to local Supabase/`55322`. **no** create unlock |
 | **PB1.h.4.2** | Grain advisory `71010402` on all §3.4 enqueue paths + local dual-TX R1–R10 | **SQL + tests authored**; deadlock-safe protocol = **sorted blocking writer prelock + BEFORE INSERT try-acquire**. Isolated live target: disposable PG 17.11 (`127.0.0.1:55432` / `pb1h41_isolated_verify`). Existing `55322` **untouched**. **no** create unlock |
-| **PB1.h.4.3** | Future create TX scaffold implementing §1.2–§1.3; **production source class still rejected** | **Separate owner approval**; no class unlock |
+| **PB1.h.4.3** | Dormant create-evidence fence scaffold implementing §1.2–§1.3 (`evaluate_pb1_create_evidence_fence`); **production source class still rejected**; **no** `inventory_actions` INSERT | **SQL + tests authored**; diagnostic PASS/REJECT only. **Isolated live F1–F14 PASS on disposable PG 17.11** (`sa-pb1h41-pg17` → `127.0.0.1:55432` / `pb1h41_isolated_verify`). Existing Supabase `55322` **untouched** — h.4.1/h.4.2/h.4.3 **not** applied there (`h43:false`; ledger 45). **no** create unlock; **no** merchant-approvable flip |
 | **Later** | Partial unique preferred DiD; class enable; merchant predicate; UI; workers; hosted | **Separate owner authorization each**; production unlock **BLOCKED** until §8.1 proven |
 | Ledger repair (`20261107090000`, `20261107120000`, `20261108180000`, `20261109120000`) | Objects-without-ledger risk | **Separate blocker** (**retained**) |
 | PE1.b.6b J1–J13 | Hosted JWT | **Separate session**; remains **UNPROVEN** / **NO-GO** (**retained**) |
@@ -532,7 +532,8 @@ Forbidden in h.4.0: TS/SQL/tests/schema edits, persist adapters, lifecycle RPCs,
 | Local pure validators (PB1.h.2) | **GO (done; helpers only)** |
 | Local adversarial gap tests (PB1.h.3) | **GO (done; documents gaps)** |
 | PB1.h.4.1 supplier trigger implementation | **SQL+tests authored**; **CONDITIONAL GO** to apply + live-prove after explicit owner approval; until then **UNENFORCED** |
-| PB1.h.4.2 / h.4.3 | **CONDITIONAL GO** each after separate approval |
+| PB1.h.4.2 grain enqueue serialization | **SQL+tests authored**; isolated disposable proof; **CONDITIONAL GO** to apply to `55322` after owner approval; until then **UNENFORCED** on local Supabase |
+| PB1.h.4.3 dormant create-evidence fence | **SQL+tests authored**; isolated disposable F1–F14 PASS; **not** applied to `55322`; diagnostic only — **no** production unlock |
 | Production create / merchant approve unlock | **NO-GO** / **BLOCKED** |
 | Formula changes / org-default LT promotion / delivery fabrication | **NO-GO** |
 | Ledger repair / hosted JWT execution / workers | **NO-GO** (separate; retained) |
