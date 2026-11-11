@@ -207,6 +207,10 @@ begin
 end;
 $$;
 
+-- PostgreSQL grants EXECUTE to PUBLIC on CREATE FUNCTION.
+-- Supabase hosted also commonly applies role-specific default privileges
+-- that GRANT EXECUTE to service_role (independent of PUBLIC). REVOKE FROM
+-- public/anon alone does not remove that service_role grant.
 revoke all
 on function public.create_current_user_first_organization_store(
   uuid,
@@ -224,6 +228,15 @@ on function public.create_current_user_first_organization_store(
   text
 )
 from anon;
+
+revoke all
+on function public.create_current_user_first_organization_store(
+  uuid,
+  text,
+  text,
+  text
+)
+from service_role;
 
 grant execute
 on function public.create_current_user_first_organization_store(

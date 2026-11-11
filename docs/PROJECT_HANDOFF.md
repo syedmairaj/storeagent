@@ -3,7 +3,7 @@
 Bootstrap for new ChatGPT / Cursor sessions.
 
 **Active PE1.b.6b continuity (read first for JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`  
-Canonical long ledger: `docs/IMPLEMENTATION_STATUS.md` (**partially stale** — see §3 note). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually.
+Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md`. Hosted 38→52 schema track: **CLOSED** at 52/52 (`docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually.
 
 ## 1. Thesis and non-negotiables
 
@@ -29,7 +29,7 @@ Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Com
 
 ## 3. Status matrix
 
-**Note:** `IMPLEMENTATION_STATUS.md` still says “M7 NOT STARTED” in its active handoff header; that line is **stale**. M7 persistence / lifecycle **foundations** exist in migrations and contracts; **production merchant activation** remains **BLOCKED**. Prefer this matrix + PE1.b.6b handover for current truth.
+**Note:** M7 persistence / lifecycle **foundations** and hosted S1–S14 schema are present (ledger **52/52**); **production merchant activation** remains **BLOCKED**. Prefer the living status ledger + this matrix + PE1.b.6b handover for current truth. Schema deploy ≠ workers/cron/JWT/M7 unlock.
 
 | Area | Implemented | Local verified | Hosted verified | Planned / blocked |
 |---|---|---|---|---|
@@ -44,7 +44,8 @@ Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Com
 | PE1.b.6a JWT preflight | Docs @ `7d42247` | — | Plan only | Execution needs A1–A4+A6 |
 | PE1.b.6b JWT runtime | Worksheet + evidence docs | — | **NOT EXECUTED** | A2 YES; A3 proposed; A1/A4/A6 open |
 | M6 production persist/publish/eval | Code present | Local/tests | Row counts historically **0** | Activation **blocked** |
-| M7 decisions / approvals | Schema + contracts **partial** | Partial | — | Merchant activation **blocked** |
+| M7 decisions / approvals | Schema + contracts **partial** | Partial | Hosted S1–S14 schema **CLOSED** (52/52) | Merchant activation / create success **blocked** |
+| Hosted 38→52 migrations | Disk 52 | Disposable rehearse PASS | **CLOSED** 52/52; fingerprint MATCH | Ops activation **not** authorized |
 | CSV → Shopify → Woo → Amazon | Product locked | — | — | Launch path open |
 | Billing / trial / ops | Partial docs/code | — | — | Paying launch **NO-GO** |
 
@@ -129,7 +130,9 @@ From the master roadmap / October 2026 Gemini-aligned addendum (do not rewrite t
 | `docs/M6_PE1_B5_HOSTED_CANARY_READINESS_GAP_AUDIT.md` | Hosted readiness gaps |
 | `docs/M6_PE1_B4A_*` / `B4B_*` | Offline synthetic lifecycle contract + evidence |
 | `docs/PROJECT_HANDOFF.md` | This file — session start |
-| `docs/IMPLEMENTATION_STATUS.md` | Long milestone ledger (**check staleness**) |
+| `docs/IMPLEMENTATION_STATUS.md` | Pointer → living status ledger |
+| `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` | Living milestone ledger |
+| `docs/HOSTED_38to52_MIGRATION_RUNBOOK.md` | Hosted 38→52 closeout (CLOSED 52/52) |
 | `docs/M5_6_HANDOFF.md` | M5.6/M5.7 worker contracts |
 | `docs/M5_6E_4_HOSTED_CANARY_RUNBOOK.md` | Canary ops (do not drain dirty=2) |
 | `docs/FORECASTING.md` / `docs/DECISION_ENGINE.md` | Forecast / M7 contracts |
