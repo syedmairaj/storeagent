@@ -2,6 +2,12 @@ export { saveMerchantPlanningInputsAction } from "@/lib/planning-inputs/actions"
 export type { SaveMerchantPlanningInputsResult } from "@/lib/planning-inputs/actions";
 export { loadMerchantPlanningInputs } from "@/lib/planning-inputs/load";
 export {
+  classifyMerchantPlanningConfiguration,
+  formatPersistedPlanningSummary,
+  REPLENISHMENT_FIELD_COPY,
+} from "@/lib/planning-inputs/merchant-copy";
+export type { MerchantPlanningConfigurationKind } from "@/lib/planning-inputs/merchant-copy";
+export {
   formatPlanningDayForInput,
   parseMerchantPlanningInputs,
   parsePlanningDayInput,

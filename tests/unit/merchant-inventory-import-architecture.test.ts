@@ -55,4 +55,27 @@ describe("merchant inventory import architecture", () => {
       "InventoryNavLink",
     );
   });
+
+  it("hardens selected-file UX with remove/replace, draft discard, and confirm safety", () => {
+    const wizard = read("components/inventory-import/inventory-import-wizard.tsx");
+    const state = read("lib/inventory-import/wizard-state.ts");
+
+    expect(wizard).toContain('data-testid="selected-file-card"');
+    expect(wizard).toContain("Remove");
+    expect(wizard).toContain("Replace");
+    expect(wizard).toContain("Discard draft");
+    expect(wizard).toContain("Start over with a new file");
+    expect(wizard).toContain("clearFileInputValue");
+    expect(wizard).toContain("isStaleAsyncGeneration");
+    expect(wizard).toContain("shouldEnableConfirmImport");
+    expect(wizard).toContain("confirmLockRef");
+    expect(wizard).toContain("previewFresh");
+    expect(wizard).toContain("groupImportFieldErrors");
+    expect(wizard).toContain("Show rows");
+
+    expect(state).toContain("hasUnconfirmedDraft");
+    expect(state).toContain("shouldEnableContinueToConfirm");
+    expect(state).toContain("resolveFileValidationState");
+    expect(state).toContain("groupImportFieldErrors");
+  });
 });

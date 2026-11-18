@@ -83,6 +83,30 @@ export type EvidencePresence = {
    */
   hasPendingMetricWork: boolean;
   /**
+   * True only when every known-available latest place/grain is observed on
+   * that store's local as-of business date. Mixed fresh/stale places are false.
+   */
+  hasCurrentDayInventoryObservation: boolean;
+  /**
+   * Place-grain freshness aggregate for merchant copy (mixed places fail closed).
+   */
+  inventoryPlaceFreshnessKind:
+    | "empty"
+    | "all_current"
+    | "all_stale"
+    | "mixed"
+    | "unknown";
+  /**
+   * True when at least one sku_daily_metrics row exists for a store-local
+   * as-of date (not necessarily grain-aligned to stock).
+   */
+  hasCurrentDayMetrics: boolean;
+  /**
+   * Representative store-local as-of date used in merchant freshness copy.
+   * Null when no store timezone could be resolved.
+   */
+  primaryAsOfMetricDate: string | null;
+  /**
    * Merchant-configured organization planning days when present.
    * Absence of a row is represented as all-null (unknown).
    */

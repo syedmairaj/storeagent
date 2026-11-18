@@ -17,6 +17,7 @@ import {
   type MerchantImportRowError,
 } from "@/lib/inventory-import/contract";
 import { normalizeMerchantHeader } from "@/lib/inventory-import/normalize-header";
+import { rejectIfWrongMerchantCsvKind } from "@/lib/merchant-csv/detect-import-kind";
 
 export type MerchantCsvParseFailure = {
   ok: false;
@@ -91,6 +92,26 @@ function readCell(
   return String(row[column] ?? "").trim();
 }
 
+/**
+ * Accepts whole non-negative quantities.
+ *
+ * Excel "CSV UTF-8" exports often serialize integers as `47.0` / `0.0`.
+ * Those are still whole numbers. True fractions (`47.5`) remain invalid.
+ * Empty optional cells stay null (never coerced to zero).
+ */
+function normalizeWholeQuantityToken(value: string): string | null {
+  if (/^\d+$/.test(value)) {
+    return value;
+  }
+
+  const excelWhole = /^(\d+)\.0+$/.exec(value);
+  if (excelWhole) {
+    return excelWhole[1] ?? null;
+  }
+
+  return null;
+}
+
 function parseWholeQuantity(
   value: string,
   field: string,
@@ -114,7 +135,8 @@ function parseWholeQuantity(
     return { ok: true, value: null };
   }
 
-  if (!/^\d+$/.test(value)) {
+  const normalized = normalizeWholeQuantityToken(value);
+  if (normalized == null) {
     return {
       ok: false,
       error: {
@@ -126,7 +148,7 @@ function parseWholeQuantity(
     };
   }
 
-  const parsed = Number(value);
+  const parsed = Number(normalized);
   if (!Number.isSafeInteger(parsed) || parsed < 0) {
     return {
       ok: false,
@@ -183,6 +205,18 @@ export function parseMerchantInventoryCsv(input: {
       ok: false,
       code: "CSV_EMPTY",
       error: "Add at least one inventory row below the header.",
+    };
+  }
+
+  const wrongKind = rejectIfWrongMerchantCsvKind(
+    "inventory",
+    parsed.headers,
+  );
+  if (wrongKind) {
+    return {
+      ok: false,
+      code: wrongKind.code,
+      error: wrongKind.error,
     };
   }
 

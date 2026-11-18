@@ -4,6 +4,7 @@ import { normalizeMerchantHeader } from "@/lib/inventory-import/normalize-header
 import { CsvStructuralError, parseCsv } from "@/lib/providers/csv/parser";
 import { normalizeCanonicalOrderStatus } from "@/lib/providers/order-status";
 
+import { rejectIfWrongMerchantCsvKind } from "@/lib/merchant-csv/detect-import-kind";
 import {
   MERCHANT_SALES_CSV_DEFERRED_RETURN_HEADERS,
   MERCHANT_SALES_CSV_FIELD_ALIASES,
@@ -118,6 +119,15 @@ export function parseMerchantSalesCsv(input: {
       ok: false,
       code: "CSV_EMPTY",
       error: "CSV has no header row.",
+    };
+  }
+
+  const wrongKind = rejectIfWrongMerchantCsvKind("sales", parsed.headers);
+  if (wrongKind) {
+    return {
+      ok: false,
+      code: wrongKind.code,
+      error: wrongKind.error,
     };
   }
 

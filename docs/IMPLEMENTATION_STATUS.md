@@ -50,3 +50,41 @@ Authoritative detail: `docs/DB_DRIFT_PREVENTION_PHASE1.md`.
 | Seed / merchant data | Local synthetic inventory/sales must **never** promote to production migrations, seeds, or hosted copies |
 
 **Phase 1 ≠ release unlock.** Workers/cron remain OFF; M7 production create and purchasing remain forbidden.
+
+## Local Inventory → Demand Metrics → Replenishment Planning — COMPLETE (2026-11-18)
+
+Synthetic **local** acceptance only (`snapstore` / America/Chicago). **≠** hosted readiness, production recommendations, or measured merchant outcomes.
+
+| Field | Evidence |
+|---|---|
+| Scope | Local Supabase API `:55321` / Postgres `:55322`; org planning + store metrics for snapstore/Main |
+| Chicago business date | **2026-11-18** |
+| Inventory | **20** latest positions / **60** snapshots (Nov 11 + 12 + 18 ×20) |
+| Sales | **25** orders / **25** items — unchanged through planning save |
+| Demand metrics | **20/20** current-day grains; source events consumed; recompute succeeded; **0** open work |
+| Replenishment settings | Persisted `organization_planning_inputs`: **lead=7, safety=5, review=7** |
+| Thresholds | **20/20** match `SS=ceil(v30×5)`, `ROP=ceil(v30×7+SS)`, `Target=ceil(v30×14+SS)` |
+| Demand semantics | **12** positive v30; **8** known-zero v30 (`SS/ROP/Target=0`, cover `zero_demand`) — **0** unknown v30 |
+| Incoming / actions | Incoming **unknown** 20/20; `inventory_position` null; **no** invented ROQ; `inventory_actions=0` |
+| Merchant UX (uncommitted code) | CSV kind detection; one next action; freshness labels; explicit store/location scope; responsive evidence workspace; **Replenishment settings** copy (illustrative placeholders ≠ defaults; blank≠0; honest all-blank/partial/complete save notes) |
+| Implementation HEAD pin | Drift Phase 1 committed @ `d73790a`; inventory/CSV/freshness/replenishment UX still **uncommitted** |
+
+### Boundary (do not collapse)
+
+| Claim class | State |
+|---|---|
+| Local synthetic snapstore acceptance | **COMPLETE** |
+| Hosted merchant onboarding / ops readiness | **Not proven** by this gate |
+| Production REORDER/REDUCE/PROMOTE/WATCH recommendations | **Forbidden** (M7 create blocked) |
+| Actual merchant business outcomes / savings | **Not claimed** |
+
+### Remaining risks (explicit)
+
+- Inventory/sales still rely on **manual CSV** updates (no live commerce sync).
+- **Shopify** (then Woo/Amazon) connector **pending**.
+- Incoming evidence remains **unknown** until merchant attestation / trusted PO path.
+- **Multi-store / multi-location** owner acceptance **pending**.
+- Workers/cron **OFF**; hosted JWT isolation **BLOCKED**; M7 production actions and purchasing **prohibited**.
+- Local synthetic data must **never** promote into production migrations, seeds, or hosted copies.
+
+Detail and workstream context: living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` (2026-11-18 section). Session bootstrap: `docs/PROJECT_HANDOFF.md`.

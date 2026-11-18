@@ -42,7 +42,8 @@ export function ActivateDemandMetricsButton({
             router.refresh();
           });
         }}
-        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+        data-activate-demand-metrics="true"
       >
         {pending ? (
           <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />

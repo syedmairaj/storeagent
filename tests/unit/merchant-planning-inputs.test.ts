@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  classifyMerchantPlanningConfiguration,
+  formatPersistedPlanningSummary,
+  REPLENISHMENT_FIELD_COPY,
+} from "@/lib/planning-inputs/merchant-copy";
+import {
   formatPlanningDayForInput,
   parseMerchantPlanningInputs,
   parsePlanningDayInput,
@@ -58,5 +63,64 @@ describe("merchant planning inputs parse", () => {
         reviewPeriodDays: 0,
       },
     });
+  });
+
+  it("supports all-blank saves without inventing zeros", () => {
+    const parsed = parseMerchantPlanningInputs({
+      leadTimeDays: "",
+      safetyStockDays: "   ",
+      reviewPeriodDays: null,
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    expect(parsed.value).toEqual({
+      leadTimeDays: null,
+      safetyStockDays: null,
+      reviewPeriodDays: null,
+    });
+    expect(classifyMerchantPlanningConfiguration(parsed.value)).toBe(
+      "all_blank",
+    );
+  });
+
+  it("classifies configuration and formats exact persisted summaries", () => {
+    expect(
+      classifyMerchantPlanningConfiguration({
+        leadTimeDays: 7,
+        safetyStockDays: 5,
+        reviewPeriodDays: 7,
+      }),
+    ).toBe("complete");
+    expect(
+      classifyMerchantPlanningConfiguration({
+        leadTimeDays: 7,
+        safetyStockDays: null,
+        reviewPeriodDays: 0,
+      }),
+    ).toBe("partial");
+    expect(
+      formatPersistedPlanningSummary({
+        leadTimeDays: 7,
+        safetyStockDays: null,
+        reviewPeriodDays: 0,
+      }),
+    ).toBe("lead 7, safety unknown, review 0");
+  });
+
+  it("uses illustrative placeholders that are not persisted defaults", () => {
+    expect(REPLENISHMENT_FIELD_COPY.leadTimeDays.placeholder).toBe("e.g. 7");
+    expect(REPLENISHMENT_FIELD_COPY.safetyStockDays.placeholder).toBe("e.g. 5");
+    expect(REPLENISHMENT_FIELD_COPY.reviewPeriodDays.placeholder).toBe("e.g. 7");
+    expect(REPLENISHMENT_FIELD_COPY.leadTimeDays.hint).toMatch(
+      /placing a replenishment order until stock arrives/i,
+    );
+    expect(REPLENISHMENT_FIELD_COPY.safetyStockDays.hint).toMatch(
+      /extra days of demand kept as a buffer/i,
+    );
+    expect(REPLENISHMENT_FIELD_COPY.reviewPeriodDays.hint).toMatch(
+      /check stock and plan replenishment/i,
+    );
   });
 });

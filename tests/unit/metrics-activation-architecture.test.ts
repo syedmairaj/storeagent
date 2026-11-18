@@ -68,5 +68,24 @@ describe("merchant sales metrics activation architecture", () => {
     );
     expect(panel).toContain("ActivateDemandMetricsButton");
     expect(panel).toContain("activationScope");
+    expect(panel).toContain("activationScopeBlockMessage");
+    expect(panel).toContain("resolveDemandFreshnessGuidance");
+    expect(panel).toContain("data-demand-freshness");
+    expect(panel).toContain("ctaLabel");
+    expect(panel).not.toMatch(/!coverReady/);
+    expect(panel).not.toContain("Refresh inventory");
+
+    const inventoryPage = read(
+      "app/(app)/app/[organizationId]/inventory/page.tsx",
+    );
+    expect(inventoryPage).toContain("resolveMerchantActivationScope");
+    expect(inventoryPage).not.toContain("intelligence.rows[0]");
+
+    const freshness = read("lib/inventory-readiness/demand-freshness.ts");
+    expect(freshness).toContain("missing_current_day_stock");
+    expect(freshness).toContain("Upload updated stock");
+    expect(freshness).toContain("showActivateButton");
+    expect(freshness).toContain("inventoryPlaceFreshnessKind");
+    expect(freshness).not.toContain("decideInventoryAction");
   });
 });

@@ -3,7 +3,7 @@
 Bootstrap for new ChatGPT / Cursor sessions.
 
 **Active PE1.b.6b continuity (read first for JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`  
-Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md`. Hosted 38→52 schema track: **CLOSED** at 52/52 (`docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`). DB drift prevention Phase 1: `docs/DB_DRIFT_PREVENTION_PHASE1.md` (local checks PASS; Actions run **not** yet verified; JWT still BLOCKED). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually.
+Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md`. Hosted 38→52 schema track: **CLOSED** at 52/52 (`docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`). DB drift prevention Phase 1: `docs/DB_DRIFT_PREVENTION_PHASE1.md` (local checks PASS; Actions run **not** yet verified; JWT still BLOCKED). **Local Inventory CSV → Demand Metrics → Replenishment Planning acceptance (snapstore/Main, 2026-11-18): COMPLETE** — synthetic local only; ≠ hosted/JWT/M7 unlock (see `docs/IMPLEMENTATION_STATUS.md`). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually.
 
 ## 1. Thesis and non-negotiables
 
@@ -21,8 +21,8 @@ Data determines reality. Deterministic forecasting and inventory logic calculate
 |---|---|
 | Repository | StoreAgent.si |
 | Branch | `main` |
-| HEAD (verify) | Expect ≥ `7d42247` — `docs(forecast): define PE1.b.6a hosted JWT isolation preflight` |
-| As-of | 2026-11-06 — PE1.b.6a committed; PE1.b.6b authorization in progress (A2 YES; A3–A1 open) |
+| HEAD (verify) | Expect ≥ `d73790a` — DB drift prevention Phase 1; inventory/planning UX may still be dirty |
+| As-of | 2026-11-18 — local snapstore Inventory→Metrics→Planning acceptance COMPLETE; PE1.b.6b JWT still BLOCKED |
 | Hosted pin | `qlsqminsfdntpqdkhxjx` (trial; PE1 env class **Other** / Development & Testing per worksheet A2) |
 
 Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Commit untracked PE1.b.6b docs before trusting chat alone.
@@ -47,7 +47,8 @@ Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Com
 | M7 decisions / approvals | Schema + contracts **partial** | Partial | Hosted S1–S14 schema **CLOSED** (52/52) | Merchant activation / create success **blocked** |
 | Hosted 38→52 migrations | Disk 52 | Disposable rehearse PASS | **CLOSED** 52/52; fingerprint MATCH | Ops activation **not** authorized |
 | DB drift prevention Phase 1 | Yes (file gates + workflow) | `check:migrations` + 8/8 unit PASS | Ledger dry-run owner-reported; Actions run **unverified**; RLS equivalence **unproven** | Disposable replay **not** implemented; JWT **BLOCKED**; auth `enable_signup` rename pending |
-| CSV → Shopify → Woo → Amazon | Product locked | — | — | Launch path open |
+| Inventory CSV → metrics → replenishment planning | Yes (local UX + M5 binding) | **COMPLETE** snapstore/Main 2026-11-18 (20 SKUs; 7/5/7; SS/ROP/target 20/20) | — | Hosted onboarding **unproven**; Shopify connector **pending**; incoming unknown; multi-store owner test **pending**; M7 **forbidden** |
+| CSV → Shopify → Woo → Amazon | Product locked; CSV path locally accepted | CSV local PASS | — | Shopify first native; Woo/Amazon later |
 | Billing / trial / ops | Partial docs/code | — | — | Paying launch **NO-GO** |
 
 ## 4. M5 snapshot
@@ -96,9 +97,9 @@ Local implementation/testing committed on `main` through **`6136874`** (P1 → P
 
 ## 6. Next three engineering steps
 
-1. **PE1.b.6b:** Complete A3 → A4 (LIMITED) → A6 → A1 on the owner worksheet; then LIMITED JWT matrix only. See `docs/M6_PE1_B6B_SESSION_HANDOVER.md`.
-2. Keep M5/forecast workers/cron/HTTP **OFF**; do **not** enable production persist/publish/eval without new approval.
-3. After JWT closeout: one focused **launch-gap inventory** (M5 ops, M6 hosted lifecycle, M7 activation, integrations, UX, billing, deployment) — not indefinite architecture churn.
+1. Owner-review then commit the **combined inventory/CSV/freshness/replenishment UX** dirty set (exclude `.tmp/`, SQL scratch, roadmap DOCX, unrelated docs). Local snapstore planning acceptance is already documented COMPLETE.
+2. **PE1.b.6b:** Complete A3 → A4 (LIMITED) → A6 → A1 on the owner worksheet; then LIMITED JWT matrix only. See `docs/M6_PE1_B6B_SESSION_HANDOVER.md`.
+3. Keep M5/forecast workers/cron/HTTP **OFF**; Shopify connector and multi-store owner acceptance remain separate gates — **not** implied by local CSV planning PASS.
 
 ## 7. Hard bans
 

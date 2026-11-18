@@ -66,11 +66,28 @@ describe("merchant planning inputs architecture", () => {
     expect(editor).toContain("saveMerchantPlanningInputsAction");
     expect(editor).toContain("Clear to unknown");
     expect(editor).toContain("Merchant assumptions");
-    expect(editor).toMatch(/not verified supplier or SKU facts/i);
+    expect(editor).toContain("Replenishment settings");
+    expect(editor).toContain("Save replenishment settings");
+    expect(editor).toContain("REPLENISHMENT_FIELD_COPY");
+    expect(editor).toContain('placeholder={REPLENISHMENT_FIELD_COPY.leadTimeDays.placeholder}');
+    expect(editor).not.toContain('placeholder="Unknown"');
+    expect(editor).toMatch(/not\s+verified supplier or SKU facts/i);
     expect(editor).toMatch(/Commercial actions stay\s+disabled/);
     expect(editor).toContain("metricsRefresh.note");
+    expect(editor).toContain("formatPlanningDayForInput(result.value.leadTimeDays)");
     expect(editor).not.toContain("decideInventoryAction");
     expect(editor).not.toContain("m7-decision-demo");
+
+    const actions = read("lib/planning-inputs/actions.ts");
+    expect(actions).toContain("reportPlanningMetricsRefresh(summary, value)");
+    expect(actions).toContain("planningMetricsRefreshFailureReport(value)");
+
+    const refresh = read("lib/planning-inputs/refresh-status.ts");
+    expect(refresh).toContain("classifyMerchantPlanningConfiguration");
+    expect(refresh).toContain("all_blank");
+    expect(refresh).toContain("partial");
+    expect(refresh).toContain("complete");
+    expect(refresh).toMatch(/thresholds remain unavailable/i);
   });
 
   it("binds organization planning defaults into trusted M5 recompute", () => {

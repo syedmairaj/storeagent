@@ -1,3 +1,4 @@
+import { resolveDemandFreshnessGuidance } from "@/lib/inventory-readiness/demand-freshness";
 import type {
   DecisionCapabilityStatus,
   EvidenceInputStatus,
@@ -112,7 +113,11 @@ export function assessMerchantDecisionReadiness(input: {
       nextStep:
         salesStatus === "available"
           ? null
-          : "Import sales history CSV (or connect orders), then activate demand metrics so demand aligns to SKU, store, and location.",
+          : salesStatus === "insufficient"
+            ? presence.hasCurrentDayInventoryObservation
+              ? "Activate demand metrics so current demand aligns to SKU, store, and location."
+              : "Upload updated stock for the store-local business date, then activate demand metrics."
+            : "Import sales history CSV for matching SKUs — StoreAgent will not invent demand.",
     }),
     inputStatus(metricsStatus, {
       key: "sku_daily_metrics",
@@ -123,14 +128,18 @@ export function assessMerchantDecisionReadiness(input: {
           : metricsStatus === "insufficient"
             ? metricsPending
               ? "Demand metrics are still updating from recent sales or stock changes. Cover stays blocked until current demand finishes."
-              : "Demand metric rows exist but none are current and matched to latest stock with known sales velocity. Stale or unmatched metrics do not unlock cover."
+              : !presence.hasCurrentDayInventoryObservation
+                ? "Demand metrics are behind the store-local business date. Upload updated stock for today before cover can use current demand."
+                : "Demand metric rows exist but none are current and matched to latest stock with known sales velocity. Stale or unmatched metrics do not unlock cover."
             : "No demand metric rows yet. Velocity, cover, and planning thresholds are not persisted.",
       nextStep:
         metricsStatus === "available"
           ? null
-          : metricsPending
-            ? "Activate demand metrics again if the update is still pending."
-            : "Activate demand metrics after trusted sales and inventory exist for the same SKU, store, and location.",
+          : !presence.hasCurrentDayInventoryObservation && hasSalesRows
+            ? "Upload updated stock for the store-local business date, then activate demand metrics."
+            : metricsPending
+              ? "Activate demand metrics again if the update is still pending."
+              : "Activate demand metrics after trusted sales and current-day inventory exist for the same SKU, store, and location.",
     }),
     inputStatus(hasLeadTime ? "available" : "missing", {
       key: "lead_time",
@@ -210,7 +219,7 @@ export function assessMerchantDecisionReadiness(input: {
       ready: canStock,
       label: "Stock positions",
       detail: canStock
-        ? "Latest available quantities from inventory snapshots are visible."
+        ? "Latest available quantities from imported inventory snapshots are visible."
         : "Import inventory before stock positions can be shown.",
     },
     {
@@ -238,40 +247,42 @@ export function assessMerchantDecisionReadiness(input: {
     },
   ];
 
-  const nextSteps = !hasKnownAvailable
-    ? [
-        hasInventoryRows
-          ? "Re-import CSV rows with a known available quantity for each SKU."
-          : "Import a CSV with SKU and available quantity to create durable inventory snapshots.",
-      ]
-    : [
-        ...(alignedDemand > 0
-          ? []
-          : [
-              "Import sales history CSV, then activate demand metrics so store-local current grain-aligned velocity is known (unknown ≠ zero; stale metrics do not count).",
-            ]),
-        ...(hasLeadTime && hasSafetyDays && hasReviewPeriod
-          ? []
-          : [
-              "Configure lead time, safety-stock days, and review period before reorder/target thresholds unlock.",
-            ]),
-        ...(hasTrustedIncoming
-          ? []
-          : [
-              "Import destination-scoped purchase orders (and attest completeness for known-zero empty sets) before REORDER or REDUCE can use incoming state. PROMOTE does not require incoming.",
-            ]),
-        "Use Actions only as a labeled synthetic demo until commercial evaluation is independently authorized.",
-      ];
+  const freshness = resolveDemandFreshnessGuidance({
+    hasSalesHistory: hasSalesRows,
+    knownAvailableSkuCount: presence.knownAvailableSkuCount,
+    hasCurrentDayInventoryObservation:
+      presence.hasCurrentDayInventoryObservation,
+    hasCurrentDayMetrics: presence.hasCurrentDayMetrics,
+    hasPendingMetricWork: metricsPending,
+    grainAlignedKnownDemandCount: presence.grainAlignedKnownDemandCount,
+    hasActivationScope: true,
+    asOfMetricDate: presence.primaryAsOfMetricDate,
+    inventoryPlaceFreshnessKind: presence.inventoryPlaceFreshnessKind,
+  });
 
-  const summary = !hasKnownAvailable
-    ? hasInventoryRows
-      ? "Inventory rows exist but available quantity is unknown. Decisions stay empty — null stock is not zero."
-      : "No live inventory evidence yet. Decisions stay empty until stock is imported."
-    : canCover
+  const nextSteps = [
+    freshness.primaryNextStep,
+    ...(hasKnownAvailable &&
+    freshness.kind === "ready" &&
+    !(hasLeadTime && hasSafetyDays && hasReviewPeriod)
+      ? [
+          "Configure lead time, safety-stock days, and review period before reorder/target thresholds unlock.",
+        ]
+      : []),
+    ...(hasKnownAvailable && freshness.kind === "ready" && !hasTrustedIncoming
+      ? [
+          "Import destination-scoped purchase orders (and attest completeness for known-zero empty sets) before REORDER or REDUCE can use incoming state. PROMOTE does not require incoming.",
+        ]
+      : []),
+    "Use Actions only as a labeled synthetic demo until commercial evaluation is independently authorized.",
+  ];
+
+  const summary =
+    freshness.kind === "ready"
       ? canReorderThresholds
-        ? `Live inventory, grain-aligned demand, and planning days are present (${presence.knownAvailableSkuCount} SKU position(s), ${alignedDemand} with known velocity). Commercial recommendations stay disabled until independent authorization arrives.`
-        : `Live inventory and grain-aligned demand are present (${presence.knownAvailableSkuCount} SKU position(s), ${alignedDemand} with known velocity), but commercial recommendations stay disabled until planning evidence and independent authorization arrive.`
-      : `Live inventory is present (${presence.knownAvailableSkuCount} SKU position(s)), but commercial recommendations stay blocked until grain-aligned demand and planning evidence arrive.`;
+        ? `Imported inventory, grain-aligned demand, and planning days are present (${presence.knownAvailableSkuCount} SKU position(s), ${alignedDemand} with known velocity). Commercial recommendations stay disabled until independent authorization arrives.`
+        : `Imported inventory and grain-aligned demand are present (${presence.knownAvailableSkuCount} SKU position(s), ${alignedDemand} with known velocity), but commercial recommendations stay disabled until planning evidence and independent authorization arrive.`
+      : `${freshness.detail} Commercial recommendations stay disabled.`;
 
   return {
     organizationId,

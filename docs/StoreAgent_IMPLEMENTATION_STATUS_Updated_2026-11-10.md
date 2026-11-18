@@ -2,7 +2,44 @@
 
 ## Active handoff
 
-> **Latest strategy/addendum (2026-11-10):** See the immediately following **Product delivery acceleration, hosted parity and truthful landing-page plan**. This augments, but does not supersede, frozen engineering/PE1.b gates.
+> **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main is **COMPLETE** (pointer: `docs/IMPLEMENTATION_STATUS.md`). This does **not** unlock hosted JWT, workers/cron, M7 production create, purchasing, or paying launch.
+> **Latest strategy/addendum (2026-11-10):** See the immediately following **Product delivery acceleration, hosted parity and truthful landing-page plan**. That plan augments, but does not supersede, frozen engineering/PE1.b gates.
+
+## 2026-11-18 — Local Inventory CSV → Demand Metrics → Replenishment Planning acceptance (snapstore/Main)
+
+> **Authority:** Local owner-verified acceptance on Supabase Postgres `:55322` / API `:55321` only. Repo commit pin for drift Phase 1: `main` @ `d73790a`. Inventory/CSV/freshness/replenishment UX implementation remains **uncommitted** at documentation time. **Not** hosted readiness, production recommendations, or actual merchant outcomes.
+
+### Acceptance result
+
+| Gate | Result |
+|---|---|
+| Inventory import (current-day) | **PASS** — SyncRun completed; **20** latest positions; **60** snapshots total |
+| Sales history | **PASS** — **25/25** orders/items unchanged |
+| Demand metric activation | **PASS** — **20/20** current-day grains; events consumed; recompute complete; **0** pending |
+| Replenishment settings persist | **PASS** — `lead_time_days=7`, `safety_stock_days=5`, `review_period_days=7` |
+| SS / ROP / target formulas | **PASS** — **20/20** match `SS=ceil(v30×5)`, `ROP=ceil(v30×7+SS)`, `Target=ceil(v30×14+SS)` on Chicago date **2026-11-18** |
+| Zero vs unknown demand | **PASS** — **12** positive v30; **8** known-zero v30 (thresholds **0**, cover `zero_demand`); **0** unknown v30 |
+| Incoming / commercial fence | **PASS** — incoming **unknown** 20/20; no invented ROQ; `inventory_actions=0`; M7 production create remains **blocked** |
+
+### Merchant UX validated (local, uncommitted)
+
+- Correct inventory vs sales **CSV kind detection** (reject cross-kind without write).
+- **One next action** guidance + freshness / observation labels.
+- Explicit **store/location** activation and evidence scope.
+- Responsive inventory evidence workspace.
+- **Replenishment settings** rename + illustrative placeholders (`e.g. 7/5/7` ≠ defaults); blank=`NULL`, explicit `0` preserved; differentiated all-blank / partial / complete save notes that never claim thresholds when required assumptions are unknown.
+
+### Boundaries and remaining risks
+
+| Still true | Implication |
+|---|---|
+| Manual CSV updates | No live commerce sync; freshness depends on merchant re-import |
+| Shopify connector pending | Native connector track unchanged (CSV → Shopify → Woo → Amazon) |
+| Incoming evidence unknown | Available-stock position / incoming-qualified rules stay fail-closed |
+| Multi-store owner testing pending | Single-store synthetic acceptance only |
+| Workers/cron OFF; hosted JWT BLOCKED; M7 forbidden | No production recommendations, purchasing, or hosted isolation claim |
+
+Local synthetic inventory/sales must **never** promote to production migrations, seeds, or hosted copies (`docs/DB_DRIFT_PREVENTION_PHASE1.md`).
 
 ## 2026-11-10 — Product delivery acceleration, hosted parity and truthful landing-page plan (strategy addendum)
 
@@ -16,8 +53,8 @@ StoreAgent.si is a **provider-independent AI Inventory & Buying Agent**, not ano
 
 | Workstream | Verified or reported engineering state | Still required for merchant production |
 |---|---|---|
-| M0–M4 foundations, commerce domain, secure CSV inventory/sales imports | Implemented locally; tenant/schema foundations and import workflows exist | End-to-end hosted onboarding and operational acceptance |
-| M5 inventory/sales intelligence | M5.1–M5.7 local engineering; hosted schema/canary subsets proven; stock/velocity/cover/readiness inputs available | M5.8 closeout; authorized hosted worker, rollover, scheduling and runtime evidence |
+| M0–M4 foundations, commerce domain, secure CSV inventory/sales imports | Implemented locally; **snapstore CSV→metrics→planning acceptance COMPLETE (2026-11-18)** | End-to-end hosted onboarding and operational acceptance |
+| M5 inventory/sales intelligence | M5.1–M5.7 local engineering; hosted schema/canary subsets proven; local current-day metrics + 7/5/7 thresholds verified on snapstore | M5.8 closeout; authorized hosted worker, rollover, scheduling and runtime evidence |
 | M6 forecasting | Deterministic/evidence/persistence/publication/evaluation foundations; hosted schema applied | PE1.b.6b hosted JWT isolation, forecast production eligibility, authorized callers and monitoring; no implied accuracy claim |
 | M7 decisions | REORDER/REDUCE/PROMOTE/WATCH engine, demo Action Briefs, lifecycle contracts/RPC foundations; **hosted S1–S14 schema CLOSED** on `qlsqminsfdntpqdkhxjx` (ledger **52/52**) | Real trusted merchant decision create, durable evidence, approval lifecycle, decision inbox and guarded execution — production activation still unauthorized |
 | PB1.b–g diagnostics | Local evidence-qualified PROMOTE and REORDER diagnostics; current-day trusted incoming; supplier stated lead time | Commercial production binding and action create still hard-false |
@@ -27,7 +64,7 @@ StoreAgent.si is a **provider-independent AI Inventory & Buying Agent**, not ano
 | Hosted 38→52 migration track | **CLOSED** on pin `qlsqminsfdntpqdkhxjx`: ledger **52/52** latest `20261110140000`; S4/S5/S6 hosted-default grant fixes verified PASS; E.4 canary unchanged; fingerprint `59d7d64dbcc254544f04cdb81ccff699` MATCH | Schema deploy complete ≠ ops unlock; no workers/cron/JWT/M7/purchasing activation |
 | PE1.b.6b security | Hosted schema and owner worksheet foundation; J1–J13 NOT EXECUTED / UNPROVEN in handoff | Limited authorized hosted JWT A/B tenant isolation proof, gate review and sign-off |
 | Native connectors | Provider-neutral canonical architecture and CSV source | Shopify read-only GraphQL connector first; WooCommerce next, Amazon SP-API subject to feasibility/demand |
-| Commercial UI / AI | Local Inventory workspace; Actions remain synthetic demo | Real evidence-backed decision inbox, grounded AI explanations, merchant control and honest landing page |
+| Commercial UI / AI | Local Inventory workspace + replenishment settings UX (uncommitted hardening PASS); Actions remain synthetic demo | Real evidence-backed decision inbox, grounded AI explanations, merchant control and honest landing page |
 | Supplier Intelligence | Product scope defined; supplier/PO tables and stated lead-time inputs exist | Trusted quote/cost/MOQ/lead-time risk/cash/margin comparison; no verified supplier reliability/savings claims |
 
 ### Proposed execution order and release gates

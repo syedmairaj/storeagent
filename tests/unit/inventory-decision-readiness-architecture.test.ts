@@ -31,10 +31,17 @@ describe("inventory decision readiness architecture", () => {
     expect(load).toContain("storeLocalAsOfDate");
     expect(load).toContain("asOfMetricDateByStoreId");
     expect(load).toContain("hasPendingMetricWork");
+    expect(load).toContain("hasCurrentDayInventoryObservation");
+    expect(load).toContain("summarizeGrainInventoryFreshness");
+    expect(load).toContain("allKnownPlacesCurrent");
+    expect(load).toContain("inventoryPlaceFreshnessKind");
+    expect(load).toContain("hasCurrentDayMetrics");
+    expect(load).toContain("primaryAsOfMetricDate");
   });
 
   it("never calls the decision engine or fabricates action payloads", () => {
     const assess = read("lib/inventory-readiness/assess.ts");
+    expect(assess).toContain("resolveDemandFreshnessGuidance");
     // Mentions of REORDER/etc. as eligibility labels are OK; payloads are not.
     expect(assess).not.toMatch(/\bdecideInventoryAction\s*\(/);
     expect(assess).not.toContain('actionType: "REORDER"');

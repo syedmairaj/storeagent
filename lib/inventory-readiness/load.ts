@@ -2,6 +2,7 @@ import "server-only";
 
 import { countGrainAlignedKnownDemand } from "@/lib/inventory-readiness/align";
 import { assessMerchantDecisionReadiness } from "@/lib/inventory-readiness/assess";
+import { summarizeGrainInventoryFreshness } from "@/lib/inventory-readiness/grain-freshness";
 import type {
   EvidencePresence,
   MerchantDecisionReadiness,
@@ -295,6 +296,53 @@ export async function loadMerchantDecisionReadiness(
     }
   }
 
+  const timezoneByStoreId = new Map(
+    ((stores ?? []) as StoreTimezoneRow[]).map((store) => [
+      store.id,
+      store.timezone,
+    ]),
+  );
+  // Fail closed for mixed places: every known-available latest grain must
+  // match its store-local as-of. Any stale/unknown observation blocks.
+  const grainFreshness = summarizeGrainInventoryFreshness(
+    latest.map((row) => {
+      const asOf = asOfMetricDateByStoreId.get(row.store_id) ?? null;
+      const timeZone = timezoneByStoreId.get(row.store_id);
+      let observedLocalDate: string | null = null;
+      if (timeZone) {
+        try {
+          observedLocalDate = storeLocalAsOfDate(
+            timeZone,
+            new Date(row.observed_at),
+          );
+        } catch {
+          observedLocalDate = null;
+        }
+      }
+      return {
+        storeId: row.store_id,
+        locationId: row.location_id,
+        availableQuantity: row.available_quantity,
+        observedLocalDate,
+        asOfMetricDate: asOf,
+      };
+    }),
+  );
+  const hasCurrentDayInventoryObservation =
+    grainFreshness.allKnownPlacesCurrent;
+
+  let hasCurrentDayMetrics = false;
+  for (const metric of metricRows) {
+    const asOf = asOfMetricDateByStoreId.get(metric.store_id);
+    if (asOf !== undefined && metric.metric_date === asOf) {
+      hasCurrentDayMetrics = true;
+      break;
+    }
+  }
+
+  const primaryAsOfMetricDate =
+    [...asOfMetricDateByStoreId.values()][0] ?? null;
+
   const presence: EvidencePresence = {
     inventorySnapshotCount: rows.length,
     distinctSkuCount: new Set(latest.map((row) => row.variant_id)).size,
@@ -307,6 +355,10 @@ export async function loadMerchantDecisionReadiness(
     hasSkuDailyMetrics: (metricCount ?? 0) > 0,
     grainAlignedKnownDemandCount,
     hasPendingMetricWork: pendingWork,
+    hasCurrentDayInventoryObservation,
+    inventoryPlaceFreshnessKind: grainFreshness.kind,
+    hasCurrentDayMetrics,
+    primaryAsOfMetricDate,
     planning: planning
       ? {
           leadTimeDays: planning.lead_time_days,

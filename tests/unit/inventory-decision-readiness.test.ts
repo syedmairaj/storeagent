@@ -6,13 +6,42 @@ import type { EvidencePresence } from "@/lib/inventory-readiness/types";
 import { EMPTY_MERCHANT_PLANNING_INPUTS } from "@/lib/planning-inputs/types";
 
 function presence(
-  partial: Omit<EvidencePresence, "planning" | "trustedIncoming"> & {
+  partial: Omit<
+    EvidencePresence,
+    | "planning"
+    | "trustedIncoming"
+    | "hasCurrentDayInventoryObservation"
+    | "hasCurrentDayMetrics"
+    | "primaryAsOfMetricDate"
+    | "inventoryPlaceFreshnessKind"
+  > & {
     planning?: EvidencePresence["planning"];
     trustedIncoming?: EvidencePresence["trustedIncoming"];
+    hasCurrentDayInventoryObservation?: boolean;
+    hasCurrentDayMetrics?: boolean;
+    primaryAsOfMetricDate?: string | null;
+    inventoryPlaceFreshnessKind?: EvidencePresence["inventoryPlaceFreshnessKind"];
   },
 ): EvidencePresence {
+  const hasCurrentDayInventoryObservation =
+    partial.hasCurrentDayInventoryObservation ??
+    partial.knownAvailableSkuCount > 0;
   return {
     ...partial,
+    hasCurrentDayInventoryObservation,
+    inventoryPlaceFreshnessKind:
+      partial.inventoryPlaceFreshnessKind ??
+      (partial.knownAvailableSkuCount <= 0
+        ? "empty"
+        : hasCurrentDayInventoryObservation
+          ? "all_current"
+          : "all_stale"),
+    hasCurrentDayMetrics:
+      partial.hasCurrentDayMetrics ?? partial.grainAlignedKnownDemandCount > 0,
+    primaryAsOfMetricDate:
+      partial.primaryAsOfMetricDate === undefined
+        ? "2026-11-18"
+        : partial.primaryAsOfMetricDate,
     planning: partial.planning ?? { ...EMPTY_MERCHANT_PLANNING_INPUTS },
     trustedIncoming: partial.trustedIncoming ?? {
       hasPurchaseOrderItemRows: false,
@@ -53,7 +82,7 @@ describe("merchant decision readiness", () => {
       readiness.capabilities.find((item) => item.key === "commercial_actions")
         ?.ready,
     ).toBe(false);
-    expect(readiness.summary).toContain("commercial recommendations stay blocked");
+    expect(readiness.summary).toMatch(/Commercial recommendations stay disabled/i);
     expect(readiness.nextSteps.some((step) => /sales|demand|metrics/i.test(step))).toBe(
       true,
     );
@@ -233,6 +262,8 @@ describe("merchant decision readiness", () => {
         hasSkuDailyMetrics: true,
         grainAlignedKnownDemandCount: 2,
         hasPendingMetricWork: true,
+        hasCurrentDayInventoryObservation: true,
+        hasCurrentDayMetrics: true,
       }),
     });
 
@@ -245,6 +276,32 @@ describe("merchant decision readiness", () => {
     expect(
       readiness.inputs.find((item) => item.key === "sku_daily_metrics")?.detail,
     ).toMatch(/still updating/i);
+    expect(readiness.nextSteps[0]).toMatch(/Activate demand metrics/i);
+  });
+
+  it("asks to refresh inventory when sales exist but stock is not current-day", () => {
+    const readiness = assessMerchantDecisionReadiness({
+      organizationId: "11111111-1111-4111-8111-111111111111",
+      presence: presence({
+        inventorySnapshotCount: 40,
+        distinctSkuCount: 20,
+        distinctStoreCount: 1,
+        distinctLocationCount: 1,
+        knownAvailableSkuCount: 20,
+        hasSalesHistory: true,
+        hasSkuDailyMetrics: true,
+        grainAlignedKnownDemandCount: 0,
+        hasPendingMetricWork: false,
+        hasCurrentDayInventoryObservation: false,
+        hasCurrentDayMetrics: false,
+        primaryAsOfMetricDate: "2026-11-18",
+      }),
+    });
+
+    expect(readiness.nextSteps[0]).toMatch(/Upload updated stock|inventory/i);
+    expect(
+      readiness.inputs.find((item) => item.key === "sku_daily_metrics")?.detail,
+    ).toMatch(/business date|Refresh inventory|updated stock/i);
   });
 
   it("treats null-only inventory as insufficient stock evidence", () => {
@@ -291,7 +348,7 @@ describe("merchant decision readiness", () => {
 
     expect(readiness.presence.knownAvailableSkuCount).toBe(0);
     expect(readiness.commercialActionsEligible).toBe(false);
-    expect(readiness.nextSteps[0]).toMatch(/Import a CSV/i);
+    expect(readiness.nextSteps[0]).toMatch(/inventory CSV/i);
   });
 
   it("counts only store/location/variant-aligned current metrics with known velocity", () => {

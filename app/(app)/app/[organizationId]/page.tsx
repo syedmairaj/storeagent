@@ -139,7 +139,7 @@ export default async function OrganizationHome({
           <h1 className="mt-2 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
             {hasStore
               ? hasInventory
-                ? "Live inventory is connected."
+                ? "Imported inventory is available."
                 : "Your store boundary is ready."
               : "Waiting for the first store."}
           </h1>
@@ -171,7 +171,7 @@ export default async function OrganizationHome({
             <h2 className="mt-3 max-w-xl text-2xl font-semibold tracking-[-0.03em]">
               {hasStore
                 ? hasInventory
-                  ? `${primaryStore!.name} has ${readiness!.presence.knownAvailableSkuCount} live SKU position(s). Commercial recommendations stay blocked until sales and planning evidence arrive.`
+                  ? `${primaryStore!.name} has ${readiness!.presence.knownAvailableSkuCount} imported SKU position(s) from CSV. Commercial recommendations stay blocked until sales and planning evidence arrive.`
                   : `${primaryStore!.name} is active — no inventory imported yet.`
                 : "No store has been created for this organization."}
             </h2>

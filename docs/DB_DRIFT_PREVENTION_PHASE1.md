@@ -177,4 +177,4 @@ Already compatible: `[local_smtp]` (not legacy `[inbucket]`).
 
 - Local ledger vs disk can diverge if SQL is applied outside migrations.
 - Dual local Next servers / env confusion can make app writes appear “missing” while migrations are fine.
-- Uncommitted inventory CSV/freshness UX is unrelated and must not be mixed into production schema promotion.
+- Inventory/CSV/freshness/replenishment UX + local snapstore planning acceptance docs are unrelated to schema promotion and must not be mixed into production migration/seed promotion (local acceptance COMPLETE 2026-11-18; see `docs/IMPLEMENTATION_STATUS.md`).

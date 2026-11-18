@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  ArrowRight,
-  Boxes,
-  FileSpreadsheet,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowRight, Boxes } from "lucide-react";
 
 import { IncomingEvidenceEditor } from "@/components/inventory/incoming-evidence-editor";
 import { InventoryIntelligenceWorkspace } from "@/components/inventory/inventory-intelligence-workspace";
@@ -15,7 +10,13 @@ import { DecisionReadinessPanel } from "@/components/inventory-readiness/decisio
 import { requireAppIdentity } from "@/lib/auth/app-route";
 import { loadStoreIncomingEvidenceAttestations } from "@/lib/incoming-evidence/load";
 import { loadMerchantInventoryIntelligence } from "@/lib/inventory-intelligence";
-import { loadMerchantDecisionReadiness } from "@/lib/inventory-readiness";
+import {
+  inventoryEvidenceSourceDetail,
+  inventoryEvidenceSourceLabel,
+  loadMerchantDecisionReadiness,
+  resolveMerchantActivationScope,
+  type ActivationPlace,
+} from "@/lib/inventory-readiness";
 import { AppError } from "@/lib/observability/app-error";
 import {
   isOrganizationProfileIncomplete,
@@ -29,6 +30,8 @@ import { resolveServerOrganizationContext } from "@/lib/tenancy/server-organizat
 export const metadata: Metadata = {
   title: "Inventory",
 };
+
+const INVENTORY_SOURCE_KIND = "csv" as const;
 
 export default async function InventoryPage({
   params,
@@ -73,9 +76,9 @@ export default async function InventoryPage({
 
   const { data: storesData } = await supabase
     .from("stores")
-    .select("id")
+    .select("id,name")
     .eq("organization_id", organizationId)
-    .limit(1);
+    .order("created_at", { ascending: true });
 
   if ((storesData ?? []).length === 0) {
     redirect(`/app/onboarding/store?organizationId=${organizationId}`);
@@ -94,83 +97,94 @@ export default async function InventoryPage({
       loadStoreIncomingEvidenceAttestations(organizationId),
     ]);
 
-  const primaryRow = intelligence.rows[0] ?? null;
-  let activationScope: { storeId: string; locationId: string } | null =
-    primaryRow
-      ? {
-          storeId: primaryRow.storeId,
-          locationId: primaryRow.locationId,
-        }
+  const inventoryPlaces: ActivationPlace[] = [];
+  const seenInventory = new Set<string>();
+  for (const row of intelligence.rows) {
+    const key = `${row.storeId}:${row.locationId}`;
+    if (seenInventory.has(key)) {
+      continue;
+    }
+    seenInventory.add(key);
+    inventoryPlaces.push({
+      storeId: row.storeId,
+      locationId: row.locationId,
+      storeName: row.storeName,
+      locationName: row.locationName,
+    });
+  }
+
+  let organizationPlaces: ActivationPlace[] | undefined;
+  if (inventoryPlaces.length === 0) {
+    const storeIds = (storesData ?? []).map((store) => String(store.id));
+    const { data: locationRows } = await supabase
+      .from("locations")
+      .select("id,store_id,name")
+      .eq("organization_id", organizationId)
+      .in("store_id", storeIds)
+      .order("created_at", { ascending: true });
+
+    const storeNameById = new Map(
+      (storesData ?? []).map((store) => [String(store.id), String(store.name)]),
+    );
+    organizationPlaces = (locationRows ?? []).map((location) => ({
+      storeId: String(location.store_id),
+      locationId: String(location.id),
+      storeName: storeNameById.get(String(location.store_id)),
+      locationName: String(location.name ?? ""),
+    }));
+  }
+
+  const activationResolution = resolveMerchantActivationScope({
+    inventoryPlaces,
+    organizationPlaces,
+  });
+
+  const activationScope =
+    activationResolution.status === "resolved"
+      ? activationResolution.scope
+      : null;
+  const activationScopeBlockMessage =
+    activationResolution.status === "ambiguous" ||
+    activationResolution.status === "missing"
+      ? activationResolution.message
       : null;
 
-  if (!activationScope) {
-    const bootstrapStoreId = String((storesData ?? [])[0]?.id ?? "");
-    if (bootstrapStoreId) {
-      const { data: bootstrapLocation } = await supabase
-        .from("locations")
-        .select("id")
-        .eq("organization_id", organizationId)
-        .eq("store_id", bootstrapStoreId)
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      if (bootstrapLocation?.id) {
-        activationScope = {
-          storeId: bootstrapStoreId,
-          locationId: String(bootstrapLocation.id),
-        };
-      }
-    }
-  }
+  const lastObservationLabel = formatLastObservation(
+    intelligence.rows.map((row) => row.observedAt),
+  );
 
   return (
     <div>
-      <div className="flex flex-col gap-5 border-b border-zinc-200 pb-8 sm:pb-10">
-        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 shadow-sm">
-          <ShieldCheck className="size-3.5" aria-hidden="true" />
-          Inventory intelligence
-        </div>
-
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-sm font-medium text-zinc-500">Inventory</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
-              Stock, demand, and cover
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600">
-              Latest imported stock positions with current sales velocity and
-              days of cover when evidence is complete. StoreAgent does not invent
-              demand or commercial recommendations.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href={`/app/${organizationId}/inventory/import`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white"
-            >
-              <FileSpreadsheet className="size-4" aria-hidden="true" />
-              Import inventory
-            </Link>
-            <Link
-              href={`/app/${organizationId}/inventory/sales-import`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700"
-            >
-              Import sales history
-            </Link>
-          </div>
-        </div>
+      <div className="flex flex-col gap-3 border-b border-zinc-200 pb-6 sm:pb-8">
+        <p className="text-sm font-medium text-zinc-500">Inventory</p>
+        <h1 className="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+          Stock, demand, and cover
+        </h1>
+        <p className="max-w-2xl text-sm leading-6 text-zinc-600 sm:text-base sm:leading-7">
+          Imported CSV stock with sales velocity and days of cover when evidence
+          is current. StoreAgent does not invent demand or commercial
+          recommendations.
+        </p>
       </div>
 
-      <section className="border-b border-zinc-200 py-8 sm:py-10">
+      <section className="border-b border-zinc-200 py-6 sm:py-8">
         <DecisionReadinessPanel
           readiness={readiness}
           organizationId={organizationId}
           activationScope={activationScope}
+          activationScopeBlockMessage={activationScopeBlockMessage}
+          inventorySourceKind={INVENTORY_SOURCE_KIND}
+          inventorySourceLabel={inventoryEvidenceSourceLabel(
+            INVENTORY_SOURCE_KIND,
+          )}
+          inventorySourceDetail={inventoryEvidenceSourceDetail(
+            INVENTORY_SOURCE_KIND,
+          )}
+          lastObservationLabel={lastObservationLabel}
         />
       </section>
 
-      <section className="border-b border-zinc-200 py-8 sm:py-10">
+      <section className="border-b border-zinc-200 py-6 sm:py-8">
         <PlanningInputsEditor
           organizationId={organizationId}
           canEdit={canEditPlanning}
@@ -182,7 +196,7 @@ export default async function InventoryPage({
         />
       </section>
 
-      <section className="border-b border-zinc-200 py-8 sm:py-10">
+      <section className="border-b border-zinc-200 py-6 sm:py-8">
         <IncomingEvidenceEditor
           organizationId={organizationId}
           canEdit={canEditPlanning}
@@ -190,35 +204,59 @@ export default async function InventoryPage({
         />
       </section>
 
-      <section className="py-8 sm:py-10">
+      <section className="py-6 sm:py-8">
         {intelligence.rows.length === 0 ? (
-          <div className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm sm:p-9">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-zinc-950 text-white">
+          <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex size-11 items-center justify-center rounded-2xl bg-zinc-950 text-white">
               <Boxes className="size-5" aria-hidden="true" />
             </div>
-            <h2 className="mt-8 text-2xl font-semibold tracking-[-0.03em]">
+            <h2 className="mt-6 text-xl font-semibold tracking-[-0.03em]">
               No inventory observations yet
             </h2>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-600">
+            <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-600">
               Import a CSV to create the first durable inventory snapshots for
               this organization. Demand and cover appear after sales metrics are
               activated for matching SKUs.
             </p>
             <Link
               href={`/app/${organizationId}/inventory/import`}
-              className="mt-8 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-zinc-900"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white"
             >
-              Go to inventory import
+              Import inventory
               <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </div>
         ) : (
-          <InventoryIntelligenceWorkspace
-            rows={intelligence.rows}
-            hasPendingMetricWork={intelligence.hasPendingMetricWork}
-          />
+          <InventoryIntelligenceWorkspace rows={intelligence.rows} />
         )}
       </section>
     </div>
   );
+}
+
+function formatLastObservation(isoTimes: readonly string[]): string | null {
+  if (isoTimes.length === 0) {
+    return null;
+  }
+  let latestMs = Number.NEGATIVE_INFINITY;
+  let latestIso: string | null = null;
+  for (const iso of isoTimes) {
+    const ms = Date.parse(iso);
+    if (!Number.isNaN(ms) && ms > latestMs) {
+      latestMs = ms;
+      latestIso = iso;
+    }
+  }
+  if (!latestIso) {
+    return null;
+  }
+  try {
+    return new Date(latestIso).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return latestIso.slice(0, 10);
+  }
 }

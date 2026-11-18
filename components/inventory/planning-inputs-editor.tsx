@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LoaderCircle, Save } from "lucide-react";
 
 import { saveMerchantPlanningInputsAction } from "@/lib/planning-inputs/actions";
+import { REPLENISHMENT_FIELD_COPY } from "@/lib/planning-inputs/merchant-copy";
 import { formatPlanningDayForInput } from "@/lib/planning-inputs/parse";
 import type { MerchantPlanningInputs } from "@/lib/planning-inputs/types";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ function DayField({
   id,
   label,
   hint,
+  placeholder,
   value,
   disabled,
   onChange,
@@ -21,18 +23,17 @@ function DayField({
   id: string;
   label: string;
   hint: string;
+  placeholder: string;
   value: string;
   disabled: boolean;
   onChange: (next: string) => void;
   onClear: () => void;
 }) {
+  const hintId = `${id}-hint`;
   return (
     <div className="min-w-0">
       <div className="flex items-center justify-between gap-2">
-        <label
-          htmlFor={id}
-          className="text-sm font-medium text-zinc-900"
-        >
+        <label htmlFor={id} className="text-sm font-medium text-zinc-900">
           {label}
         </label>
         <button
@@ -51,9 +52,10 @@ function DayField({
         inputMode="numeric"
         pattern="[0-9]*"
         autoComplete="off"
-        placeholder="Unknown"
+        placeholder={placeholder}
         value={value}
         disabled={disabled}
+        aria-describedby={hintId}
         onChange={(event) => onChange(event.target.value)}
         className={cn(
           "mt-2 h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none transition",
@@ -62,7 +64,9 @@ function DayField({
           "disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-500",
         )}
       />
-      <p className="mt-1.5 text-xs leading-5 text-zinc-500">{hint}</p>
+      <p id={hintId} className="mt-1.5 text-xs leading-5 text-zinc-500">
+        {hint}
+      </p>
     </div>
   );
 }
@@ -125,26 +129,27 @@ export function PlanningInputsEditor({
 
   return (
     <section
-      aria-labelledby="planning-inputs-heading"
+      aria-labelledby="replenishment-settings-heading"
       data-planning-inputs="true"
-      className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8"
+      data-replenishment-settings="true"
+      className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6"
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
             Merchant assumptions
           </p>
           <h2
-            id="planning-inputs-heading"
-            className="mt-2 text-xl font-semibold tracking-[-0.03em] text-zinc-950 sm:text-2xl"
+            id="replenishment-settings-heading"
+            className="mt-1.5 text-xl font-semibold tracking-[-0.03em] text-zinc-950 sm:text-2xl"
           >
-            Planning inputs
+            Replenishment settings
           </h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-600">
-            Organization-default planning days are merchant assumptions for
-            future threshold math — not verified supplier or SKU facts. Leave a
-            field blank when unknown; StoreAgent never treats missing as zero.
-            Commercial actions stay disabled.
+          <p className="mt-1.5 text-sm leading-6 text-zinc-600">
+            Organization defaults for reorder math — merchant assumptions, not
+            verified supplier or SKU facts. Leave a field blank when unknown;
+            StoreAgent never treats missing as zero. Examples in the fields are
+            illustrations only. Commercial actions stay disabled.
           </p>
         </div>
         {!canEdit ? (
@@ -157,32 +162,35 @@ export function PlanningInputsEditor({
       <form
         method="post"
         onSubmit={handleSubmit}
-        className="mt-6 space-y-5"
+        className="mt-5 space-y-4"
         data-can-edit={canEdit ? "true" : "false"}
       >
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3">
           <DayField
-            id="lead-time-days"
-            label="Lead time (days)"
-            hint="Assumed organization default lead time. 0 means same-day replenishment — not a verified supplier fact."
+            id={REPLENISHMENT_FIELD_COPY.leadTimeDays.id}
+            label={REPLENISHMENT_FIELD_COPY.leadTimeDays.label}
+            hint={REPLENISHMENT_FIELD_COPY.leadTimeDays.hint}
+            placeholder={REPLENISHMENT_FIELD_COPY.leadTimeDays.placeholder}
             value={leadTimeDays}
             disabled={!canEdit || pending}
             onChange={setLeadTimeDays}
             onClear={() => setLeadTimeDays("")}
           />
           <DayField
-            id="safety-stock-days"
-            label="Safety stock (days)"
-            hint="Assumed extra cover days. Blank keeps safety stock unknown."
+            id={REPLENISHMENT_FIELD_COPY.safetyStockDays.id}
+            label={REPLENISHMENT_FIELD_COPY.safetyStockDays.label}
+            hint={REPLENISHMENT_FIELD_COPY.safetyStockDays.hint}
+            placeholder={REPLENISHMENT_FIELD_COPY.safetyStockDays.placeholder}
             value={safetyStockDays}
             disabled={!canEdit || pending}
             onChange={setSafetyStockDays}
             onClear={() => setSafetyStockDays("")}
           />
           <DayField
-            id="review-period-days"
-            label="Review period (days)"
-            hint="Assumed review cadence for target stock. Blank stays unknown."
+            id={REPLENISHMENT_FIELD_COPY.reviewPeriodDays.id}
+            label={REPLENISHMENT_FIELD_COPY.reviewPeriodDays.label}
+            hint={REPLENISHMENT_FIELD_COPY.reviewPeriodDays.hint}
+            placeholder={REPLENISHMENT_FIELD_COPY.reviewPeriodDays.placeholder}
             value={reviewPeriodDays}
             disabled={!canEdit || pending}
             onChange={setReviewPeriodDays}
@@ -211,7 +219,7 @@ export function PlanningInputsEditor({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs leading-5 text-zinc-500">
               Partial saves are allowed. Clearing a field and saving restores
-              unknown for that input only.
+              unknown for that setting only.
             </p>
             <button
               type="submit"
@@ -226,7 +234,7 @@ export function PlanningInputsEditor({
               ) : (
                 <Save className="size-4" aria-hidden="true" />
               )}
-              {pending ? "Saving…" : "Save planning inputs"}
+              {pending ? "Saving…" : "Save replenishment settings"}
             </button>
           </div>
         ) : null}

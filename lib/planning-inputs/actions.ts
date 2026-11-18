@@ -26,21 +26,21 @@ export type SaveMerchantPlanningInputsResult =
 
 function mapRpcError(message: string): string {
   if (/Authentication required/i.test(message)) {
-    return "Sign in again to save planning inputs.";
+    return "Sign in again to save replenishment settings.";
   }
   if (/membership required/i.test(message)) {
     return "You do not have access to this organization.";
   }
   if (/owner or admin/i.test(message)) {
-    return "Only owners and admins can edit planning inputs.";
+    return "Only owners and admins can edit replenishment settings.";
   }
   if (/Organization not found/i.test(message)) {
     return "Organization not found.";
   }
   if (/non-negative integer/i.test(message)) {
-    return "Planning days must be whole numbers ≥ 0, or blank for unknown.";
+    return "Replenishment days must be whole numbers ≥ 0, or blank for unknown.";
   }
-  return "Unable to save planning inputs right now.";
+  return "Unable to save replenishment settings right now.";
 }
 
 /**
@@ -84,7 +84,7 @@ export async function saveMerchantPlanningInputsAction(input: {
     ) {
       return {
         ok: false,
-        error: "Only owners and admins can edit planning inputs.",
+        error: "Only owners and admins can edit replenishment settings.",
       };
     }
 
@@ -105,7 +105,10 @@ export async function saveMerchantPlanningInputsAction(input: {
 
     const row = Array.isArray(data) ? data[0] : data;
     if (!row || typeof row !== "object") {
-      return { ok: false, error: "Unable to save planning inputs right now." };
+      return {
+        ok: false,
+        error: "Unable to save replenishment settings right now.",
+      };
     }
 
     const saved = row as {
@@ -128,9 +131,9 @@ export async function saveMerchantPlanningInputsAction(input: {
         organizationId,
         ownerId: `planning-inputs-refresh:${identity.userId}`,
       });
-      metricsRefresh = reportPlanningMetricsRefresh(summary);
+      metricsRefresh = reportPlanningMetricsRefresh(summary, value);
     } catch {
-      metricsRefresh = planningMetricsRefreshFailureReport();
+      metricsRefresh = planningMetricsRefreshFailureReport(value);
     }
 
     return {
@@ -142,7 +145,7 @@ export async function saveMerchantPlanningInputsAction(input: {
     const message =
       cause instanceof Error && cause.message.trim()
         ? cause.message
-        : "Unable to save planning inputs right now.";
+        : "Unable to save replenishment settings right now.";
     return { ok: false, error: mapRpcError(message) };
   }
 }
