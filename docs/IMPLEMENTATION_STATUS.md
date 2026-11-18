@@ -66,8 +66,8 @@ Synthetic **local** acceptance only (`snapstore` / America/Chicago). **≠** hos
 | Thresholds | **20/20** match `SS=ceil(v30×5)`, `ROP=ceil(v30×7+SS)`, `Target=ceil(v30×14+SS)` |
 | Demand semantics | **12** positive v30; **8** known-zero v30 (`SS/ROP/Target=0`, cover `zero_demand`) — **0** unknown v30 |
 | Incoming / actions | Incoming **unknown** 20/20; `inventory_position` null; **no** invented ROQ; `inventory_actions=0` |
-| Merchant UX (uncommitted code) | CSV kind detection; one next action; freshness labels; explicit store/location scope; responsive evidence workspace; **Replenishment settings** copy (illustrative placeholders ≠ defaults; blank≠0; honest all-blank/partial/complete save notes) |
-| Implementation HEAD pin | Drift Phase 1 committed @ `d73790a`; inventory/CSV/freshness/replenishment UX still **uncommitted** |
+| Merchant UX | CSV kind detection; one next action; freshness labels; explicit store/location scope; responsive evidence workspace; **Replenishment settings** copy (illustrative placeholders ≠ defaults; blank≠0; honest all-blank/partial/complete save notes); ready-state banner reflects planning unknown/partial/complete without unlocking commercial eligibility |
+| Implementation HEAD pin | Inventory/CSV/freshness/replenishment UX on `main` @ `457a516` (drift Phase 1 ancestor `d73790a`) |
 
 ### Boundary (do not collapse)
 

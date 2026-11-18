@@ -258,17 +258,13 @@ export function assessMerchantDecisionReadiness(input: {
     hasActivationScope: true,
     asOfMetricDate: presence.primaryAsOfMetricDate,
     inventoryPlaceFreshnessKind: presence.inventoryPlaceFreshnessKind,
+    planning,
   });
 
+  // Primary next step already reflects planning unknown/partial/complete when
+  // demand is ready — do not duplicate a second configure-planning step.
   const nextSteps = [
     freshness.primaryNextStep,
-    ...(hasKnownAvailable &&
-    freshness.kind === "ready" &&
-    !(hasLeadTime && hasSafetyDays && hasReviewPeriod)
-      ? [
-          "Configure lead time, safety-stock days, and review period before reorder/target thresholds unlock.",
-        ]
-      : []),
     ...(hasKnownAvailable && freshness.kind === "ready" && !hasTrustedIncoming
       ? [
           "Import destination-scoped purchase orders (and attest completeness for known-zero empty sets) before REORDER or REDUCE can use incoming state. PROMOTE does not require incoming.",

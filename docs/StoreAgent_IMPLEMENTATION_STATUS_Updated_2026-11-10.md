@@ -7,7 +7,7 @@
 
 ## 2026-11-18 — Local Inventory CSV → Demand Metrics → Replenishment Planning acceptance (snapstore/Main)
 
-> **Authority:** Local owner-verified acceptance on Supabase Postgres `:55322` / API `:55321` only. Repo commit pin for drift Phase 1: `main` @ `d73790a`. Inventory/CSV/freshness/replenishment UX implementation remains **uncommitted** at documentation time. **Not** hosted readiness, production recommendations, or actual merchant outcomes.
+> **Authority:** Local owner-verified acceptance on Supabase Postgres `:55322` / API `:55321` only. Inventory/CSV/freshness/replenishment UX committed on `main` @ `457a516` (drift Phase 1 ancestor `d73790a`). Ready-state banner copy must follow persisted planning unknown/partial/complete without unlocking commercial eligibility. **Not** hosted readiness, production recommendations, or actual merchant outcomes.
 
 ### Acceptance result
 
@@ -21,13 +21,13 @@
 | Zero vs unknown demand | **PASS** — **12** positive v30; **8** known-zero v30 (thresholds **0**, cover `zero_demand`); **0** unknown v30 |
 | Incoming / commercial fence | **PASS** — incoming **unknown** 20/20; no invented ROQ; `inventory_actions=0`; M7 production create remains **blocked** |
 
-### Merchant UX validated (local, uncommitted)
+### Merchant UX validated (local; committed @ `457a516`)
 
 - Correct inventory vs sales **CSV kind detection** (reject cross-kind without write).
-- **One next action** guidance + freshness / observation labels.
+- **One next action** guidance + freshness / observation labels; ready banner distinguishes planning unknown / partial / complete.
 - Explicit **store/location** activation and evidence scope.
 - Responsive inventory evidence workspace.
-- **Replenishment settings** rename + illustrative placeholders (`e.g. 7/5/7` ≠ defaults); blank=`NULL`, explicit `0` preserved; differentiated all-blank / partial / complete save notes that never claim thresholds when required assumptions are unknown.
+- **Replenishment settings** rename + illustrative placeholders (`e.g. 7/5/7` ≠ defaults); blank=`NULL`, explicit `0` preserved; differentiated all-blank / partial / complete save notes that never claim thresholds when required assumptions are unknown; planning complete ≠ production recommendations.
 
 ### Boundaries and remaining risks
 
@@ -64,7 +64,7 @@ StoreAgent.si is a **provider-independent AI Inventory & Buying Agent**, not ano
 | Hosted 38→52 migration track | **CLOSED** on pin `qlsqminsfdntpqdkhxjx`: ledger **52/52** latest `20261110140000`; S4/S5/S6 hosted-default grant fixes verified PASS; E.4 canary unchanged; fingerprint `59d7d64dbcc254544f04cdb81ccff699` MATCH | Schema deploy complete ≠ ops unlock; no workers/cron/JWT/M7/purchasing activation |
 | PE1.b.6b security | Hosted schema and owner worksheet foundation; J1–J13 NOT EXECUTED / UNPROVEN in handoff | Limited authorized hosted JWT A/B tenant isolation proof, gate review and sign-off |
 | Native connectors | Provider-neutral canonical architecture and CSV source | Shopify read-only GraphQL connector first; WooCommerce next, Amazon SP-API subject to feasibility/demand |
-| Commercial UI / AI | Local Inventory workspace + replenishment settings UX (uncommitted hardening PASS); Actions remain synthetic demo | Real evidence-backed decision inbox, grounded AI explanations, merchant control and honest landing page |
+| Commercial UI / AI | Local Inventory workspace + replenishment settings UX on `main` @ `457a516`; Actions remain synthetic demo | Real evidence-backed decision inbox, grounded AI explanations, merchant control and honest landing page |
 | Supplier Intelligence | Product scope defined; supplier/PO tables and stated lead-time inputs exist | Trusted quote/cost/MOQ/lead-time risk/cash/margin comparison; no verified supplier reliability/savings claims |
 
 ### Proposed execution order and release gates

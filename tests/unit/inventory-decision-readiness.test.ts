@@ -163,6 +163,11 @@ describe("merchant decision readiness", () => {
       readiness.capabilities.find((item) => item.key === "cover_days")?.ready,
     ).toBe(true);
     expect(readiness.commercialActionsEligible).toBe(false);
+    expect(readiness.nextSteps[0]).toMatch(
+      /Configure lead time, safety-stock days, and review period/i,
+    );
+    expect(readiness.nextSteps.filter((step) => /Configure lead time/i.test(step)))
+      .toHaveLength(1);
     expect(
       readiness.capabilities.find((item) => item.key === "commercial_actions")
         ?.detail,
@@ -212,6 +217,11 @@ describe("merchant decision readiness", () => {
         ?.detail,
     ).toMatch(/not an executable M7 commercial action/i);
     expect(readiness.commercialActionsEligible).toBe(false);
+    expect(readiness.nextSteps[0]).toMatch(/Review cover and thresholds/i);
+    expect(readiness.nextSteps[0]).not.toMatch(/Configure lead time/i);
+    expect(readiness.nextSteps[0]).toMatch(
+      /Commercial recommendations stay disabled until independently authorized/i,
+    );
   });
 
   it("keeps reorder thresholds closed when planning is only partial", () => {

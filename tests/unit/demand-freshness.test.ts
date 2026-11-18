@@ -100,6 +100,95 @@ describe("resolveDemandFreshnessGuidance", () => {
     expect(guidance.kind).toBe("ready");
     expect(guidance.showActivateButton).toBe(false);
     expect(guidance.detail).toMatch(/18 position/);
+    expect(guidance.planningConfiguration).toBe("all_blank");
+  });
+
+  it("ready + planning unknown: primary asks to configure planning, not claim thresholds", () => {
+    const guidance = resolveDemandFreshnessGuidance({
+      hasSalesHistory: true,
+      knownAvailableSkuCount: 20,
+      hasCurrentDayInventoryObservation: true,
+      hasCurrentDayMetrics: true,
+      hasPendingMetricWork: false,
+      grainAlignedKnownDemandCount: 20,
+      hasActivationScope: true,
+      asOfMetricDate: "2026-11-18",
+      planning: {
+        leadTimeDays: null,
+        safetyStockDays: null,
+        reviewPeriodDays: null,
+      },
+    });
+    expect(guidance.kind).toBe("ready");
+    expect(guidance.planningConfiguration).toBe("all_blank");
+    expect(guidance.primaryNextStep).toMatch(
+      /Configure lead time, safety-stock days, and review period/i,
+    );
+    expect(guidance.primaryNextStep).not.toMatch(/Commercial recommendations stay disabled until independently authorized/i);
+    expect(guidance.detail).toMatch(/Planning assumptions are unknown/i);
+    expect(guidance.detail).toMatch(/Commercial recommendations stay disabled/i);
+    expect(guidance.ctaLabel).toBe("Configure replenishment settings");
+    expect(guidance.ctaHref).toBe("inventory");
+  });
+
+  it("ready + planning partial: primary asks to complete missing planning days", () => {
+    const guidance = resolveDemandFreshnessGuidance({
+      hasSalesHistory: true,
+      knownAvailableSkuCount: 20,
+      hasCurrentDayInventoryObservation: true,
+      hasCurrentDayMetrics: true,
+      hasPendingMetricWork: false,
+      grainAlignedKnownDemandCount: 20,
+      hasActivationScope: true,
+      asOfMetricDate: "2026-11-18",
+      planning: {
+        leadTimeDays: 7,
+        safetyStockDays: null,
+        reviewPeriodDays: 7,
+      },
+    });
+    expect(guidance.kind).toBe("ready");
+    expect(guidance.planningConfiguration).toBe("partial");
+    expect(guidance.primaryNextStep).toMatch(
+      /Complete lead time, safety-stock days, and review period/i,
+    );
+    expect(guidance.primaryNextStep).not.toMatch(/Configure planning inputs/i);
+    expect(guidance.detail).toMatch(/still unknown/i);
+    expect(guidance.detail).toMatch(/Commercial recommendations stay disabled/i);
+    expect(guidance.ctaLabel).toBe("Complete replenishment settings");
+    expect(guidance.ctaHref).toBe("inventory");
+  });
+
+  it("ready + planning complete: does not ask to configure planning or unlock commercial", () => {
+    const guidance = resolveDemandFreshnessGuidance({
+      hasSalesHistory: true,
+      knownAvailableSkuCount: 20,
+      hasCurrentDayInventoryObservation: true,
+      hasCurrentDayMetrics: true,
+      hasPendingMetricWork: false,
+      grainAlignedKnownDemandCount: 20,
+      hasActivationScope: true,
+      asOfMetricDate: "2026-11-18",
+      planning: {
+        leadTimeDays: 7,
+        safetyStockDays: 5,
+        reviewPeriodDays: 7,
+      },
+    });
+    expect(guidance.kind).toBe("ready");
+    expect(guidance.planningConfiguration).toBe("complete");
+    expect(guidance.primaryNextStep).toMatch(/Review cover and thresholds/i);
+    expect(guidance.primaryNextStep).toMatch(
+      /Commercial recommendations stay disabled until independently authorized/i,
+    );
+    expect(guidance.primaryNextStep).not.toMatch(/Configure planning/i);
+    expect(guidance.primaryNextStep).not.toMatch(
+      /Configure lead time|Complete lead time/i,
+    );
+    expect(guidance.detail).toMatch(/planning assumptions are set/i);
+    expect(guidance.detail).toMatch(/does not authorize commercial/i);
+    expect(guidance.ctaLabel).toBe("Review stock cover");
+    expect(guidance.ctaHref).toBe("inventory");
   });
 
   it("hides activate when scope is missing even if metrics need refresh", () => {

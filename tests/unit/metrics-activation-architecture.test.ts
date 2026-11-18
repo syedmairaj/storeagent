@@ -86,6 +86,15 @@ describe("merchant sales metrics activation architecture", () => {
     expect(freshness).toContain("Upload updated stock");
     expect(freshness).toContain("showActivateButton");
     expect(freshness).toContain("inventoryPlaceFreshnessKind");
+    expect(freshness).toContain("planningConfiguration");
+    expect(freshness).toContain("classifyMerchantPlanningConfiguration");
     expect(freshness).not.toContain("decideInventoryAction");
+    expect(freshness).not.toContain(
+      "Configure planning inputs before reorder thresholds unlock.",
+    );
+
+    expect(assess).toContain("asOfMetricDate: presence.primaryAsOfMetricDate");
+    expect(assess).toMatch(/inventoryPlaceFreshnessKind:[\s\S]*planning,/);
+    expect(panel).toContain("planning: readiness.presence.planning");
   });
 });

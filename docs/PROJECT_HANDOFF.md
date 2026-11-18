@@ -21,7 +21,7 @@ Data determines reality. Deterministic forecasting and inventory logic calculate
 |---|---|
 | Repository | StoreAgent.si |
 | Branch | `main` |
-| HEAD (verify) | Expect ≥ `d73790a` — DB drift prevention Phase 1; inventory/planning UX may still be dirty |
+| HEAD (verify) | Expect ≥ `457a516` — inventory/CSV/freshness/replenishment UX on main (drift Phase 1 ancestor `d73790a`) |
 | As-of | 2026-11-18 — local snapstore Inventory→Metrics→Planning acceptance COMPLETE; PE1.b.6b JWT still BLOCKED |
 | Hosted pin | `qlsqminsfdntpqdkhxjx` (trial; PE1 env class **Other** / Development & Testing per worksheet A2) |
 
@@ -97,7 +97,7 @@ Local implementation/testing committed on `main` through **`6136874`** (P1 → P
 
 ## 6. Next three engineering steps
 
-1. Owner-review then commit the **combined inventory/CSV/freshness/replenishment UX** dirty set (exclude `.tmp/`, SQL scratch, roadmap DOCX, unrelated docs). Local snapstore planning acceptance is already documented COMPLETE.
+1. Keep inventory ready-state banner truthful to persisted planning unknown/partial/complete; planning complete ≠ M7 commercial eligibility.
 2. **PE1.b.6b:** Complete A3 → A4 (LIMITED) → A6 → A1 on the owner worksheet; then LIMITED JWT matrix only. See `docs/M6_PE1_B6B_SESSION_HANDOVER.md`.
 3. Keep M5/forecast workers/cron/HTTP **OFF**; Shopify connector and multi-store owner acceptance remain separate gates — **not** implied by local CSV planning PASS.
 

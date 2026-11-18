@@ -77,6 +77,8 @@ describe("merchant inventory workflow UX", () => {
     expect(panel).toContain("aria-expanded");
     expect(panel).toContain("data-inventory-meta");
     expect(panel).toContain("data-inventory-source-kind");
+    expect(panel).toContain("data-planning-configuration");
+    expect(panel).toContain("planning: readiness.presence.planning");
     expect(panel).toContain("inventoryEvidenceSourceLabel");
     expect(panel).toContain("activationScopeBlockMessage");
     expect(panel).not.toContain("Refresh inventory");
@@ -84,6 +86,10 @@ describe("merchant inventory workflow UX", () => {
 
     const freshnessSource = read("lib/inventory-readiness/demand-freshness.ts");
     expect(freshnessSource).toContain("Upload updated stock");
+    expect(freshnessSource).toContain("classifyMerchantPlanningConfiguration");
+    expect(freshnessSource).not.toContain(
+      "Configure planning inputs before reorder thresholds unlock.",
+    );
   });
 
   it("keeps readiness summaries free of live-connector claims for CSV orgs", () => {

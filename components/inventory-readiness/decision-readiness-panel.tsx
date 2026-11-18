@@ -70,6 +70,7 @@ export function DecisionReadinessPanel({
     asOfMetricDate: readiness.presence.primaryAsOfMetricDate,
     inventoryPlaceFreshnessKind:
       readiness.presence.inventoryPlaceFreshnessKind,
+    planning: readiness.presence.planning,
   });
 
   const showActivate =
@@ -93,6 +94,9 @@ export function DecisionReadinessPanel({
       aria-labelledby="decision-readiness-heading"
       data-decision-readiness="true"
       data-demand-freshness={freshness.kind}
+      data-planning-configuration={
+        freshness.planningConfiguration ?? "n/a"
+      }
       data-show-activate={showActivate ? "true" : "false"}
       data-inventory-source={sourceLabel}
       data-inventory-source-kind={inventorySourceKind}
@@ -170,6 +174,9 @@ export function DecisionReadinessPanel({
             : "border-amber-200 bg-amber-50 text-amber-950",
         )}
         data-freshness-banner={freshness.kind}
+        data-planning-configuration={
+          freshness.planningConfiguration ?? "n/a"
+        }
       >
         <p className="text-sm font-semibold tracking-[-0.01em]">
           {freshness.headline}

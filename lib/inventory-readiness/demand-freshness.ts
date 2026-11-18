@@ -3,6 +3,15 @@
  * Pure — no I/O. Does not invent sales, stock, or commercial actions.
  */
 
+import {
+  classifyMerchantPlanningConfiguration,
+  type MerchantPlanningConfigurationKind,
+} from "@/lib/planning-inputs/merchant-copy";
+import {
+  EMPTY_MERCHANT_PLANNING_INPUTS,
+  type MerchantPlanningInputs,
+} from "@/lib/planning-inputs/types";
+
 export type DemandFreshnessKind =
   | "missing_sales"
   | "missing_inventory"
@@ -33,6 +42,11 @@ export type DemandFreshnessGuidance = {
     | "sales-import"
     | "inventory"
     | null;
+  /**
+   * Planning configuration only when demand freshness is `ready`.
+   * Null for earlier freshness gates. Complete planning ≠ commercial eligibility.
+   */
+  planningConfiguration: MerchantPlanningConfigurationKind | null;
 };
 
 export type DemandFreshnessInput = {
@@ -56,6 +70,12 @@ export type DemandFreshnessInput = {
     | "all_stale"
     | "mixed"
     | "unknown";
+  /**
+   * Durable merchant planning assumptions when demand is ready.
+   * Omitted / empty → treat as all unknown (fail closed toward configure).
+   * null day ≠ 0; never invent defaults.
+   */
+  planning?: MerchantPlanningInputs | null;
 };
 
 /**
@@ -64,6 +84,9 @@ export type DemandFreshnessInput = {
  * Order matters: sales → any stock → current-day stock → activate → ready.
  * Cover capability `ready` alone must not hide an eligible activate action
  * when pending work or non-current metrics remain.
+ *
+ * When demand is ready, primary copy follows persisted planning completeness
+ * without equating thresholds to production commercial eligibility.
  */
 export function resolveDemandFreshnessGuidance(
   input: DemandFreshnessInput,
@@ -84,6 +107,7 @@ export function resolveDemandFreshnessGuidance(
         "Import an inventory CSV with SKU and available quantity.",
       ctaLabel: "Import inventory",
       ctaHref: "inventory-import",
+      planningConfiguration: null,
     };
   }
 
@@ -98,6 +122,7 @@ export function resolveDemandFreshnessGuidance(
         "Import sales history CSV for the same store and location as your stock.",
       ctaLabel: "Import sales history",
       ctaHref: "sales-import",
+      planningConfiguration: null,
     };
   }
 
@@ -115,6 +140,7 @@ export function resolveDemandFreshnessGuidance(
         "Upload updated stock (append-only CSV observation) for each stale store and location, then activate demand metrics.",
       ctaLabel: "Upload updated stock",
       ctaHref: "inventory-import",
+      planningConfiguration: null,
     };
   }
 
@@ -138,6 +164,39 @@ export function resolveDemandFreshnessGuidance(
         : "Choose one authorized store and location (Import inventory / Import sales), then activate demand metrics. StoreAgent will not guess which place to authorize.",
       ctaLabel: null,
       ctaHref: null,
+      planningConfiguration: null,
+    };
+  }
+
+  const planning = input.planning ?? EMPTY_MERCHANT_PLANNING_INPUTS;
+  const planningConfiguration = classifyMerchantPlanningConfiguration(planning);
+  const demandDetail = `Current demand metrics match imported stock on ${asOfLabel} (${input.grainAlignedKnownDemandCount} position(s) with known velocity).`;
+
+  if (planningConfiguration === "all_blank") {
+    return {
+      kind: "ready",
+      showActivateButton: false,
+      headline: "Demand metrics are current",
+      detail: `${demandDetail} Planning assumptions are unknown — reorder thresholds stay locked. Commercial recommendations stay disabled.`,
+      primaryNextStep:
+        "Configure lead time, safety-stock days, and review period before reorder thresholds unlock.",
+      ctaLabel: "Configure replenishment settings",
+      ctaHref: "inventory",
+      planningConfiguration,
+    };
+  }
+
+  if (planningConfiguration === "partial") {
+    return {
+      kind: "ready",
+      showActivateButton: false,
+      headline: "Demand metrics are current",
+      detail: `${demandDetail} Some replenishment assumptions are still unknown — reorder thresholds stay locked until lead time, safety-stock days, and review period are all set. Commercial recommendations stay disabled.`,
+      primaryNextStep:
+        "Complete lead time, safety-stock days, and review period before reorder thresholds unlock.",
+      ctaLabel: "Complete replenishment settings",
+      ctaHref: "inventory",
+      planningConfiguration,
     };
   }
 
@@ -145,10 +204,11 @@ export function resolveDemandFreshnessGuidance(
     kind: "ready",
     showActivateButton: false,
     headline: "Demand metrics are current",
-    detail: `Current demand metrics match imported stock on ${asOfLabel} (${input.grainAlignedKnownDemandCount} position(s) with known velocity). Commercial recommendations stay disabled.`,
+    detail: `${demandDetail} Merchant planning assumptions are set for threshold math. This does not authorize commercial recommendations.`,
     primaryNextStep:
-      "Review cover below. Configure planning inputs before reorder thresholds unlock.",
+      "Review cover and thresholds below. Commercial recommendations stay disabled until independently authorized.",
     ctaLabel: "Review stock cover",
     ctaHref: "inventory",
+    planningConfiguration,
   };
 }
