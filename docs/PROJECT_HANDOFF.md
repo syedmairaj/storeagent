@@ -3,7 +3,7 @@
 Bootstrap for new ChatGPT / Cursor sessions.
 
 **Active PE1.b.6b continuity (read first for JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`  
-Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md`. Hosted 38→52 schema track: **CLOSED** at 52/52 (`docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually.
+Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md`. Hosted 38→52 schema track: **CLOSED** at 52/52 (`docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`). DB drift prevention Phase 1: `docs/DB_DRIFT_PREVENTION_PHASE1.md` (local checks PASS; Actions run **not** yet verified; JWT still BLOCKED). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually.
 
 ## 1. Thesis and non-negotiables
 
@@ -46,6 +46,7 @@ Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Com
 | M6 production persist/publish/eval | Code present | Local/tests | Row counts historically **0** | Activation **blocked** |
 | M7 decisions / approvals | Schema + contracts **partial** | Partial | Hosted S1–S14 schema **CLOSED** (52/52) | Merchant activation / create success **blocked** |
 | Hosted 38→52 migrations | Disk 52 | Disposable rehearse PASS | **CLOSED** 52/52; fingerprint MATCH | Ops activation **not** authorized |
+| DB drift prevention Phase 1 | Yes (file gates + workflow) | `check:migrations` + 8/8 unit PASS | Ledger dry-run owner-reported; Actions run **unverified**; RLS equivalence **unproven** | Disposable replay **not** implemented; JWT **BLOCKED**; auth `enable_signup` rename pending |
 | CSV → Shopify → Woo → Amazon | Product locked | — | — | Launch path open |
 | Billing / trial / ops | Partial docs/code | — | — | Paying launch **NO-GO** |
 

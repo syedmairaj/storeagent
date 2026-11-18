@@ -4,6 +4,8 @@
 
 **Mode:** Owner-authorized schema alignment only. Closing this track does **not** authorize workers, cron, JWT probes, production M7 create success, merchant approval unlock, or purchasing.
 
+Ongoing file-level migration integrity (Phase 1): `docs/DB_DRIFT_PREVENTION_PHASE1.md` — run `npm run check:migrations` before further migration work. Phase 1 does **not** re-prove this 38→52 hosted apply or RLS equivalence.
+
 **Pin:** `qlsqminsfdntpqdkhxjx` (`postgres`, PG 17.11)
 **Backup (pre-track):** `~/Library/Application Support/StoreAgent/backups/hosted-pre-38to52-20261110T164016Z/`
 **Foreign fingerprint (verified MATCH after close):** `59d7d64dbcc254544f04cdb81ccff699`

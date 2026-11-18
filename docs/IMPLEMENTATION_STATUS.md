@@ -32,3 +32,21 @@ Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 | S6 | Ambient `service_role` EXECUTE on first-store RPC | Explicit `REVOKE ALL … FROM service_role`; SHA `e312967f…` |
 
 Backup / disposable restore / batch rehearsal evidence lives under `~/Library/Application Support/StoreAgent/` (not committed). See runbook for paths and SHA manifest.
+
+## Database drift prevention — Phase 1 (2026-11-18)
+
+Authoritative detail: `docs/DB_DRIFT_PREVENTION_PHASE1.md`.
+
+| Field | Value |
+|---|---|
+| Implementation | **Complete** — integrity checker, `supabase/migrations.sha256`, `npm run check:migrations`, unit tests, `.github/workflows/db-drift-prevention.yml`, `[db.seed] enabled = false` |
+| Local checks | `check:migrations` **PASS**; migration-integrity unit tests **8/8 PASS** |
+| Disk / hosted ledger (owner-reported) | 52 migrations; versions aligned; `db push --remote --dry-run` → up to date |
+| GitHub Actions execution | **NOT YET VERIFIED** on GitHub |
+| Hosted schema/RLS equivalence | **NOT PROVEN** by this gate |
+| Disposable migration replay | **NOT IMPLEMENTED** |
+| Hosted JWT isolation (PE1.b.6b) | Still **BLOCKED** |
+| Auth config | `[auth.email|sms] enable_signup` deprecated (CLI v3) — **WARN only**; pending compatibility work; **not changed** |
+| Seed / merchant data | Local synthetic inventory/sales must **never** promote to production migrations, seeds, or hosted copies |
+
+**Phase 1 ≠ release unlock.** Workers/cron remain OFF; M7 production create and purchasing remain forbidden.

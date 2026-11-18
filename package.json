@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:actions": "playwright test tests/e2e/actions-acceptance.spec.ts",
     "test:e2e:auth": "playwright test --project=setup",
+    "check:migrations": "node scripts/check-migration-integrity.mjs",
     "check": "npm run typecheck && npm run lint && npm test && npm run build"
   },
   "dependencies": {

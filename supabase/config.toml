@@ -65,10 +65,13 @@ enabled = true
 schema_paths = []
 
 [db.seed]
-# If enabled, seeds the database after migrations during a db reset.
-enabled = true
+# Phase 1 drift gate: keep disabled until an intentional local-only seed exists.
+# Merchant inventory observations / synthetic sales must never ship as seeds.
+# db push does not apply seeds; db reset would — do not enable for production.
+enabled = false
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
+# Path retained for a future local-only seed; file is intentionally absent today.
 sql_paths = ["./seed.sql"]
 
 [db.network_restrictions]

@@ -1,0 +1,93 @@
+# Phase 1 — Database Drift Prevention (non-mutating)
+#
+# NEVER:
+# - connect to hosted Supabase / production
+# - mutate databases (push / reset / repair / config publish)
+# - require production secrets or service-role keys
+# - enable workers/cron/M7
+#
+# This workflow only inspects committed migration files and runs unit tests.
+
+name: db-drift-prevention
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/config.toml"
+      - "supabase/seed.sql"
+      - "scripts/check-migration-integrity.mjs"
+      - "supabase/migrations.sha256"
+      - "tests/unit/migration-integrity-gate.test.ts"
+      - "tests/unit/*schema*.test.ts"
+      - "tests/unit/*architecture*.test.ts"
+      - ".github/workflows/db-drift-prevention.yml"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/config.toml"
+      - "supabase/seed.sql"
+      - "supabase/migrations.sha256"
+      - "scripts/check-migration-integrity.mjs"
+      - "tests/unit/migration-integrity-gate.test.ts"
+      - ".github/workflows/db-drift-prevention.yml"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-drift-prevention-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  migration-integrity:
+    name: Migration integrity (no database)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Migration filename / duplicate / seed policy gate
+        run: npm run check:migrations
+
+      - name: Migration integrity unit tests
+        run: npx vitest run tests/unit/migration-integrity-gate.test.ts
+
+      - name: Schema architecture unit tests (file contracts)
+        run: |
+          npx vitest run \
+            tests/unit/foundation-schema-architecture.test.ts \
+            tests/unit/m2-inventory-snapshots-schema.test.ts \
+            tests/unit/m2-orders-demand-schema.test.ts \
+            tests/unit/m5-sku-daily-metrics-schema.test.ts \
+            tests/unit/m7-pb1h43-create-evidence-fence-schema.test.ts
+
+  # Phase 1 explicitly does NOT replay migrations against a database.
+  # A future job may use an ephemeral GitHub Actions Postgres service only —
+  # never the owner local stack (port 55322) and never hosted production.
+  migration-replay-deferred:
+    name: Migration replay (deferred)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Document deferral
+        run: |
+          echo "Migration replay against disposable CI Postgres is deferred."
+          echo "Existing disposable proofs (PB1.h.4.x) are owner-triggered and must leave the owner local stack untouched."
+          echo "See docs/DB_DRIFT_PREVENTION_PHASE1.md"
