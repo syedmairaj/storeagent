@@ -383,4 +383,34 @@ describe("M0.7 provider invariants", () => {
       ).toBe(false);
     }
   });
+
+  it("keeps Shopify-RO.1 normalizers out of metrics, forecasting, and M7 decision modules", () => {
+    const roots = [
+      "lib/metrics",
+      "lib/forecasting",
+      "lib/decision-engine",
+    ];
+
+    const forbidden = [
+      "shopify-ro.1-v1",
+      "normalizeShopifyProductPayload",
+      "normalizeShopifyInventoryLevelPayload",
+      "normalizeShopifyOrderPayload",
+      "mapShopifyRo1OrderStatus",
+      "displayFinancialStatus",
+    ];
+
+    for (const directory of roots) {
+      for (const file of allTypeScriptFiles(directory)) {
+        const source = read(file);
+
+        for (const term of forbidden) {
+          expect(
+            source.includes(term),
+            `${file} must not contain Shopify-RO.1 term ${term}`,
+          ).toBe(false);
+        }
+      }
+    }
+  });
 });

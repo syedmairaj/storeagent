@@ -16,11 +16,43 @@ import {
 } from "@/lib/providers/shopify/pagination";
 
 import {
+  mapShopifyRo1OrderStatus,
+} from "@/lib/providers/shopify/mapping";
+
+import {
   mapShopifyOrderStatus,
   mapShopifyPurchaseOrderStatus,
 } from "@/lib/providers/shopify/status";
 
+import {
+  SHOPIFY_RO1_ADAPTER_VERSION,
+} from "@/lib/providers/shopify/version";
+
 describe("Shopify provider boundary", () => {
+  it("pins Shopify-RO.1 adapter version", () => {
+    expect(SHOPIFY_RO1_ADAPTER_VERSION).toBe(
+      "shopify-ro.1-v1",
+    );
+  });
+
+  it("fails closed for unmapped RO.1 financial/fulfillment combinations", () => {
+    expect(
+      mapShopifyRo1OrderStatus({
+        financialStatus: "PAID",
+        fulfillmentStatus: "RESTOCKED",
+        cancelledAt: null,
+      }),
+    ).toBeNull();
+
+    expect(
+      mapShopifyRo1OrderStatus({
+        financialStatus: "UNKNOWN_ENUM",
+        fulfillmentStatus: "FULFILLED",
+        cancelledAt: null,
+      }),
+    ).toBeNull();
+  });
+
   it("preserves Shopify GIDs as opaque strings", () => {
     expect(
       normalizeShopifyGid(

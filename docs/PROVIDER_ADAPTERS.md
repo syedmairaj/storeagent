@@ -1221,6 +1221,33 @@ Equivalent commerce facts imported from Shopify and CSV should yield equivalent 
 Any Shopify normalization change capable of changing canonical output requires an adapter-version change.
 
 
+## Shopify-RO.1 closure guardrails (owner decisions)
+
+Shopify-RO.1 is offline Admin GraphQL fixture normalization only.
+
+Owner-accepted closure rules:
+
+1. Unknown or ambiguous Shopify financial/fulfillment/cancellation status
+   combinations quarantine. RO.1 does not accept them as canonical
+   `unknown` demand.
+
+2. Shopify InventoryLevel `incoming` maps only to
+   provider-observed incoming on the Shopify inventory candidate.
+   It is not trusted M0.4 `incoming-stock-v1` evidence and must not
+   authorize ROQ, inventory position, or M7 commercial actions.
+
+3. Offline fixture GraphQL shapes under
+   `tests/fixtures/shopify/ro1-v1/` are not Admin API-version-certified.
+   RO.2 transport work must validate against a pinned Shopify Admin API
+   version before live sync.
+
+Provider-specific `displayFinancialStatus` and
+`displayFulfillmentStatus` provenance may remain on Shopify order
+candidates inside `lib/providers/shopify/` for later binding/persistence.
+Those strings must not enter the canonical commerce domain or downstream
+engines as status vocabulary.
+
+
 ## M0.7.12 frozen provider invariants
 
 The complete M0.7 provider layer must satisfy the following invariants.

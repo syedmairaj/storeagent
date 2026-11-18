@@ -45,6 +45,7 @@ export type PlanningEvidencePresence = {
 /**
  * Trusted current-day incoming presence for readiness copy.
  * Snapshot CSV incomingQuantity is never counted here.
+ * Shopify-RO.1 provider-observed incoming is never counted here.
  */
 export type TrustedIncomingEvidencePresence = {
   /** Destination-scoped purchase_order_items exist for the org. */
