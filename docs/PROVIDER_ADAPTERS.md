@@ -1248,6 +1248,34 @@ Those strings must not enter the canonical commerce domain or downstream
 engines as status vocabulary.
 
 
+## Shopify-RO.2 read-only GraphQL transport
+
+Shopify-RO.2 pins Admin API version **`2026-10`** and defines an
+injectable, mocked, read-only GraphQL transport contract.
+
+Authoritative detail: `docs/SHOPIFY_RO2_TRANSPORT.md`.
+
+Owner rules for RO.2:
+
+1. Transport obtains raw provider pages only. Normalization remains RO.1
+   (or a later explicitly versioned normalizer). Binding and persistence
+   remain separate.
+2. No live Shopify network calls in the unit test suite. HTTP is
+   injectable. No Shopify SDK.
+3. No OAuth, credential storage, webhooks, SyncRun writes, workers,
+   cron, hosted JWT, or M7 activation under RO.2.
+4. Do not silently alter RO.1 mappings. Schema mismatches versus the
+   pinned API version are reported in `docs/SHOPIFY_RO2_TRANSPORT.md`
+   for owner review before any adapter-version bump.
+5. Cursor pagination remains opaque SyncRun provenance, never business
+   identity. Pagination loops and page caps fail closed.
+6. Throttling / cost-budget pacing and bounded retries are transport
+   concerns. Engines must not import Shopify transport modules.
+7. Nested `first:N` selections without nested `pageInfo` must never be
+   treated as complete SyncRun / full-catalog evidence. See
+   `docs/SHOPIFY_RO2_TRANSPORT.md` § Nested connection incompleteness.
+
+
 ## M0.7.12 frozen provider invariants
 
 The complete M0.7 provider layer must satisfy the following invariants.

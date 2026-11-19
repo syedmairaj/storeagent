@@ -218,4 +218,42 @@ describe("Shopify adapter architecture", () => {
     expect(version).toContain("shopify-ro.1-v1");
     expect(mapping).toContain("SHOPIFY_RO1_ADAPTER_VERSION");
   });
+
+  it("ships RO.2 injectable transport pinned to Admin API 2026-10 without SDK or global fetch", () => {
+    const requiredFiles = [
+      "lib/providers/shopify/api-version.ts",
+      "lib/providers/shopify/operations.ts",
+      "lib/providers/shopify/transport.ts",
+      "lib/providers/shopify/transport-types.ts",
+      "lib/providers/shopify/transport-errors.ts",
+      "lib/providers/shopify/transport-pagination.ts",
+      "docs/SHOPIFY_RO2_TRANSPORT.md",
+    ];
+
+    for (const file of requiredFiles) {
+      expect(fs.existsSync(path.join(ROOT, file))).toBe(true);
+    }
+
+    const apiVersion = read("lib/providers/shopify/api-version.ts");
+    const transport = read("lib/providers/shopify/transport.ts");
+    const adapters = read("docs/PROVIDER_ADAPTERS.md");
+
+    expect(apiVersion).toContain('SHOPIFY_ADMIN_API_VERSION = "2026-10"');
+    expect(transport).not.toContain("fetch(");
+    expect(transport).toContain("this.http.request");
+    expect(transport).toContain("ShopifyRo2TransportConfig");
+    expect(adapters).toContain("Shopify-RO.2 read-only GraphQL transport");
+    expect(adapters).toContain("Do not silently alter RO.1 mappings");
+    expect(adapters).toContain(
+      "Nested `first:N` selections without nested `pageInfo`",
+    );
+
+    const ro2Doc = read("docs/SHOPIFY_RO2_TRANSPORT.md");
+    expect(ro2Doc).toContain(
+      "Nested connection incompleteness (hard gate)",
+    );
+    expect(ro2Doc).toContain(
+      "never** be interpreted as a complete catalog",
+    );
+  });
 });
