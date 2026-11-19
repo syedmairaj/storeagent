@@ -213,4 +213,75 @@ describe("prioritize and filter intelligence rows", () => {
     expect(needs).not.toContain("OK");
     expect(needs).not.toContain("ZERO");
   });
+
+  it("filters out-of-stock, low cover, and high-cover review without inventing risk", () => {
+    const rows = [
+      ...sample,
+      row({
+        grainKey: "oos",
+        sku: "OOS",
+        coverStatus: "valid",
+        availableQuantity: 0,
+        daysOfStock: 0,
+      }),
+      row({
+        grainKey: "high",
+        sku: "HIGH",
+        coverStatus: "valid",
+        daysOfStock: 90,
+      }),
+      row({
+        grainKey: "unk-stock",
+        sku: "UNKSTOCK",
+        coverStatus: "unknown_stock",
+        availableQuantity: null,
+      }),
+    ];
+
+    expect(
+      filterIntelligenceRows(rows, "out_of_stock").map((item) => item.sku),
+    ).toEqual(["OOS"]);
+    expect(
+      filterIntelligenceRows(rows, "low_cover").map((item) => item.sku),
+    ).toEqual(["LOW", "OOS"]);
+    expect(
+      filterIntelligenceRows(rows, "high_cover_review").map((item) => item.sku),
+    ).toEqual(["HIGH"]);
+    expect(
+      filterIntelligenceRows(
+        [
+          ...rows,
+          row({
+            grainKey: "limited-valid",
+            sku: "LIM",
+            coverStatus: "valid",
+            daysOfStock: 20,
+            eligibleDays30d: 3,
+            salesVelocity30d: 1,
+          }),
+        ],
+        "limited_or_unknown",
+      ).map((item) => item.sku),
+    ).toEqual(["UNK", "UNKSTOCK", "LIM"]);
+
+    const withShort = [
+      ...rows,
+      row({
+        grainKey: "short",
+        sku: "SHORT",
+        coverStatus: "short_history",
+        daysOfStock: null,
+        salesVelocity30d: null,
+        eligibleDays30d: 0,
+      }),
+    ];
+    expect(
+      filterIntelligenceRows(withShort, "limited_history").map((item) => item.sku),
+    ).toContain("SHORT");
+    expect(
+      filterIntelligenceRows(withShort, "unknown_or_missing").map(
+        (item) => item.sku,
+      ),
+    ).not.toContain("SHORT");
+  });
 });

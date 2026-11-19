@@ -22,20 +22,29 @@ import { cn } from "@/lib/utils";
 const FILTERS: { id: InventoryIntelligenceFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "needs_attention", label: "Needs attention" },
-  { id: "valid_cover", label: "Known cover" },
-  { id: "pending_or_stale", label: "Pending / stale" },
+  { id: "out_of_stock", label: "Out of stock" },
+  { id: "low_cover", label: "Low cover" },
+  { id: "high_cover_review", label: "High cover review" },
+  { id: "limited_history", label: "Limited sales history" },
+  { id: "pending_or_stale", label: "Stale / pending" },
   { id: "unknown_or_missing", label: "Unknown demand" },
   { id: "zero_demand", label: "Zero demand" },
+  { id: "valid_cover", label: "Calculable cover" },
+  { id: "limited_or_unknown", label: "All data gaps" },
 ];
 
 export function InventoryIntelligenceWorkspace({
   rows,
+  initialFilter = "all",
 }: {
   rows: readonly MerchantInventoryIntelligenceRow[];
+  /** Deep-link from Overview attention signals. */
+  initialFilter?: InventoryIntelligenceFilter;
   /** @deprecated Pending copy lives on readiness freshness; kept optional for callers. */
   hasPendingMetricWork?: boolean;
 }) {
-  const [filter, setFilter] = useState<InventoryIntelligenceFilter>("all");
+  const [filter, setFilter] =
+    useState<InventoryIntelligenceFilter>(initialFilter);
 
   const visible = useMemo(
     () => filterIntelligenceRows(rows, filter),
@@ -49,6 +58,31 @@ export function InventoryIntelligenceWorkspace({
   const locationCount = useMemo(
     () => new Set(rows.map((row) => `${row.storeId}:${row.locationId}`)).size,
     [rows],
+  );
+
+  const staleOrPendingVisible = useMemo(
+    () =>
+      visible.some(
+        (row) =>
+          row.coverStatus === "stale" || row.coverStatus === "pending_freshness",
+      ),
+    [visible],
+  );
+
+  const limitedHistoryEverywhere = useMemo(
+    () =>
+      visible.length > 0 &&
+      visible.every(
+        (row) =>
+          row.coverStatus === "short_history" ||
+          (row.eligibleDays30d !== null &&
+            row.eligibleDays30d < 7 &&
+            (row.coverStatus === "valid" ||
+              row.coverStatus === "zero_demand" ||
+              row.coverStatus === "stale" ||
+              row.coverStatus === "pending_freshness")),
+      ),
+    [visible],
   );
 
   if (rows.length === 0) {
@@ -75,6 +109,30 @@ export function InventoryIntelligenceWorkspace({
         </p>
       </div>
 
+      {staleOrPendingVisible ? (
+        <div
+          className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950"
+          role="status"
+          data-inventory-stale-banner="true"
+        >
+          Cover is unavailable while stock or demand metrics are pending or
+          behind the store-local as-of date. Out-of-stock quantities below are
+          last recorded observations — not live availability.
+        </div>
+      ) : null}
+
+      {limitedHistoryEverywhere && !staleOrPendingVisible ? (
+        <div
+          className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-6 text-zinc-700"
+          role="status"
+          data-inventory-limited-history-banner="true"
+        >
+          Every visible position has limited sales history in the 30-day window
+          (sparse eligible days). This is not forecast confidence — row chips
+          stay collapsed while this filter context applies.
+        </div>
+      ) : null}
+
       <div
         className="flex flex-wrap gap-2"
         role="toolbar"
@@ -87,7 +145,7 @@ export function InventoryIntelligenceWorkspace({
             onClick={() => setFilter(item.id)}
             aria-pressed={filter === item.id}
             className={cn(
-              "inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-medium transition-colors",
+              "inline-flex min-h-11 items-center rounded-full border px-3 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-950",
               filter === item.id
                 ? "border-zinc-950 bg-zinc-950 text-white"
                 : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300",
@@ -136,7 +194,9 @@ export function InventoryIntelligenceWorkspace({
                     <div className="mt-1 space-y-1 text-[0.65rem] text-zinc-400 lg:hidden">
                       <div>
                         {statusLabel(row.coverStatus)}
-                        {isLimitedHistory(row) ? " · Limited history" : ""}
+                        {isLimitedHistory(row) && !limitedHistoryEverywhere
+                          ? " · Limited history"
+                          : ""}
                       </div>
                       <details data-mobile-evidence="true">
                         <summary className="cursor-pointer text-zinc-500 underline-offset-2 hover:underline">
@@ -161,11 +221,16 @@ export function InventoryIntelligenceWorkspace({
                       row.availableQuantity
                     )}
                     <div className="mt-0.5 text-[0.65rem] text-zinc-400">
-                      {formatObserved(row.observedAt)}
+                      {row.availableQuantity === 0
+                        ? `Last recorded ${formatObserved(row.observedAt)}`
+                        : formatObserved(row.observedAt)}
                     </div>
                   </td>
                   <td className="px-3 py-3 align-top sm:px-4">
-                    <VelocityCell row={row} />
+                    <VelocityCell
+                      row={row}
+                      suppressLimitedChip={limitedHistoryEverywhere}
+                    />
                   </td>
                   <td className="px-3 py-3 align-top sm:px-4">
                     <CoverCell row={row} />
@@ -199,17 +264,33 @@ export function InventoryIntelligenceWorkspace({
 }
 
 function isLimitedHistory(row: MerchantInventoryIntelligenceRow): boolean {
+  if (row.coverStatus === "short_history") {
+    return true;
+  }
+  if (row.eligibleDays30d === null || row.eligibleDays30d >= 7) {
+    return false;
+  }
   return (
-    row.eligibleDays30d !== null &&
-    row.eligibleDays30d < 7 &&
-    (row.coverStatus === "valid" ||
-      row.coverStatus === "zero_demand" ||
-      row.coverStatus === "short_history")
+    row.coverStatus === "valid" ||
+    row.coverStatus === "zero_demand" ||
+    row.coverStatus === "stale" ||
+    row.coverStatus === "pending_freshness"
   );
 }
 
-function VelocityCell({ row }: { row: MerchantInventoryIntelligenceRow }) {
+function VelocityCell({
+  row,
+  suppressLimitedChip = false,
+}: {
+  row: MerchantInventoryIntelligenceRow;
+  suppressLimitedChip?: boolean;
+}) {
   const limited = isLimitedHistory(row);
+  const showHistoryChip =
+    !suppressLimitedChip &&
+    (limited ||
+      row.coverStatus === "short_history" ||
+      (row.eligibleDays30d !== null && row.eligibleDays30d < 7));
 
   if (row.coverStatus === "zero_demand" || row.salesVelocity30d === 0) {
     return (
@@ -218,7 +299,7 @@ function VelocityCell({ row }: { row: MerchantInventoryIntelligenceRow }) {
         <div className="mt-0.5 text-[0.65rem] text-zinc-500">
           No sales in window
         </div>
-        {row.eligibleDays30d !== null ? (
+        {showHistoryChip && row.eligibleDays30d !== null ? (
           <LimitedHistoryBadge days={row.eligibleDays30d} emphasize={limited} />
         ) : null}
       </div>
@@ -234,9 +315,12 @@ function VelocityCell({ row }: { row: MerchantInventoryIntelligenceRow }) {
             ? "Not forecast confidence"
             : "Not treated as zero"}
         </div>
-        {row.eligibleDays30d !== null ? (
-          <LimitedHistoryBadge days={row.eligibleDays30d} emphasize />
-        ) : row.coverStatus === "short_history" ? (
+        {showHistoryChip && row.eligibleDays30d !== null ? (
+          <LimitedHistoryBadge
+            days={row.eligibleDays30d}
+            emphasize={limited || row.coverStatus === "short_history"}
+          />
+        ) : showHistoryChip && row.coverStatus === "short_history" ? (
           <LimitedHistoryBadge days={null} emphasize />
         ) : null}
       </div>
@@ -248,7 +332,7 @@ function VelocityCell({ row }: { row: MerchantInventoryIntelligenceRow }) {
       <div className="font-medium tabular-nums text-zinc-950">
         {formatVelocity(row.salesVelocity30d)} / day
       </div>
-      {row.eligibleDays30d !== null ? (
+      {showHistoryChip && row.eligibleDays30d !== null ? (
         <LimitedHistoryBadge
           days={row.eligibleDays30d}
           emphasize={limited}

@@ -52,4 +52,17 @@ export type InventoryIntelligenceFilter =
   | "valid_cover"
   | "unknown_or_missing"
   | "zero_demand"
-  | "pending_or_stale";
+  | "pending_or_stale"
+  /** Known available quantity === 0 (unknown stock excluded). */
+  | "out_of_stock"
+  /** Valid cover below the existing <14-day attention band. */
+  | "low_cover"
+  /** Valid cover at/above the presentation high-cover review band. */
+  | "high_cover_review"
+  /**
+   * Matches Overview limited/unknown attention: pending/stale/short/unknown
+   * statuses plus sparse eligible-days on valid/zero-demand rows.
+   */
+  | "limited_or_unknown"
+  /** Sparse eligible days only (not forecast confidence). */
+  | "limited_history";

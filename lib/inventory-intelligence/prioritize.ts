@@ -1,4 +1,12 @@
 import {
+  isHighCoverReview,
+  isKnownOutOfStock,
+  isLimitedHistoryEvidence,
+  isLimitedOrUnknownEvidence,
+  isLowCoverAttention,
+  LOW_COVER_ATTENTION_DAYS,
+} from "@/lib/inventory-intelligence/attention";
+import {
   coverPriorityRank,
 } from "@/lib/inventory-intelligence/classify-cover";
 import type {
@@ -25,17 +33,14 @@ export function filterIntelligenceRows(
         ) {
           return true;
         }
-        return (
-          row.coverStatus === "valid" &&
-          row.daysOfStock !== null &&
-          row.daysOfStock < 14
-        );
+        return isLowCoverAttention(row);
       });
     case "valid_cover":
       return rows.filter((row) => row.coverStatus === "valid");
     case "unknown_or_missing":
+      // Parity with Overview unknown_demand — short_history is limited_history only.
       return rows.filter((row) =>
-        ["unknown_demand", "unknown_stock", "missing_metric", "short_history"].includes(
+        ["unknown_demand", "unknown_stock", "missing_metric"].includes(
           row.coverStatus,
         ),
       );
@@ -45,6 +50,16 @@ export function filterIntelligenceRows(
       return rows.filter((row) =>
         ["pending_freshness", "stale"].includes(row.coverStatus),
       );
+    case "out_of_stock":
+      return rows.filter((row) => isKnownOutOfStock(row));
+    case "low_cover":
+      return rows.filter((row) => isLowCoverAttention(row));
+    case "high_cover_review":
+      return rows.filter((row) => isHighCoverReview(row));
+    case "limited_or_unknown":
+      return rows.filter((row) => isLimitedOrUnknownEvidence(row));
+    case "limited_history":
+      return rows.filter((row) => isLimitedHistoryEvidence(row));
   }
 }
 
@@ -59,11 +74,11 @@ export function prioritizeIntelligenceRows(
     const leftValidLow =
       left.coverStatus === "valid" &&
       left.daysOfStock !== null &&
-      left.daysOfStock < 14;
+      left.daysOfStock < LOW_COVER_ATTENTION_DAYS;
     const rightValidLow =
       right.coverStatus === "valid" &&
       right.daysOfStock !== null &&
-      right.daysOfStock < 14;
+      right.daysOfStock < LOW_COVER_ATTENTION_DAYS;
 
     if (leftValidLow !== rightValidLow) {
       return leftValidLow ? -1 : 1;

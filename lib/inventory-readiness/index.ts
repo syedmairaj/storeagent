@@ -24,6 +24,12 @@ export {
   type InventoryEvidenceSourceKind,
 } from "@/lib/inventory-readiness/inventory-source";
 export { loadMerchantDecisionReadiness } from "@/lib/inventory-readiness/load";
+export {
+  buildMerchantOverviewPresentation,
+  type MerchantOverviewPresentation,
+  type OverviewAttentionSignal,
+  type OverviewPrimaryCta,
+} from "@/lib/inventory-readiness/overview-presentation";
 export type {
   DecisionCapability,
   DecisionCapabilityStatus,
