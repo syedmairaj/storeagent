@@ -299,13 +299,23 @@ export function normalizeShopifyProductPayload(
 }
 
 /**
- * Normalize a Shopify Admin GraphQL ProductVariant node.
+ * Normalize a Shopify Admin GraphQL ProductVariant node (Admin API 2026-10).
  *
  * Requires product parent GID. SKU-less variants are intentionally skipped
  * (valid Shopify data outside StoreAgent V1 SKU scope).
+ *
+ * ProductVariant has no currency field on 2026-10. Selling-price currency
+ * must come from Shop.currencyCode (options.shopCurrencyCode). Invented
+ * presentment currency fields are rejected.
  */
 export function normalizeShopifyProductVariantPayload(
   payload: unknown,
+  options?: {
+    /**
+     * Shop.currencyCode from the Admin GraphQL shop root (RO.2 products query).
+     */
+    shopCurrencyCode?: string | null;
+  },
 ): ProviderNormalizationResult<ShopifyProductVariantCandidate> {
   const issues: ProviderNormalizationIssue[] = [];
 
@@ -430,31 +440,130 @@ export function normalizeShopifyProductVariantPayload(
     issues,
   );
 
+  // Reject fabricated presentment / variant currency fields on 2026-10 shapes.
+  if (
+    record.currency !== null &&
+    record.currency !== undefined
+  ) {
+    issues.push(
+      shopifyIssue(
+        "INVALID_CURRENCY",
+        "ProductVariant.currency is not a supported Admin API 2026-10 field; use Shop.currencyCode.",
+        "currency",
+      ),
+    );
+  }
+
+  if (
+    record.priceCurrencyCode !== null &&
+    record.priceCurrencyCode !== undefined
+  ) {
+    issues.push(
+      shopifyIssue(
+        "INVALID_CURRENCY",
+        "ProductVariant.priceCurrencyCode is not a supported Admin API 2026-10 field; use Shop.currencyCode.",
+        "priceCurrencyCode",
+      ),
+    );
+  }
+
   const currency = normalizeOptionalCurrency(
-    readOptionalShopifyString(record, "currency") ??
-      readOptionalShopifyString(record, "priceCurrencyCode"),
+    options?.shopCurrencyCode ?? null,
     issues,
   );
 
   if (sellingPriceAmount !== null && currency === null) {
     const alreadyInvalid = issues.some(
       (entry) =>
-        entry.field === "currency" &&
-        entry.code === "INVALID_CURRENCY",
+        (entry.field === "currency" ||
+          entry.field === "priceCurrencyCode" ||
+          entry.field === "shopCurrencyCode") &&
+        (entry.code === "INVALID_CURRENCY" ||
+          entry.code === "REQUIRED_FIELD_MISSING"),
     );
 
     if (!alreadyInvalid) {
       issues.push(
         shopifyIssue(
           "INVALID_CURRENCY",
-          "Shopify variant currency is required when price is supplied.",
-          "currency",
+          "Shopify variant selling-price currency requires Shop.currencyCode when price is supplied.",
+          "shopCurrencyCode",
         ),
       );
     }
   }
 
   const inventoryItemExternalId = readInventoryItemGid(record, issues);
+
+  // Optional unitCost MoneyV2 (supported) — never invent presentment currency.
+  let costAmount: DecimalString | null = null;
+  const inventoryItem = isShopifyRecord(record.inventoryItem)
+    ? record.inventoryItem
+    : null;
+
+  if (inventoryItem && inventoryItem.unitCost !== undefined && inventoryItem.unitCost !== null) {
+    if (!isShopifyRecord(inventoryItem.unitCost)) {
+      issues.push(
+        shopifyIssue(
+          "INVALID_MONEY",
+          "Shopify inventoryItem.unitCost must be a MoneyV2 object when present.",
+          "inventoryItem.unitCost",
+        ),
+      );
+    } else {
+      const amountRaw = inventoryItem.unitCost.amount;
+      const unitCurrencyRaw = inventoryItem.unitCost.currencyCode;
+
+      if (typeof amountRaw === "string") {
+        try {
+          const amount = normalizeProviderMoneyInput(amountRaw);
+
+          if (amount.startsWith("-")) {
+            issues.push(
+              shopifyIssue(
+                "INVALID_MONEY",
+                "Shopify inventoryItem.unitCost.amount must not be negative.",
+                "inventoryItem.unitCost.amount",
+              ),
+            );
+          } else {
+            costAmount = amount;
+          }
+        } catch {
+          issues.push(
+            shopifyIssue(
+              "INVALID_MONEY",
+              "Shopify inventoryItem.unitCost.amount must be a plain decimal string.",
+              "inventoryItem.unitCost.amount",
+            ),
+          );
+        }
+      } else if (amountRaw !== null && amountRaw !== undefined) {
+        issues.push(
+          shopifyIssue(
+            "INVALID_MONEY",
+            "Shopify inventoryItem.unitCost.amount must be an exact decimal string.",
+            "inventoryItem.unitCost.amount",
+          ),
+        );
+      }
+
+      if (
+        currency !== null &&
+        typeof unitCurrencyRaw === "string" &&
+        unitCurrencyRaw.trim() &&
+        unitCurrencyRaw.trim().toUpperCase() !== currency
+      ) {
+        issues.push(
+          shopifyIssue(
+            "INVALID_CURRENCY",
+            "Shopify inventoryItem.unitCost.currencyCode must match Shop.currencyCode when both are known.",
+            "inventoryItem.unitCost.currencyCode",
+          ),
+        );
+      }
+    }
+  }
 
   const createdAt = readOptionalShopifyString(record, "createdAt");
   const updatedAt = readOptionalShopifyString(record, "updatedAt");
@@ -497,7 +606,7 @@ export function normalizeShopifyProductVariantPayload(
       barcode: readOptionalShopifyString(record, "barcode"),
       title: readOptionalShopifyString(record, "title"),
       status,
-      costAmount: null,
+      costAmount,
       sellingPriceAmount,
       currency,
       inventoryItemExternalId,

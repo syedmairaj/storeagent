@@ -1,18 +1,41 @@
 /**
- * Versioned Shopify Admin GraphQL-shaped fixtures for Shopify-RO.1.
+ * Versioned Shopify Admin GraphQL-shaped fixtures for Shopify-RO.1.2.
  *
  * Offline only — no network, OAuth, SDK, or live API payloads.
  *
- * These shapes are NOT Admin API-version-certified. RO.2 must validate
- * against a pinned Shopify Admin API version before live sync.
+ * Schema-shape certified against pinned Admin API 2026-10 field contracts
+ * documented in docs/SHOPIFY_RO2_TRANSPORT.md. Residual limits:
+ * - Nested first:N connections remain incomplete SyncRun input without
+ *   independent nested pagination or explicit offline attestation.
+ * - These are offline fixture packs, not live shop response captures.
  */
+
+import {
+  SHOPIFY_ADMIN_API_VERSION,
+} from "@/lib/providers/shopify/api-version";
 
 /**
- * Fixture pack version only — not a Shopify Admin API version pin.
+ * Fixture pack version — tracks RO.1.2 adapter mapping identity.
  */
-export const SHOPIFY_RO1_FIXTURE_VERSION = "shopify-ro.1-v1" as const;
+export const SHOPIFY_RO1_FIXTURE_VERSION = "shopify-ro.1.2-v1" as const;
 
-export const SHOPIFY_RO1_FIXTURES_API_VERSION_CERTIFIED = false as const;
+/**
+ * Offline fixture shapes are aligned to pinned Admin API 2026-10.
+ * Nested connection completeness for SyncRun remains unattested.
+ */
+export const SHOPIFY_RO1_FIXTURES_API_VERSION_CERTIFIED = true as const;
+
+export const SHOPIFY_RO1_FIXTURES_PINNED_ADMIN_API_VERSION =
+  SHOPIFY_ADMIN_API_VERSION;
+
+/**
+ * Nested-page completeness is intentionally NOT certified for SyncRun.
+ */
+export const SHOPIFY_RO1_NESTED_CONNECTION_COMPLETENESS_CERTIFIED =
+  false as const;
+
+/** Shop root currency used with RO.2 products query / variant normalization. */
+export const shopifyRo1ShopCurrencyCode = "USD" as const;
 
 export const shopifyRo1ProductActive = {
   id: "gid://shopify/Product/1001",
@@ -24,13 +47,16 @@ export const shopifyRo1ProductActive = {
   updatedAt: "2026-10-08T09:15:00Z",
 } as const;
 
+/**
+ * ProductVariant has no currency field on 2026-10 — currency comes from
+ * Shop.currencyCode (see shopifyRo1ShopCurrencyCode).
+ */
 export const shopifyRo1VariantWithSku = {
   id: "gid://shopify/ProductVariant/2001",
   sku: "TB-500",
   barcode: "012345678905",
   title: "500ml",
   price: "19.99",
-  currency: "USD",
   createdAt: "2026-10-01T08:05:00Z",
   updatedAt: "2026-10-08T09:16:00Z",
   product: {
@@ -39,6 +65,10 @@ export const shopifyRo1VariantWithSku = {
   },
   inventoryItem: {
     id: "gid://shopify/InventoryItem/3001",
+    unitCost: {
+      amount: "8.50",
+      currencyCode: "USD",
+    },
   },
 } as const;
 
@@ -47,7 +77,6 @@ export const shopifyRo1VariantWithoutSku = {
   sku: null,
   title: "Default Title",
   price: "0.00",
-  currency: "USD",
   product: {
     id: "gid://shopify/Product/1001",
     status: "ACTIVE",
@@ -63,6 +92,9 @@ export const shopifyRo1LocationMain = {
   isActive: true,
 } as const;
 
+/**
+ * InventoryItem.variants connection (2026-10). Singular `variant` removed.
+ */
 export const shopifyRo1InventoryLevelComplete = {
   id: "gid://shopify/InventoryLevel/5001?inventory_item_id=3001&location_id=4001",
   updatedAt: "2026-10-11T12:00:00+04:00",
@@ -74,8 +106,14 @@ export const shopifyRo1InventoryLevelComplete = {
   ],
   item: {
     id: "gid://shopify/InventoryItem/3001",
-    variant: {
-      id: "gid://shopify/ProductVariant/2001",
+    variants: {
+      edges: [
+        {
+          node: {
+            id: "gid://shopify/ProductVariant/2001",
+          },
+        },
+      ],
     },
   },
   location: {
@@ -174,6 +212,30 @@ export const shopifyRo1OrderPaidRestockedAmbiguous = {
   displayFulfillmentStatus: "RESTOCKED",
 } as const;
 
+export const shopifyRo1OrderExpiredFinancial = {
+  ...shopifyRo1OrderPaidFulfilled,
+  id: "gid://shopify/Order/6007",
+  name: "#1007",
+  displayFinancialStatus: "EXPIRED",
+  displayFulfillmentStatus: "UNFULFILLED",
+} as const;
+
+export const shopifyRo1OrderFulfillmentNotRequired = {
+  ...shopifyRo1OrderPaidFulfilled,
+  id: "gid://shopify/Order/6008",
+  name: "#1008",
+  displayFinancialStatus: "PAID",
+  displayFulfillmentStatus: "FULFILLMENT_NOT_REQUIRED",
+} as const;
+
+export const shopifyRo1OrderRequestDeclined = {
+  ...shopifyRo1OrderPaidFulfilled,
+  id: "gid://shopify/Order/6009",
+  name: "#1009",
+  displayFinancialStatus: "PAID",
+  displayFulfillmentStatus: "REQUEST_DECLINED",
+} as const;
+
 export const shopifyRo1DraftOrderSkipped = {
   __typename: "DraftOrder",
   id: "gid://shopify/DraftOrder/7001",
@@ -185,14 +247,15 @@ export const shopifyRo1DraftOrderSkipped = {
   currencyCode: "USD",
 } as const;
 
+/**
+ * LineItem without invented location field (unsupported on 2026-10).
+ * Location comes from fulfillment-order line associations.
+ */
 export const shopifyRo1OrderLineItem = {
   id: "gid://shopify/LineItem/8001",
   quantity: 2,
   variant: {
     id: "gid://shopify/ProductVariant/2001",
-  },
-  location: {
-    id: "gid://shopify/Location/4001",
   },
   originalUnitPriceSet: {
     shopMoney: {
@@ -206,6 +269,66 @@ export const shopifyRo1OrderLineItem = {
       currencyCode: "USD",
     },
   },
+} as const;
+
+/**
+ * Fulfillment orders connection with line→LineItem association (2026-10).
+ * Nested pageInfo omitted (RO.2 bound) — incomplete SyncRun input unless attested.
+ */
+export const shopifyRo1OrderFulfillmentOrders = {
+  edges: [
+    {
+      node: {
+        id: "gid://shopify/FulfillmentOrder/9001",
+        status: "CLOSED",
+        assignedLocation: {
+          location: {
+            id: "gid://shopify/Location/4001",
+          },
+        },
+        lineItems: {
+          edges: [
+            {
+              node: {
+                id: "gid://shopify/FulfillmentOrderLineItem/9101",
+                lineItem: {
+                  id: "gid://shopify/LineItem/8001",
+                },
+                remainingQuantity: 0,
+                totalQuantity: 2,
+              },
+            },
+          ],
+        },
+      },
+    },
+  ],
+} as const;
+
+/** Truncated nested FO page — must not be accepted as complete sync input. */
+export const shopifyRo1OrderFulfillmentOrdersTruncated = {
+  edges: shopifyRo1OrderFulfillmentOrders.edges,
+  pageInfo: {
+    hasNextPage: true,
+    endCursor: "opaque-fo-cursor-1",
+  },
+} as const;
+
+/** assignedLocation present without lineItems — must not infer line location. */
+export const shopifyRo1FulfillmentOrderAssignedLocationOnly = {
+  edges: [
+    {
+      node: {
+        id: "gid://shopify/FulfillmentOrder/9002",
+        status: "OPEN",
+        assignedLocation: {
+          location: {
+            id: "gid://shopify/Location/4001",
+          },
+        },
+      },
+    },
+  ],
 } as const;
 
 export const shopifyRo1Adversarial = {
@@ -223,8 +346,14 @@ export const shopifyRo1Adversarial = {
     quantities: [{ name: "available", quantity: 5 }],
     item: {
       id: "gid://shopify/InventoryItem/3001",
-      variant: {
-        id: "gid://shopify/ProductVariant/2001",
+      variants: {
+        edges: [
+          {
+            node: {
+              id: "gid://shopify/ProductVariant/2001",
+            },
+          },
+        ],
       },
     },
   },
@@ -233,12 +362,73 @@ export const shopifyRo1Adversarial = {
     quantities: [{ name: "available", quantity: 1.5 }],
     item: {
       id: "gid://shopify/InventoryItem/3001",
+      variants: {
+        edges: [
+          {
+            node: {
+              id: "gid://shopify/ProductVariant/2001",
+            },
+          },
+        ],
+      },
+    },
+    location: {
+      id: "gid://shopify/Location/4001",
+    },
+  },
+  inventoryDeprecatedSingularVariant: {
+    updatedAt: "2026-10-11T12:00:00Z",
+    quantities: [{ name: "available", quantity: 5 }],
+    item: {
+      id: "gid://shopify/InventoryItem/3001",
       variant: {
         id: "gid://shopify/ProductVariant/2001",
       },
     },
     location: {
       id: "gid://shopify/Location/4001",
+    },
+  },
+  inventoryMultipleVariants: {
+    updatedAt: "2026-10-11T12:00:00Z",
+    quantities: [{ name: "available", quantity: 5 }],
+    item: {
+      id: "gid://shopify/InventoryItem/3001",
+      variants: {
+        edges: [
+          { node: { id: "gid://shopify/ProductVariant/2001" } },
+          { node: { id: "gid://shopify/ProductVariant/2002" } },
+        ],
+      },
+    },
+    location: {
+      id: "gid://shopify/Location/4001",
+    },
+  },
+  variantWithFabricatedCurrency: {
+    id: "gid://shopify/ProductVariant/2099",
+    sku: "FAB-CUR",
+    price: "10.00",
+    currency: "USD",
+    product: {
+      id: "gid://shopify/Product/1001",
+      status: "ACTIVE",
+    },
+  },
+  orderLineItemWithInventedLocation: {
+    id: "gid://shopify/LineItem/8099",
+    quantity: 1,
+    variant: {
+      id: "gid://shopify/ProductVariant/2001",
+    },
+    location: {
+      id: "gid://shopify/Location/4001",
+    },
+    originalUnitPriceSet: {
+      shopMoney: {
+        amount: "19.99",
+        currencyCode: "USD",
+      },
     },
   },
   orderFloatingMoney: {

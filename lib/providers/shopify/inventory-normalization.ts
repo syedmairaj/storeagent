@@ -29,6 +29,7 @@ import {
 
 import {
   isShopifyRecord,
+  readShopifyConnectionNodes,
   readShopifyNestedObject,
   readShopifyPayloadObject,
   requireShopifyString,
@@ -267,17 +268,55 @@ export function normalizeShopifyInventoryLevelPayload(
         "Shopify inventory item id must be a valid InventoryItem GID.",
       );
 
-      const variant = readShopifyNestedObject(
-        item,
-        "variant",
-        issues,
-        true,
-        "Shopify inventory item requires a ProductVariant relationship.",
-      );
+      // Admin API 2026-10: InventoryItem.variant (singular) is deprecated.
+      // Require the supported variants connection with explicit cardinality.
+      if (item.variant !== null && item.variant !== undefined) {
+        issues.push(
+          shopifyIssue(
+            "RELATIONSHIP_UNRESOLVED",
+            "InventoryItem.variant (singular) is deprecated on Admin API 2026-10; use the variants connection.",
+            "item.variant",
+          ),
+        );
+      }
 
-      if (variant) {
+      const variantNodes = readShopifyConnectionNodes(item, "variants");
+
+      if (variantNodes === null) {
+        issues.push(
+          shopifyIssue(
+            "RELATIONSHIP_UNRESOLVED",
+            "Shopify inventory item requires a ProductVariant via the variants connection.",
+            "item.variants",
+          ),
+        );
+      } else if (variantNodes.length === 0) {
+        issues.push(
+          shopifyIssue(
+            "RELATIONSHIP_UNRESOLVED",
+            "Shopify inventory item variants connection is empty.",
+            "item.variants",
+          ),
+        );
+      } else if (variantNodes.length > 1) {
+        issues.push(
+          shopifyIssue(
+            "AMBIGUOUS_INVENTORY_SEMANTICS",
+            "Shopify inventory item variants connection returned multiple ProductVariant nodes — cardinality is ambiguous for RO.1.2.",
+            "item.variants",
+          ),
+        );
+      } else if (!isShopifyRecord(variantNodes[0])) {
+        issues.push(
+          shopifyIssue(
+            "RELATIONSHIP_UNRESOLVED",
+            "Shopify inventory item variants connection node must be an object.",
+            "item.variants",
+          ),
+        );
+      } else {
         variantExternalId = readRequiredGid(
-          variant,
+          variantNodes[0],
           "id",
           "ProductVariant",
           issues,

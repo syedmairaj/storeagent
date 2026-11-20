@@ -26,6 +26,7 @@ import {
 import {
   normalizeShopifyOrderLineItemPayload,
   normalizeShopifyOrderPayload,
+  resolveShopifyOrderLineItemLocations,
 } from "@/lib/providers/shopify/order-normalization";
 
 import {
@@ -46,6 +47,7 @@ import {
   shopifyRo1InventoryLevelZeroAvailable,
   shopifyRo1LocationMain,
   shopifyRo1OrderCancelled,
+  shopifyRo1OrderFulfillmentOrders,
   shopifyRo1OrderLineItem,
   shopifyRo1OrderPaidFulfilled,
   shopifyRo1OrderPaidRestockedAmbiguous,
@@ -53,13 +55,14 @@ import {
   shopifyRo1OrderRefunded,
   shopifyRo1OrderUnknownFinancial,
   shopifyRo1ProductActive,
+  shopifyRo1ShopCurrencyCode,
   shopifyRo1VariantWithSku,
   shopifyRo1VariantWithoutSku,
 } from "@/tests/fixtures/shopify/ro1-v1/payloads";
 
-describe("Shopify-RO.1 offline normalization", () => {
+describe("Shopify-RO.1.2 offline normalization", () => {
   it("exposes a frozen adapter version and resource mapping", () => {
-    expect(SHOPIFY_RO1_ADAPTER_VERSION).toBe("shopify-ro.1-v1");
+    expect(SHOPIFY_RO1_ADAPTER_VERSION).toBe("shopify-ro.1.2-v1");
     expect(
       SHOPIFY_RO1_RESOURCE_MAPPING.adapterVersion,
     ).toBe(SHOPIFY_RO1_ADAPTER_VERSION);
@@ -89,9 +92,10 @@ describe("Shopify-RO.1 offline normalization", () => {
     );
   });
 
-  it("normalizes variant identity with opaque GIDs and inventory item provenance", () => {
+  it("normalizes variant identity with opaque GIDs and Shop.currencyCode", () => {
     const result = normalizeShopifyProductVariantPayload(
       shopifyRo1VariantWithSku,
+      { shopCurrencyCode: shopifyRo1ShopCurrencyCode },
     );
 
     expect(result.disposition).toBe("accepted");
@@ -112,12 +116,13 @@ describe("Shopify-RO.1 offline normalization", () => {
     expect(result.canonical.inventoryItemExternalId).toBe(
       "gid://shopify/InventoryItem/3001",
     );
-    expect(result.canonical.costAmount).toBeNull();
+    expect(result.canonical.costAmount).toBe("8.5");
   });
 
   it("skips SKU-less variants as valid out-of-scope records", () => {
     const result = normalizeShopifyProductVariantPayload(
       shopifyRo1VariantWithoutSku,
+      { shopCurrencyCode: shopifyRo1ShopCurrencyCode },
     );
 
     expect(result.disposition).toBe("skipped");
@@ -324,10 +329,26 @@ describe("Shopify-RO.1 offline normalization", () => {
     expect(result.disposition).toBe("skipped");
   });
 
-  it("normalizes order line items with opaque LineItem and variant GIDs", () => {
+  it("resolves line location via fulfillment-order associations, not LineItem.location", () => {
+    const locations = resolveShopifyOrderLineItemLocations({
+      fulfillmentOrders: shopifyRo1OrderFulfillmentOrders,
+      nestedCompletenessAttestation: { nestedChildrenComplete: true },
+    });
+
+    expect(
+      locations.locationsByLineItemGid.get(
+        "gid://shopify/LineItem/8001",
+      ),
+    ).toBe("gid://shopify/Location/4001");
+
     const result = normalizeShopifyOrderLineItemPayload(
       shopifyRo1OrderLineItem,
       "gid://shopify/Order/6001",
+      {
+        resolvedLocationExternalId: locations.locationsByLineItemGid.get(
+          "gid://shopify/LineItem/8001",
+        ),
+      },
     );
 
     expect(result.disposition).toBe("accepted");
@@ -343,6 +364,21 @@ describe("Shopify-RO.1 offline normalization", () => {
     expect(result.canonical.locationExternalId).toBe(
       "gid://shopify/Location/4001",
     );
+  });
+
+  it("accepts line items without location when FO association is absent", () => {
+    const result = normalizeShopifyOrderLineItemPayload(
+      shopifyRo1OrderLineItem,
+      "gid://shopify/Order/6001",
+    );
+
+    expect(result.disposition).toBe("accepted");
+
+    if (result.disposition !== "accepted") {
+      return;
+    }
+
+    expect(result.canonical.locationExternalId).toBeNull();
   });
 
   it("quarantines adversarial malformed Shopify payloads", () => {
@@ -367,6 +403,32 @@ describe("Shopify-RO.1 offline normalization", () => {
     expect(
       normalizeShopifyInventoryLevelPayload(
         shopifyRo1Adversarial.inventoryFloatMoneyQuantity,
+      ).disposition,
+    ).toBe("quarantined");
+
+    expect(
+      normalizeShopifyInventoryLevelPayload(
+        shopifyRo1Adversarial.inventoryDeprecatedSingularVariant,
+      ).disposition,
+    ).toBe("quarantined");
+
+    expect(
+      normalizeShopifyInventoryLevelPayload(
+        shopifyRo1Adversarial.inventoryMultipleVariants,
+      ).disposition,
+    ).toBe("quarantined");
+
+    expect(
+      normalizeShopifyProductVariantPayload(
+        shopifyRo1Adversarial.variantWithFabricatedCurrency,
+        { shopCurrencyCode: "USD" },
+      ).disposition,
+    ).toBe("quarantined");
+
+    expect(
+      normalizeShopifyOrderLineItemPayload(
+        shopifyRo1Adversarial.orderLineItemWithInventedLocation,
+        "gid://shopify/Order/6001",
       ).disposition,
     ).toBe("quarantined");
 

@@ -79,7 +79,8 @@ export const SHOPIFY_RO1_RESOURCE_MAPPING = {
   >,
 
   /**
-   * Known Shopify displayFinancialStatus enum values for RO.1.
+   * Known Shopify displayFinancialStatus enum values for RO.1.2 / 2026-10.
+   * EXPIRED is recognized so ambiguity quarantines explicitly (not “unknown”).
    */
   knownFinancialStatuses: [
     "PENDING",
@@ -89,11 +90,14 @@ export const SHOPIFY_RO1_RESOURCE_MAPPING = {
     "PARTIALLY_REFUNDED",
     "REFUNDED",
     "VOIDED",
+    "EXPIRED",
   ] as const,
 
   /**
-   * Known Shopify displayFulfillmentStatus enum values for RO.1.
+   * Known Shopify displayFulfillmentStatus enum values for RO.1.2 / 2026-10.
    * null is permitted by Shopify when fulfillment is unset.
+   * FULFILLMENT_NOT_REQUIRED and REQUEST_DECLINED are recognized and
+   * quarantined conservatively (never guessed into demand truth).
    */
   knownFulfillmentStatuses: [
     "UNFULFILLED",
@@ -105,6 +109,18 @@ export const SHOPIFY_RO1_RESOURCE_MAPPING = {
     "IN_PROGRESS",
     "ON_HOLD",
     "SCHEDULED",
+    "FULFILLMENT_NOT_REQUIRED",
+    "REQUEST_DECLINED",
+  ] as const,
+
+  /**
+   * Statuses that are schema-known on 2026-10 but intentionally unsupported
+   * for canonical mapping — always quarantine.
+   */
+  quarantineFinancialStatuses: ["EXPIRED"] as const,
+  quarantineFulfillmentStatuses: [
+    "FULFILLMENT_NOT_REQUIRED",
+    "REQUEST_DECLINED",
   ] as const,
 } as const;
 
@@ -146,6 +162,15 @@ export function mapShopifyRo1OrderStatus(input: {
     return null;
   }
 
+  if (
+    (
+      SHOPIFY_RO1_RESOURCE_MAPPING.quarantineFinancialStatuses as readonly string[]
+    ).includes(financial)
+  ) {
+    // EXPIRED is schema-known on 2026-10 — quarantine; do not invent cancelled/refunded.
+    return null;
+  }
+
   const fulfillment =
     input.fulfillmentStatus;
 
@@ -155,6 +180,16 @@ export function mapShopifyRo1OrderStatus(input: {
       SHOPIFY_RO1_RESOURCE_MAPPING.knownFulfillmentStatuses as readonly string[]
     ).includes(fulfillment)
   ) {
+    return null;
+  }
+
+  if (
+    fulfillment !== null &&
+    (
+      SHOPIFY_RO1_RESOURCE_MAPPING.quarantineFulfillmentStatuses as readonly string[]
+    ).includes(fulfillment)
+  ) {
+    // FULFILLMENT_NOT_REQUIRED / REQUEST_DECLINED — quarantine ambiguity.
     return null;
   }
 

@@ -393,6 +393,7 @@ describe("M0.7 provider invariants", () => {
 
     const forbidden = [
       "shopify-ro.1-v1",
+      "shopify-ro.1.2-v1",
       "normalizeShopifyProductPayload",
       "normalizeShopifyInventoryLevelPayload",
       "normalizeShopifyOrderPayload",

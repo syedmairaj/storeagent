@@ -29,9 +29,9 @@ import {
 } from "@/lib/providers/shopify/version";
 
 describe("Shopify provider boundary", () => {
-  it("pins Shopify-RO.1 adapter version", () => {
+  it("pins Shopify-RO.1.2 adapter version", () => {
     expect(SHOPIFY_RO1_ADAPTER_VERSION).toBe(
-      "shopify-ro.1-v1",
+      "shopify-ro.1.2-v1",
     );
   });
 

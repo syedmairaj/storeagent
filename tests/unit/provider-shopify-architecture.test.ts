@@ -191,19 +191,24 @@ describe("Shopify adapter architecture", () => {
     );
     expect(adapters).toContain("quarantine");
     expect(adapters).toContain("provider-observed");
-    expect(adapters).toContain("not Admin API-version-certified");
+    expect(adapters).toContain("Shopify-RO.1.2");
     expect(adapters).toContain("displayFinancialStatus");
     expect(fixtures).toContain(
-      "SHOPIFY_RO1_FIXTURES_API_VERSION_CERTIFIED = false",
+      "SHOPIFY_RO1_FIXTURES_API_VERSION_CERTIFIED = true",
     );
+    expect(fixtures).toContain(
+      "SHOPIFY_RO1_NESTED_CONNECTION_COMPLETENESS_CERTIFIED",
+    );
+    expect(fixtures).toContain("false as const");
   });
 
-  it("ships versioned RO.1 normalizers and fixtures without network transport", () => {
+  it("ships versioned RO.1.2 normalizers and fixtures without network transport", () => {
     const requiredFiles = [
       "lib/providers/shopify/mapping.ts",
       "lib/providers/shopify/product-normalization.ts",
       "lib/providers/shopify/inventory-normalization.ts",
       "lib/providers/shopify/order-normalization.ts",
+      "lib/providers/shopify/nested-completeness.ts",
       "lib/providers/shopify/duplicate-analysis.ts",
       "tests/fixtures/shopify/ro1-v1/payloads.ts",
     ];
@@ -214,9 +219,21 @@ describe("Shopify adapter architecture", () => {
 
     const version = read("lib/providers/shopify/version.ts");
     const mapping = read("lib/providers/shopify/mapping.ts");
+    const order = read("lib/providers/shopify/order-normalization.ts");
+    const inventory = read(
+      "lib/providers/shopify/inventory-normalization.ts",
+    );
 
-    expect(version).toContain("shopify-ro.1-v1");
+    expect(version).toContain("shopify-ro.1.2-v1");
     expect(mapping).toContain("SHOPIFY_RO1_ADAPTER_VERSION");
+    expect(mapping).toContain("EXPIRED");
+    expect(mapping).toContain("FULFILLMENT_NOT_REQUIRED");
+    expect(mapping).toContain("REQUEST_DECLINED");
+    expect(order).toContain("resolveShopifyOrderLineItemLocations");
+    expect(order).toContain("LineItem.location is unsupported");
+    expect(inventory).toContain("variants connection");
+    expect(inventory).toContain("InventoryItem.variant (singular) is deprecated");
+    expect(inventory).toContain('readShopifyConnectionNodes(item, "variants")');
   });
 
   it("ships RO.2 injectable transport pinned to Admin API 2026-10 without SDK or global fetch", () => {
@@ -243,7 +260,7 @@ describe("Shopify adapter architecture", () => {
     expect(transport).toContain("this.http.request");
     expect(transport).toContain("ShopifyRo2TransportConfig");
     expect(adapters).toContain("Shopify-RO.2 read-only GraphQL transport");
-    expect(adapters).toContain("Do not silently alter RO.1 mappings");
+    expect(adapters).toContain("Shopify-RO.1.2");
     expect(adapters).toContain(
       "Nested `first:N` selections without nested `pageInfo`",
     );

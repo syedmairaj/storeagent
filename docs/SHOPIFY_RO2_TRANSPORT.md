@@ -3,7 +3,7 @@
 **As-of:** 2026-11-18
 **Transport version:** `shopify-ro.2-v1`
 **Pinned Admin API version:** `2026-10`
-**Baseline:** RO.1 offline normalizers at `0072a04` (`shopify-ro.1-v1`)
+**Baseline:** RO.1.2 offline normalizers (`shopify-ro.1.2-v1`) aligned to Admin API `2026-10`
 
 ## Scope
 
@@ -22,7 +22,7 @@ RO.2 does **not**:
 - perform OAuth or store credentials
 - call live Shopify endpoints from the repo test suite
 - write to the database / SyncRun
-- change RO.1 normalizer mappings
+- change normalizer mappings without an adapter-version bump
 - enable workers/cron/JWT/M7
 - alter the canonical engine
 
@@ -32,7 +32,7 @@ RO.2 does **not**:
 injectable HTTP
   -> ShopifyRo2GraphqlTransport (this milestone)
   -> raw GraphQL page nodes (unknown / provider-observed)
-  -> RO.1 normalizers (unchanged)
+  -> RO.1.2 normalizers (shopify-ro.1.2-v1 / 2026-10 shapes)
   -> binding / persistence (later)
   -> canonical domain / metrics / forecast / decisions
 ```
@@ -134,43 +134,49 @@ Official schema pages consulted (no live shop calls):
 | ProductVariant.price is a shop-currency decimal scalar | **OK** (type `Money!`) |
 | Location.isActive | **OK** |
 
-### Required RO.1 mapping / fixture changes (NOT applied in RO.2)
+### RO.1.2 mapping / fixture alignment (applied offline)
 
-RO.2 does **not** silently alter RO.1. Owner review required before changing `shopify-ro.1-v1`:
+Shopify-RO.1.2 (`shopify-ro.1.2-v1`) applies the 2026-10 compatibility
+updates below. RO.2 transport documents remain the query contract;
+normalizers now consume the same shapes offline.
 
-1. **Order line location**
-   Admin API `LineItem` has **no** `location` field on `2026-10`.
-   RO.1 fixtures/normalizer accept `lineItem.location.id`.
-   Live transport must derive location from
-   `Order.fulfillmentOrders[].assignedLocation.location.id` joined through
+1. **Order line location** — **DONE (RO.1.2)**
+   `LineItem.location` is rejected. Location comes only from
+   `resolveShopifyOrderLineItemLocations` via FO
+   `assignedLocation.location` **joined through**
    `fulfillmentOrder.lineItems[].lineItem.id`.
-   **Action:** redesign RO.1 order-line location provenance (adapter version bump).
+   `assignedLocation` alone never stamps sales lines.
 
-2. **Variant currency field**
-   `ProductVariant` has no `currency` / `priceCurrencyCode` field.
-   Currency is shop default (`Shop.currencyCode`) or MoneyV2 on `inventoryItem.unitCost`.
-   RO.1 fixtures invent `currency` beside `price`.
-   **Action:** transport should supply shop currency alongside variant payloads before normalization; bump RO.1 if payload contract changes.
+2. **Variant currency field** — **DONE (RO.1.2)**
+   Selling-price currency requires `Shop.currencyCode`
+   (`normalizeShopifyProductVariantPayload(..., { shopCurrencyCode })`).
+   Fabricated `currency` / `priceCurrencyCode` fields quarantine.
+   Optional `inventoryItem.unitCost` MoneyV2 is accepted when present.
 
-3. **Financial status `EXPIRED`**
-   `OrderDisplayFinancialStatus` includes `EXPIRED` (not in RO.1 known list → quarantine today).
-   **Action:** decide explicit mapping or keep fail-closed quarantine; document in mapping bump.
+3. **Financial status `EXPIRED`** — **DONE (RO.1.2)**
+   Recognized on the known list and **quarantined** conservatively
+   (no invented cancelled/refunded mapping).
 
 4. **Fulfillment statuses `FULFILLMENT_NOT_REQUIRED`, `REQUEST_DECLINED`**
-   Present on `2026-10`; absent from RO.1 known list → quarantine.
-   **Action:** decide mapping vs quarantine; bump adapter version if accepted.
+   — **DONE (RO.1.2)**
+   Recognized and **quarantined** conservatively.
 
 5. **InventoryLevel.quantities argument**
-   Schema requires `names: [String!]!`. Fixtures are post-selection shapes (OK offline) but are **not** live-query certified until consumers use RO.2 operations.
+   Schema requires `names: [String!]!` in live queries (RO.2). Offline
+   fixtures remain post-selection named quantity arrays.
 
-6. **InventoryItem.variant (singular) is deprecated on 2026-10**
-   Prefer `InventoryItem.variants` connection. RO.2 transport queries `variants(first: 1)`.
-   RO.1 fixtures still use `item.variant { id }` offline shapes.
-   **Action:** when certifying fixtures, accept `variants.edges[0].node` (or keep a
-   compatibility reader) and bump adapter version if canonical candidate construction changes.
+6. **InventoryItem.variant (singular)** — **DONE (RO.1.2)**
+   Deprecated singular `variant` is rejected. Require
+   `variants` connection with **exactly one** ProductVariant node;
+   0 or >1 quarantines.
 
-7. **RO.1 fixtures remain uncertified as live response packs**
-   `SHOPIFY_RO1_FIXTURES_API_VERSION_CERTIFIED = false` stays false until a follow-up certifies fixture packs against `2026-10` after the mapping changes above.
+7. **Fixture certification limits**
+   `SHOPIFY_RO1_FIXTURES_API_VERSION_CERTIFIED = true` for offline
+   2026-10 **schema-shape** packs.
+   `SHOPIFY_RO1_NESTED_CONNECTION_COMPLETENESS_CERTIFIED = false` —
+   nested `first:N` pages remain incomplete SyncRun input without
+   attestation / nested pagination.
+   Still **not** live shop response packs (no network/OAuth).
 
 ## Credentials / network policy
 
@@ -212,8 +218,9 @@ This gate is regression-tested in
 
 ## Next acceptance gates (owner)
 
-1. Review required RO.1 changes listed above; authorize adapter-version bump plan.
-2. Certify RO.1 fixture packs against `2026-10` after mapping updates.
+1. Shopify-RO.1.2 offline schema compatibility — **DONE** (`shopify-ro.1.2-v1`).
+2. Nested connection pagination (or durable incomplete attestation) before
+   SyncRun “complete” claims — still **blocked**.
 3. Separate milestone: OAuth / secure credential storage (still blocked).
 4. Separate milestone: SyncRun persistence + incremental cursors — **blocked**
    on nested connection incompleteness hard gate above until resolved.

@@ -48,8 +48,15 @@ import {
 } from "./money";
 
 import {
+  assessShopifyConnectionCompleteness,
+  refuseIncompleteNestedSyncInput,
+  type ShopifyNestedCompletenessAttestation,
+} from "./nested-completeness";
+
+import {
   isShopifyRecord,
   readOptionalShopifyString,
+  readShopifyConnectionNodes,
   readShopifyNestedObject,
   readShopifyPayloadObject,
   requireShopifyString,
@@ -63,6 +70,241 @@ import type {
 import {
   SHOPIFY_RO1_ADAPTER_VERSION,
 } from "./version";
+
+export type ShopifyOrderLineLocationResolution = {
+  /**
+   * LineItem GID → Location GID when an unambiguous FO line association exists.
+   */
+  locationsByLineItemGid: ReadonlyMap<string, string>;
+  issues: readonly ProviderNormalizationIssue[];
+  /**
+   * True only when nested FO/line associations are acceptable as complete
+   * offline sync input (explicit attestation or closed pageInfo+attestation).
+   */
+  acceptableAsCompleteSyncInput: boolean;
+};
+
+/**
+ * Resolve sales/fulfillment location per LineItem from fulfillment-order
+ * line associations (Admin API 2026-10).
+ *
+ * Never infers location from assignedLocation alone without a line link.
+ * Never reads LineItem.location (unsupported on 2026-10).
+ */
+export function resolveShopifyOrderLineItemLocations(input: {
+  fulfillmentOrders: unknown;
+  /**
+   * Required when treating FO children as complete sync input.
+   * Default fails closed (incomplete/unattested nested pages).
+   */
+  nestedCompletenessAttestation?: ShopifyNestedCompletenessAttestation | null;
+}): ShopifyOrderLineLocationResolution {
+  const issues: ProviderNormalizationIssue[] = [];
+  const locationsByLineItemGid = new Map<string, string>();
+  const ambiguousLineItems = new Set<string>();
+  const attestation = input.nestedCompletenessAttestation ?? null;
+
+  let foNodes: unknown[] | null = null;
+  let acceptableAsCompleteSyncInput = false;
+
+  if (Array.isArray(input.fulfillmentOrders)) {
+    foNodes = input.fulfillmentOrders;
+    acceptableAsCompleteSyncInput =
+      attestation?.nestedChildrenComplete === true;
+  } else if (isShopifyRecord(input.fulfillmentOrders)) {
+    const foCompleteness = assessShopifyConnectionCompleteness(
+      input.fulfillmentOrders,
+      attestation,
+    );
+    acceptableAsCompleteSyncInput =
+      foCompleteness.acceptableAsCompleteSyncInput;
+
+    const foIssue = refuseIncompleteNestedSyncInput(
+      foCompleteness,
+      "fulfillmentOrders",
+    );
+    if (foIssue) {
+      issues.push(foIssue);
+    }
+
+    foNodes = readShopifyConnectionNodes(
+      { fulfillmentOrders: input.fulfillmentOrders },
+      "fulfillmentOrders",
+    );
+  }
+
+  if (foNodes === null) {
+    return {
+      locationsByLineItemGid,
+      issues,
+      acceptableAsCompleteSyncInput: false,
+    };
+  }
+
+  for (const foNode of foNodes) {
+    if (!isShopifyRecord(foNode)) {
+      issues.push(
+        shopifyIssue(
+          "RELATIONSHIP_UNRESOLVED",
+          "Shopify fulfillment order nodes must be objects.",
+          "fulfillmentOrders",
+        ),
+      );
+      continue;
+    }
+
+    let locationGid: string | null = null;
+    const assignedLocation = foNode.assignedLocation;
+
+    if (isShopifyRecord(assignedLocation)) {
+      const location = isShopifyRecord(assignedLocation.location)
+        ? assignedLocation.location
+        : null;
+      const rawLocationId = location
+        ? readOptionalShopifyString(location, "id")
+        : null;
+
+      if (rawLocationId !== null) {
+        try {
+          locationGid = normalizeShopifyResourceGid(rawLocationId, "Location");
+        } catch {
+          issues.push(
+            shopifyIssue(
+              "EXTERNAL_ID_INVALID",
+              "Shopify fulfillment order assignedLocation.location.id must be a Location GID.",
+              "assignedLocation.location.id",
+            ),
+          );
+        }
+      }
+    }
+
+    // assignedLocation alone never stamps every line — require FO lineItems.
+    const foLineNodes = Array.isArray(foNode.lineItems)
+      ? foNode.lineItems
+      : readShopifyConnectionNodes(foNode, "lineItems");
+
+    if (foLineNodes === null) {
+      if (locationGid !== null) {
+        issues.push(
+          shopifyIssue(
+            "RELATIONSHIP_UNRESOLVED",
+            "Shopify fulfillment order has assignedLocation but no lineItems association — location is not inferred for sales lines.",
+            "fulfillmentOrders.lineItems",
+          ),
+        );
+      }
+      continue;
+    }
+
+    if (isShopifyRecord(foNode.lineItems)) {
+      const lineCompleteness = assessShopifyConnectionCompleteness(
+        foNode.lineItems,
+        attestation,
+      );
+
+      if (!lineCompleteness.acceptableAsCompleteSyncInput) {
+        acceptableAsCompleteSyncInput = false;
+        const lineIssue = refuseIncompleteNestedSyncInput(
+          lineCompleteness,
+          "fulfillmentOrders.lineItems",
+        );
+        if (lineIssue) {
+          issues.push(lineIssue);
+        }
+      }
+    }
+
+    for (const foLine of foLineNodes) {
+      if (!isShopifyRecord(foLine)) {
+        issues.push(
+          shopifyIssue(
+            "RELATIONSHIP_UNRESOLVED",
+            "Shopify fulfillment order line items must be objects.",
+            "fulfillmentOrders.lineItems",
+          ),
+        );
+        continue;
+      }
+
+      const lineItem = readShopifyNestedObject(
+        foLine,
+        "lineItem",
+        issues,
+        true,
+        "Shopify fulfillment order line requires lineItem.id association.",
+      );
+
+      if (!lineItem) {
+        continue;
+      }
+
+      const rawLineItemId = requireShopifyString(
+        lineItem,
+        "id",
+        issues,
+        "Shopify fulfillment order lineItem.id is required.",
+      );
+
+      if (rawLineItemId === null) {
+        continue;
+      }
+
+      let lineItemGid: string;
+
+      try {
+        lineItemGid = normalizeShopifyResourceGid(rawLineItemId, "LineItem");
+      } catch {
+        issues.push(
+          shopifyIssue(
+            "EXTERNAL_ID_INVALID",
+            "Shopify fulfillment order lineItem.id must be a LineItem GID.",
+            "lineItem.id",
+          ),
+        );
+        continue;
+      }
+
+      if (locationGid === null) {
+        issues.push(
+          shopifyIssue(
+            "RELATIONSHIP_UNRESOLVED",
+            "Shopify fulfillment order line association lacks assignedLocation.location.",
+            "assignedLocation.location.id",
+          ),
+        );
+        continue;
+      }
+
+      if (ambiguousLineItems.has(lineItemGid)) {
+        continue;
+      }
+
+      const existing = locationsByLineItemGid.get(lineItemGid);
+
+      if (existing !== undefined && existing !== locationGid) {
+        issues.push(
+          shopifyIssue(
+            "RELATIONSHIP_UNRESOLVED",
+            "Shopify LineItem maps to multiple fulfillment-order locations — location provenance is ambiguous.",
+            "fulfillmentOrders",
+          ),
+        );
+        locationsByLineItemGid.delete(lineItemGid);
+        ambiguousLineItems.add(lineItemGid);
+        continue;
+      }
+
+      locationsByLineItemGid.set(lineItemGid, locationGid);
+    }
+  }
+
+  return {
+    locationsByLineItemGid,
+    issues,
+    acceptableAsCompleteSyncInput,
+  };
+}
 
 function readOrderGid(
   record: Record<string, unknown>,
@@ -364,13 +606,22 @@ export function normalizeShopifyOrderPayload(
 }
 
 /**
- * Normalize a Shopify Admin GraphQL Order line item node.
+ * Normalize a Shopify Admin GraphQL Order line item node (Admin API 2026-10).
  *
  * Requires parent order GID and variant GID. Does not invent refunds/returns.
+ * LineItem.location is unsupported — pass location via fulfillment-order
+ * resolution (`resolvedLocationExternalId`).
  */
 export function normalizeShopifyOrderLineItemPayload(
   payload: unknown,
   orderExternalId: string,
+  options?: {
+    /**
+     * Location GID resolved from fulfillment-order line associations only.
+     * Never invent from assignedLocation alone.
+     */
+    resolvedLocationExternalId?: string | null;
+  },
 ): ProviderNormalizationResult<ShopifyOrderItemCandidate> {
   const issues: ProviderNormalizationIssue[] = [];
 
@@ -457,36 +708,33 @@ export function normalizeShopifyOrderLineItemPayload(
       }
     }
 
-    const location = record.location;
+    // Admin API 2026-10: LineItem has no location field. Reject invented shapes.
+    if (record.location !== null && record.location !== undefined) {
+      issues.push(
+        shopifyIssue(
+          "RELATIONSHIP_UNRESOLVED",
+          "Shopify LineItem.location is unsupported on Admin API 2026-10; resolve location via fulfillment-order line associations.",
+          "location",
+        ),
+      );
+    }
 
-    if (location !== null && location !== undefined) {
-      if (!isShopifyRecord(location)) {
+    const resolvedLocation = options?.resolvedLocationExternalId ?? null;
+
+    if (resolvedLocation !== null && resolvedLocation !== undefined) {
+      try {
+        locationExternalId = normalizeShopifyResourceGid(
+          resolvedLocation,
+          "Location",
+        );
+      } catch {
         issues.push(
           shopifyIssue(
             "EXTERNAL_ID_INVALID",
-            "Shopify order line item location must be an object when present.",
-            "location",
+            "Resolved Shopify order line location must be a valid Location GID.",
+            "resolvedLocationExternalId",
           ),
         );
-      } else {
-        const rawLocationId = readOptionalShopifyString(location, "id");
-
-        if (rawLocationId !== null) {
-          try {
-            locationExternalId = normalizeShopifyResourceGid(
-              rawLocationId,
-              "Location",
-            );
-          } catch {
-            issues.push(
-              shopifyIssue(
-                "EXTERNAL_ID_INVALID",
-                "Shopify order line item location.id must be a valid Location GID.",
-                "location.id",
-              ),
-            );
-          }
-        }
       }
     }
 

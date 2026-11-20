@@ -141,6 +141,12 @@ export function readShopifyNestedObject(
   return value;
 }
 
+/**
+ * Read connection nodes from Admin GraphQL shapes.
+ *
+ * Supports both `nodes` arrays and `edges[].node` (RO.2 / 2026-10).
+ * Returns null when the field is absent or not a connection object.
+ */
 export function readShopifyConnectionNodes(
   record: Record<string, unknown>,
   field: string,
@@ -155,11 +161,23 @@ export function readShopifyConnectionNodes(
     return null;
   }
 
-  const nodes = connection.nodes;
-
-  if (!Array.isArray(nodes)) {
-    return null;
+  if (Array.isArray(connection.nodes)) {
+    return connection.nodes;
   }
 
-  return nodes;
+  if (Array.isArray(connection.edges)) {
+    const nodes: unknown[] = [];
+
+    for (const edge of connection.edges) {
+      if (!isShopifyRecord(edge)) {
+        continue;
+      }
+
+      nodes.push(edge.node);
+    }
+
+    return nodes;
+  }
+
+  return null;
 }

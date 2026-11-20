@@ -1237,9 +1237,10 @@ Owner-accepted closure rules:
    authorize ROQ, inventory position, or M7 commercial actions.
 
 3. Offline fixture GraphQL shapes under
-   `tests/fixtures/shopify/ro1-v1/` are not Admin API-version-certified.
-   RO.2 transport work must validate against a pinned Shopify Admin API
-   version before live sync.
+   `tests/fixtures/shopify/ro1-v1/` are schema-shape certified for pinned
+   Admin API **2026-10** under Shopify-RO.1.2 (`shopify-ro.1.2-v1`).
+   Nested `first:N` completeness for SyncRun remains **unattested**.
+   Live shop response packs and OAuth remain blocked.
 
 Provider-specific `displayFinancialStatus` and
 `displayFulfillmentStatus` provenance may remain on Shopify order
@@ -1257,16 +1258,16 @@ Authoritative detail: `docs/SHOPIFY_RO2_TRANSPORT.md`.
 
 Owner rules for RO.2:
 
-1. Transport obtains raw provider pages only. Normalization remains RO.1
-   (or a later explicitly versioned normalizer). Binding and persistence
-   remain separate.
+1. Transport obtains raw provider pages only. Normalization is
+   Shopify-RO.1.2 (`shopify-ro.1.2-v1`) aligned to Admin API 2026-10.
+   Binding and persistence remain separate.
 2. No live Shopify network calls in the unit test suite. HTTP is
    injectable. No Shopify SDK.
 3. No OAuth, credential storage, webhooks, SyncRun writes, workers,
    cron, hosted JWT, or M7 activation under RO.2.
-4. Do not silently alter RO.1 mappings. Schema mismatches versus the
-   pinned API version are reported in `docs/SHOPIFY_RO2_TRANSPORT.md`
-   for owner review before any adapter-version bump.
+4. Mapping changes require an explicit adapter-version bump (RO.1.2
+   applied the 2026-10 schema compatibility updates documented in
+   `docs/SHOPIFY_RO2_TRANSPORT.md`).
 5. Cursor pagination remains opaque SyncRun provenance, never business
    identity. Pagination loops and page caps fail closed.
 6. Throttling / cost-budget pacing and bounded retries are transport
