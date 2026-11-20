@@ -14,10 +14,21 @@ function read(relativePath: string): string {
 describe("merchant inventory workflow UX", () => {
   it("uses CSV-accurate overview wording instead of live-connected claims", () => {
     const overview = read("app/(app)/app/[organizationId]/page.tsx");
-    expect(overview).toContain("Imported inventory is available.");
-    expect(overview).toContain("imported SKU position(s) from CSV");
+    const dashboard = read(
+      "components/overview/merchant-overview-dashboard.tsx",
+    );
+    const presentation = read(
+      "lib/inventory-readiness/overview-presentation.ts",
+    );
+    expect(overview).toContain("buildMerchantOverviewPresentation");
+    expect(overview).toContain('inventorySourceKind: "csv"');
+    expect(overview).not.toContain("Imported inventory is available.");
     expect(overview).not.toContain("Live inventory is connected.");
     expect(overview).not.toContain("live SKU position(s)");
+    expect(dashboard).not.toContain("Live inventory is connected.");
+    expect(presentation).toContain('inventorySourceKind ?? "csv"');
+    expect(presentation).toContain("inventoryEvidenceSourceLabel");
+    expect(presentation).not.toContain("live connected integration");
   });
 
   it("keeps Inventory → Import → Sales → Planning → Actions navigation surfaces", () => {
@@ -105,22 +116,62 @@ describe("merchant inventory workflow UX", () => {
     );
     expect(workspace).toContain("Limited history");
     expect(workspace).toContain("eligible days");
-    expect(workspace).toContain("Not forecast confidence");
+    expect(workspace).toContain("not forecast confidence");
     expect(workspace).toContain("aria-pressed");
-    expect(workspace).toContain("lg:table-cell");
     expect(workspace).toContain("data-limited-history");
     expect(workspace).toContain('data-responsive-inventory-table="true"');
-    expect(workspace).toContain('data-mobile-evidence="true"');
+    expect(workspace).toContain('data-responsive-inventory-cards="true"');
     expect(workspace).toContain("overflow-x-auto");
+    expect(workspace).toContain("sticky left-0");
+    expect(workspace).toContain("SkuIntelligenceInspector");
   });
 
-  it("preserves zero vs unknown vs stale cover labels", () => {
+  it("preserves zero vs unknown vs stale cover labels without healthy-cover conflation", () => {
     const workspace = read(
       "components/inventory/inventory-intelligence-workspace.tsx",
     );
-    expect(workspace).toContain("Unavailable (zero demand)");
-    expect(workspace).toContain("Unavailable (stale)");
-    expect(workspace).toContain("Unavailable (unknown ≠ 0)");
+    const presentation = read(
+      "lib/inventory-intelligence/sku-attention-presentation.ts",
+    );
+    expect(presentation).toContain("No sales observed");
+    expect(presentation).toContain("Unknown demand (≠ 0)");
+    expect(presentation).toContain("Stale metrics");
+    expect(workspace).toContain("No sales observed");
     expect(workspace).toContain("Unknown");
+    expect(workspace).not.toContain("Known cover");
+    expect(workspace).not.toContain("CheckCircle2");
+    expect(workspace).toContain("Review low cover");
+    expect(workspace).toContain("Review high cover");
+    expect(workspace).toContain("Last recorded");
+    expect(presentation).toContain("Last recorded out of stock");
+  });
+
+  it("keeps Inventory filter URL parity with Overview deep links", () => {
+    const workspace = read(
+      "components/inventory/inventory-intelligence-workspace.tsx",
+    );
+    const page = read("app/(app)/app/[organizationId]/inventory/page.tsx");
+    const attention = read("lib/inventory-intelligence/attention.ts");
+    expect(workspace).toContain("window.history.pushState");
+    expect(workspace).toContain("popstate");
+    expect(workspace).toContain("inventoryFilterPath");
+    expect(workspace).toContain("setFilterState(next)");
+    expect(workspace).not.toContain("useSearchParams");
+    expect(workspace).not.toContain("router.push");
+    expect(attention).toContain("INVENTORY_EVIDENCE_ANCHOR");
+    expect(attention).toContain("inventoryFilterHref");
+    expect(attention).toContain("`#${INVENTORY_EVIDENCE_ANCHOR}`");
+    expect(workspace).toContain('data-filter-group="stock"');
+    expect(workspace).toContain('data-filter-group="evidence"');
+    expect(workspace).toContain("Products to review");
+    expect(workspace).toContain("SkuIntelligenceInspector");
+    expect(workspace).toContain("data-sku-inspect");
+    expect(workspace).toContain("data-inventory-historical-metrics-banner");
+    expect(page).toContain("parseInventoryAttentionFilter");
+    expect(page).toContain("INVENTORY_EVIDENCE_ANCHOR");
+    expect(page).toContain("stockObservationsStale");
+    expect(page).not.toContain("Suspense");
+    expect(page).toContain(">Inventory<");
+    expect(page).not.toContain(">Products to review<");
   });
 });

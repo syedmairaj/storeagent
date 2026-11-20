@@ -161,57 +161,70 @@ export default async function InventoryPage({
     intelligence.rows.map((row) => row.observedAt),
   );
 
+  const stockObservationsStale =
+    !readiness.presence.hasCurrentDayInventoryObservation ||
+    readiness.presence.inventoryPlaceFreshnessKind === "all_stale" ||
+    readiness.presence.inventoryPlaceFreshnessKind === "mixed";
+
+  const asOfLabel = readiness.presence.primaryAsOfMetricDate;
+
+  // Stable DOM order: SKU evidence always above readiness. Never swap sections
+  // when filter=all ↔ filtered — that remount jump landed merchants on Decision
+  // Readiness after clicking All. Overview deep links still use #inventory-evidence.
   const attentionDeepLink = initialFilter !== "all";
 
-  const evidenceSection = (
-    <section
-      id={INVENTORY_EVIDENCE_ANCHOR}
-      className={
-        attentionDeepLink
-          ? "scroll-mt-24 border-b border-zinc-200 py-6 sm:py-8"
-          : "py-6 sm:py-8"
-      }
-      data-inventory-evidence="true"
-      data-attention-deep-link={attentionDeepLink ? "true" : "false"}
-    >
-      {attentionDeepLink ? (
-        <p className="mb-4 text-sm font-medium text-zinc-600">
-          Showing Inventory evidence for your Overview filter. Readiness and
-          replenishment settings stay below.
+  return (
+    <div>
+      <div className="flex flex-col gap-3 border-b border-zinc-200 pb-6 sm:pb-8">
+        <p className="text-sm font-medium text-zinc-500">Inventory</p>
+        <h1 className="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+          Inventory
+        </h1>
+        <p className="max-w-2xl text-sm leading-6 text-zinc-600 sm:text-base sm:leading-7">
+          Review products that need attention. Stock condition stays separate
+          from cover availability — StoreAgent does not invent demand or unlock
+          commercial recommendations here.
         </p>
-      ) : null}
-      {intelligence.rows.length === 0 ? (
-        <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-zinc-950 text-white">
-            <Boxes className="size-5" aria-hidden="true" />
-          </div>
-          <h2 className="mt-6 text-xl font-semibold tracking-[-0.03em]">
-            No inventory observations yet
-          </h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-600">
-            Import a CSV to create the first durable inventory snapshots for
-            this organization. Demand and cover appear after sales metrics are
-            activated for matching SKUs.
-          </p>
-          <Link
-            href={`/app/${organizationId}/inventory/import`}
-            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white"
-          >
-            Import inventory
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
-        </div>
-      ) : (
-        <InventoryIntelligenceWorkspace
-          rows={intelligence.rows}
-          initialFilter={initialFilter}
-        />
-      )}
-    </section>
-  );
+      </div>
 
-  const readinessSections = (
-    <>
+      <section
+        id={INVENTORY_EVIDENCE_ANCHOR}
+        className="scroll-mt-24 border-b border-zinc-200 py-6 sm:py-8"
+        data-inventory-evidence="true"
+        data-attention-deep-link={attentionDeepLink ? "true" : "false"}
+      >
+        {intelligence.rows.length === 0 ? (
+          <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex size-11 items-center justify-center rounded-2xl bg-zinc-950 text-white">
+              <Boxes className="size-5" aria-hidden="true" />
+            </div>
+            <h2 className="mt-6 text-xl font-semibold tracking-[-0.03em]">
+              No inventory observations yet
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-600">
+              Import a CSV to create the first durable inventory snapshots for
+              this organization. Demand and cover appear after sales metrics are
+              activated for matching SKUs.
+            </p>
+            <Link
+              href={`/app/${organizationId}/inventory/import`}
+              className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold text-white"
+            >
+              Import inventory
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+        ) : (
+          <InventoryIntelligenceWorkspace
+            rows={intelligence.rows}
+            initialFilter={initialFilter}
+            stockObservationsStale={stockObservationsStale}
+            sourceLabel={inventoryEvidenceSourceLabel(INVENTORY_SOURCE_KIND)}
+            asOfLabel={asOfLabel}
+          />
+        )}
+      </section>
+
       <section className="border-b border-zinc-200 py-6 sm:py-8">
         <DecisionReadinessPanel
           readiness={readiness}
@@ -241,47 +254,13 @@ export default async function InventoryPage({
         />
       </section>
 
-      <section
-        className={
-          attentionDeepLink
-            ? "py-6 sm:py-8"
-            : "border-b border-zinc-200 py-6 sm:py-8"
-        }
-      >
+      <section className="py-6 sm:py-8">
         <IncomingEvidenceEditor
           organizationId={organizationId}
           canEdit={canEditPlanning}
           initial={incomingAttestations}
         />
       </section>
-    </>
-  );
-
-  return (
-    <div>
-      <div className="flex flex-col gap-3 border-b border-zinc-200 pb-6 sm:pb-8">
-        <p className="text-sm font-medium text-zinc-500">Inventory</p>
-        <h1 className="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
-          Stock, demand, and cover
-        </h1>
-        <p className="max-w-2xl text-sm leading-6 text-zinc-600 sm:text-base sm:leading-7">
-          Imported CSV stock with sales velocity and days of cover when evidence
-          is current. StoreAgent does not invent demand or commercial
-          recommendations.
-        </p>
-      </div>
-
-      {attentionDeepLink ? (
-        <>
-          {evidenceSection}
-          {readinessSections}
-        </>
-      ) : (
-        <>
-          {readinessSections}
-          {evidenceSection}
-        </>
-      )}
     </div>
   );
 }

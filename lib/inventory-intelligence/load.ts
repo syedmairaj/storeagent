@@ -39,6 +39,12 @@ type MetricRow = {
   coverage_ratio_30d: number | null;
   days_of_stock: number | null;
   days_of_stock_reason_code: string | null;
+  safety_stock: number | null;
+  safety_stock_reason_code: string | null;
+  reorder_point: number | null;
+  reorder_point_reason_code: string | null;
+  target_stock: number | null;
+  target_stock_reason_code: string | null;
 };
 
 type NamedRow = {
@@ -174,7 +180,7 @@ export async function loadMerchantInventoryIntelligence(
     supabase
       .from("sku_daily_metrics")
       .select(
-        "store_id,location_id,variant_id,metric_date,sales_velocity_30d,sales_velocity_30d_reason_code,eligible_days_30d,coverage_ratio_30d,days_of_stock,days_of_stock_reason_code",
+        "store_id,location_id,variant_id,metric_date,sales_velocity_30d,sales_velocity_30d_reason_code,eligible_days_30d,coverage_ratio_30d,days_of_stock,days_of_stock_reason_code,safety_stock,safety_stock_reason_code,reorder_point,reorder_point_reason_code,target_stock,target_stock_reason_code",
       )
       .eq("organization_id", organizationId)
       .in("store_id", storeIds)
@@ -327,6 +333,12 @@ export async function loadMerchantInventoryIntelligence(
       coverageRatio30d: displayMetric?.coverage_ratio_30d ?? null,
       daysOfStock: displayMetric?.days_of_stock ?? null,
       daysOfStockReasonCode: displayMetric?.days_of_stock_reason_code ?? null,
+      safetyStock: displayMetric?.safety_stock ?? null,
+      safetyStockReasonCode: displayMetric?.safety_stock_reason_code ?? null,
+      reorderPoint: displayMetric?.reorder_point ?? null,
+      reorderPointReasonCode: displayMetric?.reorder_point_reason_code ?? null,
+      targetStock: displayMetric?.target_stock ?? null,
+      targetStockReasonCode: displayMetric?.target_stock_reason_code ?? null,
       coverStatus,
       evidenceLabel: coverEvidenceLabel({
         status: coverStatus,

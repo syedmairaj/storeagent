@@ -24,11 +24,32 @@ export {
   coverEvidenceLabel,
   coverPriorityRank,
 } from "@/lib/inventory-intelligence/classify-cover";
+export {
+  buildInventoryFilterQuery,
+  inventoryFilterPath,
+  resolveInspectorSelectionAfterFilter,
+  resolveInventoryFilterFromSearch,
+} from "@/lib/inventory-intelligence/filter-navigation";
 export { loadMerchantInventoryIntelligence } from "@/lib/inventory-intelligence/load";
 export {
   filterIntelligenceRows,
   prioritizeIntelligenceRows,
 } from "@/lib/inventory-intelligence/prioritize";
+export {
+  buildSkuEvidence,
+  coverUnavailableReasonLabel,
+  presentSkuAttention,
+  resolveCoverAvailability,
+  resolveStockCondition,
+  skuAttentionSortRank,
+  type CoverAvailabilityKind,
+  type DecisionEligibilityKind,
+  type SkuAttentionContext,
+  type SkuAttentionPresentation,
+  type SkuEvidenceBundle,
+  type SkuEvidenceFact,
+  type StockConditionKind,
+} from "@/lib/inventory-intelligence/sku-attention-presentation";
 export type {
   InventoryCoverStatus,
   InventoryIntelligenceFilter,

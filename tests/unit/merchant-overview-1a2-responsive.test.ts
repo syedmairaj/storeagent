@@ -43,6 +43,12 @@ function row(
     coverageRatio30d: 1,
     daysOfStock: null,
     daysOfStockReasonCode: null,
+    safetyStock: null,
+    safetyStockReasonCode: null,
+    reorderPoint: null,
+    reorderPointReasonCode: null,
+    targetStock: null,
+    targetStockReasonCode: null,
     evidenceLabel: "x",
     ...overrides,
   };

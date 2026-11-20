@@ -228,6 +228,12 @@ function row(
     coverageRatio30d: null,
     daysOfStockReasonCode:
       overrides.coverStatus === "zero_demand" ? "zero_demand" : null,
+    safetyStock: null,
+    safetyStockReasonCode: null,
+    reorderPoint: null,
+    reorderPointReasonCode: null,
+    targetStock: null,
+    targetStockReasonCode: null,
     evidenceLabel: "x",
     salesVelocity30d: overrides.salesVelocity30d ?? null,
     ...overrides,

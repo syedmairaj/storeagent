@@ -108,7 +108,9 @@ export function assessMerchantDecisionReadiness(input: {
         salesStatus === "available"
           ? "Order history supports grain-aligned demand velocity for cover."
           : salesStatus === "insufficient"
-            ? "Order rows exist, but demand is not grain-aligned to stock positions with known velocity — unknown ≠ zero."
+            ? !presence.hasCurrentDayInventoryObservation
+              ? "Sales history exists. Current-day demand is not grain-aligned because stock observations are behind store-local as-of — historical metrics are not current cover. Unknown ≠ zero."
+              : "Order rows exist, but demand is not grain-aligned to current stock positions with known velocity — unknown ≠ zero."
             : "No sales evidence. Demand velocity stays unknown — not zero.",
       nextStep:
         salesStatus === "available"

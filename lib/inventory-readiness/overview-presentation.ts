@@ -202,6 +202,8 @@ export function buildMerchantOverviewPresentation(input: {
     knownSkus,
     alignedDemand,
     salesStatus: salesInput?.status ?? "missing",
+    stockIsStale,
+    hasSalesHistory: readiness.presence.hasSalesHistory,
   });
 
   const commercialFence =
@@ -360,6 +362,9 @@ function buildEvidenceHonesty(input: {
   knownSkus: number;
   alignedDemand: number;
   salesStatus: "available" | "missing" | "insufficient";
+  /** When true, distinguish current-day alignment from historical metrics. */
+  stockIsStale: boolean;
+  hasSalesHistory: boolean;
 }): string {
   if (input.salesAvailable && input.planningComplete) {
     return `Sales and planning inputs are present for ${input.alignedDemand} SKU position(s).`;
@@ -370,8 +375,11 @@ function buildEvidenceHonesty(input: {
   if (input.salesAvailable) {
     return `Demand is present for ${input.alignedDemand} position(s); planning assumptions are still unknown.`;
   }
+  if (input.salesStatus === "insufficient" && input.stockIsStale && input.hasSalesHistory) {
+    return "Sales history exists. Current-day demand is not grain-aligned while stock is behind store-local as-of — historical velocity is not current cover. Unknown ≠ zero.";
+  }
   if (input.salesStatus === "insufficient") {
-    return "Sales rows exist, but demand is not yet grain-aligned. Unknown ≠ zero.";
+    return "Sales rows exist, but demand is not yet grain-aligned to current stock. Unknown ≠ zero.";
   }
   if (input.knownSkus > 0) {
     return "Stock is present, but sales evidence is still missing for cover.";

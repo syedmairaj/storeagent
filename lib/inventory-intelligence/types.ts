@@ -35,6 +35,16 @@ export type MerchantInventoryIntelligenceRow = {
   coverageRatio30d: number | null;
   daysOfStock: number | null;
   daysOfStockReasonCode: string | null;
+  /**
+   * Persisted planning thresholds from sku_daily_metrics when known.
+   * Null / reason-coded unknown means not shown as merchant thresholds.
+   */
+  safetyStock: number | null;
+  safetyStockReasonCode: string | null;
+  reorderPoint: number | null;
+  reorderPointReasonCode: string | null;
+  targetStock: number | null;
+  targetStockReasonCode: string | null;
   coverStatus: InventoryCoverStatus;
   /** Merchant-facing one-line explanation of evidence / cover. */
   evidenceLabel: string;

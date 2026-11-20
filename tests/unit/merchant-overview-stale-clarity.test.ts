@@ -37,6 +37,12 @@ function row(
     coverageRatio30d: 1,
     daysOfStock: 10,
     daysOfStockReasonCode: null,
+    safetyStock: null,
+    safetyStockReasonCode: null,
+    reorderPoint: null,
+    reorderPointReasonCode: null,
+    targetStock: null,
+    targetStockReasonCode: null,
     evidenceLabel: "x",
     ...overrides,
   };
@@ -139,9 +145,17 @@ describe("UX-INV-1a.1 stale vs fresh attention clarity", () => {
     expect(presentation.supportingSentence).toMatch(/last recorded out of stock/i);
     expect(presentation.supportingSentence).toMatch(/Nov 18/i);
     expect(presentation.supportingSentence).toMatch(/unavailable/i);
+    expect(presentation.evidenceHonesty).toMatch(/historical velocity is not current cover/i);
+    expect(presentation.evidenceHonesty).not.toMatch(
+      /demand is not yet grain-aligned\. Unknown/,
+    );
+    expect(
+      readiness.inputs.find((i) => i.key === "sales_history")?.detail,
+    ).toMatch(/historical metrics are not current cover/i);
     expect(presentation.dataHealthLabel).toMatch(/stale/i);
     expect(presentation.dataHealthNextAction).toMatch(/Upload updated stock/i);
     expect(presentation.primaryCta.label).toMatch(/Upload updated stock/i);
+    expect(readiness.commercialActionsEligible).toBe(false);
 
     const low = presentation.signals.find((s) => s.id === "low_cover");
     const high = presentation.signals.find((s) => s.id === "high_cover_review");

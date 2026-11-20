@@ -4,11 +4,8 @@ import {
   isLimitedHistoryEvidence,
   isLimitedOrUnknownEvidence,
   isLowCoverAttention,
-  LOW_COVER_ATTENTION_DAYS,
 } from "@/lib/inventory-intelligence/attention";
-import {
-  coverPriorityRank,
-} from "@/lib/inventory-intelligence/classify-cover";
+import { skuAttentionSortRank } from "@/lib/inventory-intelligence/sku-attention-presentation";
 import type {
   InventoryIntelligenceFilter,
   MerchantInventoryIntelligenceRow,
@@ -22,19 +19,13 @@ export function filterIntelligenceRows(
     case "all":
       return [...rows];
     case "needs_attention":
-      return rows.filter((row) => {
-        if (
-          row.coverStatus === "pending_freshness" ||
-          row.coverStatus === "stale" ||
-          row.coverStatus === "short_history" ||
-          row.coverStatus === "unknown_demand" ||
-          row.coverStatus === "unknown_stock" ||
-          row.coverStatus === "missing_metric"
-        ) {
-          return true;
-        }
-        return isLowCoverAttention(row);
-      });
+      // Operational stock signals only (OOS + valid low cover).
+      // Data-quality attention stays on pending_or_stale / limited_history /
+      // unknown_or_missing / limited_or_unknown — so a fully-stale catalog
+      // does not inflate "Needs attention" to every position.
+      return rows.filter(
+        (row) => isKnownOutOfStock(row) || isLowCoverAttention(row),
+      );
     case "valid_cover":
       return rows.filter((row) => row.coverStatus === "valid");
     case "unknown_or_missing":
@@ -64,29 +55,16 @@ export function filterIntelligenceRows(
 }
 
 /**
- * Attention-first: low valid cover, then pending/stale/unknown, then zero demand.
- * Within the same status, lower days-of-stock (when present) comes first.
+ * Attention-first: known OOS, low cover, evidence gaps, high-cover review,
+ * then adequate cover, then known-zero demand. Within a band, lower
+ * days-of-stock (when present) comes first.
  */
 export function prioritizeIntelligenceRows(
   rows: readonly MerchantInventoryIntelligenceRow[],
 ): MerchantInventoryIntelligenceRow[] {
   return [...rows].sort((left, right) => {
-    const leftValidLow =
-      left.coverStatus === "valid" &&
-      left.daysOfStock !== null &&
-      left.daysOfStock < LOW_COVER_ATTENTION_DAYS;
-    const rightValidLow =
-      right.coverStatus === "valid" &&
-      right.daysOfStock !== null &&
-      right.daysOfStock < LOW_COVER_ATTENTION_DAYS;
-
-    if (leftValidLow !== rightValidLow) {
-      return leftValidLow ? -1 : 1;
-    }
-
     const rankDelta =
-      coverPriorityRank(left.coverStatus) -
-      coverPriorityRank(right.coverStatus);
+      skuAttentionSortRank(left) - skuAttentionSortRank(right);
     if (rankDelta !== 0) {
       return rankDelta;
     }
