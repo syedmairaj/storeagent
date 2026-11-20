@@ -33,6 +33,7 @@ import type {
   InventoryIntelligenceFilter,
   MerchantInventoryIntelligenceRow,
 } from "@/lib/inventory-intelligence/types";
+import type { MerchantPlanningInputs } from "@/lib/planning-inputs/types";
 import { cn } from "@/lib/utils";
 
 type FilterCountKey =
@@ -109,6 +110,7 @@ export function InventoryIntelligenceWorkspace({
   stockObservationsStale = false,
   sourceLabel,
   asOfLabel,
+  planning = null,
 }: {
   rows: readonly MerchantInventoryIntelligenceRow[];
   /** Deep-link from Overview attention signals. */
@@ -120,6 +122,8 @@ export function InventoryIntelligenceWorkspace({
   stockObservationsStale?: boolean;
   sourceLabel?: string;
   asOfLabel?: string | null;
+  /** Persisted org planning days for SKU inspector threshold impact (UX-INV-1c). */
+  planning?: MerchantPlanningInputs | null;
   /** @deprecated Pending copy lives on readiness freshness; kept optional for callers. */
   hasPendingMetricWork?: boolean;
 }) {
@@ -578,6 +582,7 @@ export function InventoryIntelligenceWorkspace({
         row={selectedRow}
         open={selectedRow !== null}
         stockObservationsStale={stockObservationsStale}
+        planning={planning}
         returnFocusRef={returnFocusRef}
         onOpenChange={(open) => {
           if (!open) {

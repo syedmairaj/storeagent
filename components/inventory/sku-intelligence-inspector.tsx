@@ -9,6 +9,11 @@ import {
   type SkuAttentionContext,
 } from "@/lib/inventory-intelligence/sku-attention-presentation";
 import type { MerchantInventoryIntelligenceRow } from "@/lib/inventory-intelligence/types";
+import {
+  calculatedThresholdsMissingCopy,
+  calculatedThresholdsSectionLabel,
+} from "@/lib/planning-inputs/replenishment-impact-presentation";
+import type { MerchantPlanningInputs } from "@/lib/planning-inputs/types";
 import { cn } from "@/lib/utils";
 
 export function SkuIntelligenceInspector({
@@ -16,26 +21,28 @@ export function SkuIntelligenceInspector({
   open,
   onOpenChange,
   stockObservationsStale,
+  planning = null,
   returnFocusRef,
 }: {
   row: MerchantInventoryIntelligenceRow | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   stockObservationsStale: boolean;
+  /** Persisted org planning days for compact threshold impact (UX-INV-1c). */
+  planning?: MerchantPlanningInputs | null;
   /** Element that opened the inspector — receives focus on safe close. */
   returnFocusRef?: React.RefObject<HTMLElement | null>;
 }) {
   const titleId = useId();
   const descriptionId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
-  const context: SkuAttentionContext = { stockObservationsStale };
+  const context: SkuAttentionContext = { stockObservationsStale, planning };
   const presentation = row ? presentSkuAttention(row, context) : null;
 
   useEffect(() => {
     if (!open) {
       return;
     }
-    // Prefer close control; Base UI also traps focus inside the modal popup.
     closeRef.current?.focus();
   }, [open, row?.grainKey]);
 
@@ -60,9 +67,7 @@ export function SkuIntelligenceInspector({
         <Dialog.Popup
           className={cn(
             "fixed z-[90] flex flex-col overflow-hidden bg-white shadow-2xl outline-none",
-            // Mobile: full-screen accessible sheet
             "inset-0",
-            // Desktop: right-side drawer
             "md:inset-y-0 md:left-auto md:right-0 md:w-[min(28rem,100vw)] md:border-l md:border-zinc-200",
             "motion-safe:transition-transform motion-safe:duration-200",
             "data-[ending-style]:translate-x-4 data-[ending-style]:opacity-0 data-[starting-style]:translate-x-4 data-[starting-style]:opacity-0",
@@ -134,20 +139,7 @@ function InspectorBody({
 
   return (
     <div className="space-y-5">
-      {/* Identity lives once in Dialog.Title / Description — not repeated here. */}
-      <section data-inspector-section="interpretation">
-        <SectionLabel>Reading</SectionLabel>
-        <p
-          className="mt-1 text-sm leading-6 text-zinc-800"
-          data-inspector-interpretation="true"
-        >
-          {evidence.interpretation}
-        </p>
-        <p className="mt-2 text-xs leading-5 text-zinc-500">
-          {presentation.decisionEligibilityLabel}
-        </p>
-      </section>
-
+      {/* Condition first */}
       <section data-inspector-section="stock">
         <SectionLabel>Stock condition</SectionLabel>
         <p
@@ -161,34 +153,47 @@ function InspectorBody({
             {presentation.stockConditionDetail}
           </p>
         ) : null}
+        <p className="mt-2 text-xs leading-5 text-zinc-500">
+          {presentation.decisionEligibilityLabel}
+        </p>
+      </section>
+
+      {/* Next step second */}
+      <section data-inspector-section="next">
+        <SectionLabel>Next safe step</SectionLabel>
+        <p
+          className="mt-1 text-sm leading-6 text-zinc-700"
+          data-evidence-next="true"
+        >
+          {evidence.nextStep}
+        </p>
+      </section>
+
+      {/* Concise fact groups */}
+      <section data-inspector-section="facts">
+        <SectionLabel>Evidence</SectionLabel>
         <FactRow
           label={
             stockObservationsStale
               ? "Last recorded available"
-              : "Available quantity"
+              : "Available"
           }
           value={available?.value ?? "—"}
           factId="available"
         />
-      </section>
-
-      <section data-inspector-section="demand">
-        <SectionLabel>
-          {evidence.metricIsHistorical
-            ? "Historical sales rate"
-            : "Observed sales rate"}
-        </SectionLabel>
-        {evidence.metricIsHistorical ? (
-          <p
-            className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-950"
-            data-inspector-historical-notice="true"
-          >
-            Sales rate and thresholds below are historical while cover is not
-            current — not a live buy quantity.
-          </p>
-        ) : null}
         <FactRow
-          label="Velocity (30d)"
+          label="Cover"
+          value={
+            cover
+              ? `${presentation.coverAvailabilityLabel} · ${cover.value}`
+              : presentation.coverAvailabilityLabel
+          }
+          factId="cover"
+        />
+        <FactRow
+          label={
+            evidence.metricIsHistorical ? "Historical velocity" : "Velocity (30d)"
+          }
           value={velocity?.value ?? "—"}
           factId="velocity"
         />
@@ -201,27 +206,31 @@ function InspectorBody({
         ) : null}
       </section>
 
-      <section data-inspector-section="cover">
-        <SectionLabel>Cover</SectionLabel>
-        <p
-          className="mt-1 text-sm font-medium text-zinc-950"
-          data-inspector-cover="true"
-        >
-          {presentation.coverAvailabilityLabel}
-        </p>
-        {cover ? (
-          <p className="mt-0.5 text-xs text-zinc-500" data-evidence-fact="cover">
-            {cover.value}
-          </p>
-        ) : null}
-      </section>
-
       <section data-inspector-section="thresholds">
         <SectionLabel>
-          {evidence.metricIsHistorical
-            ? "Historical calculated thresholds"
-            : "Calculated thresholds"}
+          {calculatedThresholdsSectionLabel(evidence.metricIsHistorical)}
         </SectionLabel>
+        {evidence.metricIsHistorical ? (
+          <p
+            className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-950"
+            data-inspector-historical-notice="true"
+          >
+            Historical while cover is not current — planning thresholds, not buy
+            quantities.
+          </p>
+        ) : (
+          <p className="mt-2 text-xs leading-5 text-zinc-500">
+            Planning thresholds — not buy quantities.
+          </p>
+        )}
+        {evidence.planningAssumptionsLine ? (
+          <p
+            className="mt-2 text-xs leading-5 text-zinc-600"
+            data-inspector-planning-assumptions="true"
+          >
+            {evidence.planningAssumptionsLine}
+          </p>
+        ) : null}
         {thresholds ? (
           <p
             className="mt-1 text-sm leading-6 text-zinc-700"
@@ -231,10 +240,16 @@ function InspectorBody({
           </p>
         ) : (
           <p className="mt-1 text-sm text-zinc-500" data-thresholds-missing="true">
-            SS / ROP / target are not available as known calculated thresholds
-            for this grain.
+            {calculatedThresholdsMissingCopy()}
           </p>
         )}
+        <a
+          href="#replenishment-settings"
+          className="mt-3 inline-flex min-h-11 items-center text-xs font-semibold text-zinc-800 underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
+          data-inspector-replenishment-link="true"
+        >
+          Review replenishment assumptions
+        </a>
       </section>
 
       {evidence.missingLabels.length > 0 ? (
@@ -248,16 +263,6 @@ function InspectorBody({
           </p>
         </section>
       ) : null}
-
-      <section data-inspector-section="next">
-        <SectionLabel>Next safe step</SectionLabel>
-        <p
-          className="mt-1 text-sm leading-6 text-zinc-700"
-          data-evidence-next="true"
-        >
-          {evidence.nextStep}
-        </p>
-      </section>
 
       {provenance ? (
         <details
@@ -297,9 +302,9 @@ function FactRow({
   factId: string;
 }) {
   return (
-    <div className="mt-2 grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-3 text-sm">
+    <div className="mt-2 grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-3 text-sm sm:grid-cols-[8.5rem_minmax(0,1fr)]">
       <span className="text-zinc-400">{label}</span>
-      <span className="text-zinc-800" data-evidence-fact={factId}>
+      <span className="min-w-0 break-words text-zinc-800" data-evidence-fact={factId}>
         {value}
       </span>
     </div>

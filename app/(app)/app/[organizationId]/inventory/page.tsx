@@ -221,6 +221,11 @@ export default async function InventoryPage({
             stockObservationsStale={stockObservationsStale}
             sourceLabel={inventoryEvidenceSourceLabel(INVENTORY_SOURCE_KIND)}
             asOfLabel={asOfLabel}
+            planning={{
+              leadTimeDays: planning.leadTimeDays,
+              safetyStockDays: planning.safetyStockDays,
+              reviewPeriodDays: planning.reviewPeriodDays,
+            }}
           />
         )}
       </section>
@@ -259,6 +264,7 @@ export default async function InventoryPage({
           organizationId={organizationId}
           canEdit={canEditPlanning}
           initial={incomingAttestations}
+          trustedIncoming={readiness.presence.trustedIncoming}
         />
       </section>
     </div>

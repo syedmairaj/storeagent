@@ -5,6 +5,7 @@ import {
   planningMetricsRefreshFailureReport,
   reportPlanningMetricsRefresh,
 } from "@/lib/planning-inputs/refresh-status";
+import { presentPlanningSaveFeedback } from "@/lib/planning-inputs/save-feedback";
 import type { MerchantPlanningInputs } from "@/lib/planning-inputs/types";
 
 function summary(
@@ -45,7 +46,7 @@ const allBlank: MerchantPlanningInputs = {
   reviewPeriodDays: null,
 };
 
-describe("planning metrics refresh reporting", () => {
+describe("planning metrics refresh reporting (UX-INV-1c.1)", () => {
   it("does not claim ready when pending work remains", () => {
     const report = reportPlanningMetricsRefresh(
       summary({
@@ -58,12 +59,12 @@ describe("planning metrics refresh reporting", () => {
     );
     expect(report.status).toBe("pending");
     expect(report.pendingRemaining).toBe(true);
+    expect(report.note).toMatch(/^Settings saved\./);
     expect(report.note).toMatch(/still pending/i);
-    expect(report.note).not.toMatch(/thresholds refreshed/i);
-    expect(report.note).toMatch(/lead 7, safety 5, review 7/);
+    expect(report.note).not.toMatch(/Planning thresholds refreshed/i);
   });
 
-  it("reports complete saves with exact persisted values and threshold refresh", () => {
+  it("reports complete saves with Settings saved + refresh warning only when refresh ran", () => {
     const report = reportPlanningMetricsRefresh(
       summary({
         succeeded: 1,
@@ -74,10 +75,24 @@ describe("planning metrics refresh reporting", () => {
     );
     expect(report.status).toBe("ready");
     expect(report.configurationKind).toBe("complete");
-    expect(report.pendingRemaining).toBe(false);
-    expect(report.note).toMatch(/Replenishment settings saved \(lead 7, safety 5, review 7\)/);
-    expect(report.note).toMatch(/thresholds refreshed/i);
-    expect(report.note).toMatch(/Commercial actions stay disabled/);
+    const feedback = presentPlanningSaveFeedback(report);
+    expect(feedback.headline).toBe("Settings saved");
+    expect(feedback.warning).toMatch(/Planning thresholds refreshed for 1/i);
+    expect(feedback.warning).toMatch(/not verified supplier facts/i);
+  });
+
+  it("does not equate no refresh with current metrics", () => {
+    const report = reportPlanningMetricsRefresh(
+      summary({
+        succeeded: 0,
+        pendingRemaining: false,
+        stoppedReason: "drained",
+      }),
+      complete,
+    );
+    expect(report.note).toMatch(/^Settings saved\./);
+    expect(report.note).toMatch(/does not mean inventory metrics are already current/i);
+    expect(report.note).not.toMatch(/thresholds refreshed/i);
   });
 
   it("does not claim thresholds available for all-blank saves even after recompute", () => {
@@ -90,14 +105,12 @@ describe("planning metrics refresh reporting", () => {
       allBlank,
     );
     expect(report.configurationKind).toBe("all_blank");
-    expect(report.note).toMatch(/saved as unknown/i);
-    expect(report.note).toMatch(/lead unknown, safety unknown, review unknown/);
-    expect(report.note).toMatch(/thresholds remain unavailable/i);
-    expect(report.note).not.toMatch(/thresholds refreshed from/i);
-    expect(report.note).not.toMatch(/organization defaults for/);
+    expect(report.note).toMatch(/All planning days are blank/i);
+    expect(report.note).toMatch(/thresholds stay unavailable/i);
+    expect(report.note).not.toMatch(/Planning thresholds refreshed/i);
   });
 
-  it("keeps partial saves honest about missing assumptions", () => {
+  it("keeps partial saves honest about blank assumptions", () => {
     const report = reportPlanningMetricsRefresh(
       summary({
         succeeded: 4,
@@ -107,17 +120,16 @@ describe("planning metrics refresh reporting", () => {
       partial,
     );
     expect(report.configurationKind).toBe("partial");
-    expect(report.note).toMatch(/some values still unknown/i);
-    expect(report.note).toMatch(/lead 7, safety unknown, review 0/);
+    expect(report.note).toMatch(/still blank/i);
     expect(report.note).toMatch(/stay unavailable/i);
-    expect(report.note).not.toMatch(/thresholds refreshed from/i);
+    expect(report.note).not.toMatch(/Planning thresholds refreshed/i);
   });
 
   it("reports retryable when refresh fails after a successful planning save", () => {
     const report = planningMetricsRefreshFailureReport(complete);
     expect(report.status).toBe("retryable");
     expect(report.pendingRemaining).toBe(true);
+    expect(report.note).toMatch(/^Settings saved\./);
     expect(report.note).toMatch(/did not finish/i);
-    expect(report.note).toMatch(/lead 7, safety 5, review 7/);
   });
 });

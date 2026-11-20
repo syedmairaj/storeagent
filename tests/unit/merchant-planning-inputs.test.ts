@@ -106,21 +106,30 @@ describe("merchant planning inputs parse", () => {
         safetyStockDays: null,
         reviewPeriodDays: 0,
       }),
-    ).toBe("lead 7, safety unknown, review 0");
+    ).toBe("lead 7, safety blank, review 0");
   });
 
   it("uses illustrative placeholders that are not persisted defaults", () => {
     expect(REPLENISHMENT_FIELD_COPY.leadTimeDays.placeholder).toBe("e.g. 7");
     expect(REPLENISHMENT_FIELD_COPY.safetyStockDays.placeholder).toBe("e.g. 5");
     expect(REPLENISHMENT_FIELD_COPY.reviewPeriodDays.placeholder).toBe("e.g. 7");
+    expect(REPLENISHMENT_FIELD_COPY.leadTimeDays.label).toMatch(
+      /Supplier lead time/i,
+    );
     expect(REPLENISHMENT_FIELD_COPY.leadTimeDays.hint).toMatch(
-      /placing a replenishment order until stock arrives/i,
+      /Blank stays blank/i,
+    );
+    expect(REPLENISHMENT_FIELD_COPY.safetyStockDays.label).toMatch(
+      /Safety stock buffer/i,
     );
     expect(REPLENISHMENT_FIELD_COPY.safetyStockDays.hint).toMatch(
-      /extra days of demand kept as a buffer/i,
+      /not a buy quantity/i,
+    );
+    expect(REPLENISHMENT_FIELD_COPY.reviewPeriodDays.label).toMatch(
+      /Stock review frequency/i,
     );
     expect(REPLENISHMENT_FIELD_COPY.reviewPeriodDays.hint).toMatch(
-      /check stock and plan replenishment/i,
+      /not an order quantity/i,
     );
   });
 });

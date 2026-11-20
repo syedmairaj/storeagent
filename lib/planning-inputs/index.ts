@@ -8,6 +8,19 @@ export {
 } from "@/lib/planning-inputs/merchant-copy";
 export type { MerchantPlanningConfigurationKind } from "@/lib/planning-inputs/merchant-copy";
 export {
+  buildReplenishmentImpactPresentation,
+  calculatedThresholdsMissingCopy,
+  calculatedThresholdsMissingLabel,
+  calculatedThresholdsSectionLabel,
+  formatCalculatedThresholdsValue,
+  formatPlanningAssumptionsForInspector,
+} from "@/lib/planning-inputs/replenishment-impact-presentation";
+export type {
+  CalculatedThresholdBits,
+  ReplenishmentFieldExplainer,
+  ReplenishmentImpactPresentation,
+} from "@/lib/planning-inputs/replenishment-impact-presentation";
+export {
   formatPlanningDayForInput,
   parseMerchantPlanningInputs,
   parsePlanningDayInput,
@@ -21,6 +34,11 @@ export type {
   PlanningMetricsRefreshReport,
   PlanningMetricsRefreshStatus,
 } from "@/lib/planning-inputs/refresh-status";
+export { presentPlanningSaveFeedback } from "@/lib/planning-inputs/save-feedback";
+export type {
+  PlanningSaveFeedback,
+  PlanningSaveFeedbackInput,
+} from "@/lib/planning-inputs/save-feedback";
 export { toInventoryPlanningSettings } from "@/lib/planning-inputs/to-inventory-planning-settings";
 export {
   EMPTY_MERCHANT_PLANNING_INPUTS,

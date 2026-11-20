@@ -1,12 +1,17 @@
 "use client";
 
-import { type FormEvent, useState, useTransition } from "react";
+import { type FormEvent, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LoaderCircle, Save } from "lucide-react";
 
 import { saveMerchantPlanningInputsAction } from "@/lib/planning-inputs/actions";
 import { REPLENISHMENT_FIELD_COPY } from "@/lib/planning-inputs/merchant-copy";
 import { formatPlanningDayForInput } from "@/lib/planning-inputs/parse";
+import { buildReplenishmentImpactPresentation } from "@/lib/planning-inputs/replenishment-impact-presentation";
+import {
+  presentPlanningSaveFeedback,
+  type PlanningSaveFeedback,
+} from "@/lib/planning-inputs/save-feedback";
 import type { MerchantPlanningInputs } from "@/lib/planning-inputs/types";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +19,7 @@ function DayField({
   id,
   label,
   hint,
+  drives,
   placeholder,
   value,
   disabled,
@@ -23,6 +29,7 @@ function DayField({
   id: string;
   label: string;
   hint: string;
+  drives: string;
   placeholder: string;
   value: string;
   disabled: boolean;
@@ -30,6 +37,7 @@ function DayField({
   onClear: () => void;
 }) {
   const hintId = `${id}-hint`;
+  const drivesId = `${id}-drives`;
   return (
     <div className="min-w-0">
       <div className="flex items-center justify-between gap-2">
@@ -40,9 +48,10 @@ function DayField({
           type="button"
           onClick={onClear}
           disabled={disabled || value === ""}
-          className="text-xs font-medium text-zinc-500 underline-offset-2 hover:text-zinc-800 hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:no-underline"
+          aria-label="Clear value"
+          className="min-h-11 px-1 text-xs font-medium text-zinc-500 underline-offset-2 hover:text-zinc-800 hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:no-underline"
         >
-          Clear to unknown
+          Clear value
         </button>
       </div>
       <input
@@ -55,7 +64,7 @@ function DayField({
         placeholder={placeholder}
         value={value}
         disabled={disabled}
-        aria-describedby={hintId}
+        aria-describedby={`${hintId} ${drivesId}`}
         onChange={(event) => onChange(event.target.value)}
         className={cn(
           "mt-2 h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none transition",
@@ -66,6 +75,9 @@ function DayField({
       />
       <p id={hintId} className="mt-1.5 text-xs leading-5 text-zinc-500">
         {hint}
+      </p>
+      <p id={drivesId} className="mt-1 text-xs leading-5 text-zinc-400">
+        {drives}
       </p>
     </div>
   );
@@ -91,8 +103,32 @@ export function PlanningInputsEditor({
     formatPlanningDayForInput(initial.reviewPeriodDays),
   );
   const [error, setError] = useState<string | null>(null);
-  const [savedNote, setSavedNote] = useState<string | null>(null);
+  const [saveFeedback, setSaveFeedback] =
+    useState<PlanningSaveFeedback | null>(null);
   const [pending, startTransition] = useTransition();
+
+  // Live preview from draft when digits are valid; invalid mid-edit falls back
+  // to last persisted value so blank≠0 semantics stay honest.
+  const impact = useMemo(() => {
+    const draftDay = (
+      raw: string,
+      persisted: number | null,
+    ): number | null => {
+      const trimmed = raw.trim();
+      if (trimmed === "") {
+        return null;
+      }
+      if (!/^\d+$/.test(trimmed)) {
+        return persisted;
+      }
+      return Number(trimmed);
+    };
+    return buildReplenishmentImpactPresentation({
+      leadTimeDays: draftDay(leadTimeDays, initial.leadTimeDays),
+      safetyStockDays: draftDay(safetyStockDays, initial.safetyStockDays),
+      reviewPeriodDays: draftDay(reviewPeriodDays, initial.reviewPeriodDays),
+    });
+  }, [leadTimeDays, safetyStockDays, reviewPeriodDays, initial]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -100,7 +136,7 @@ export function PlanningInputsEditor({
       return;
     }
     setError(null);
-    setSavedNote(null);
+    setSaveFeedback(null);
 
     startTransition(async () => {
       const result = await saveMerchantPlanningInputsAction({
@@ -122,34 +158,40 @@ export function PlanningInputsEditor({
       setReviewPeriodDays(
         formatPlanningDayForInput(result.value.reviewPeriodDays),
       );
-      setSavedNote(result.metricsRefresh.note);
+      setSaveFeedback(presentPlanningSaveFeedback(result.metricsRefresh));
       router.refresh();
     });
   }
 
+  const explainerByKey = Object.fromEntries(
+    impact.fieldExplainers.map((item) => [item.key, item]),
+  ) as Record<
+    "leadTimeDays" | "safetyStockDays" | "reviewPeriodDays",
+    (typeof impact.fieldExplainers)[number]
+  >;
+
   return (
     <section
+      id="replenishment-settings"
       aria-labelledby="replenishment-settings-heading"
       data-planning-inputs="true"
       data-replenishment-settings="true"
-      className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6"
+      data-planning-configuration={impact.configurationKind}
+      className="scroll-mt-24 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6"
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-            Merchant assumptions
+            {impact.eyebrow}
           </p>
           <h2
             id="replenishment-settings-heading"
             className="mt-1.5 text-xl font-semibold tracking-[-0.03em] text-zinc-950 sm:text-2xl"
           >
-            Replenishment settings
+            {impact.headline}
           </h2>
           <p className="mt-1.5 text-sm leading-6 text-zinc-600">
-            Organization defaults for reorder math — merchant assumptions, not
-            verified supplier or SKU facts. Leave a field blank when unknown;
-            StoreAgent never treats missing as zero. Examples in the fields are
-            illustrations only. Commercial actions stay disabled.
+            {impact.supporting}
           </p>
         </div>
         {!canEdit ? (
@@ -157,6 +199,35 @@ export function PlanningInputsEditor({
             View only — owner/admin can edit
           </p>
         ) : null}
+      </div>
+
+      <div
+        className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50/80 px-4 py-3 motion-safe:transition-colors"
+        data-replenishment-impact="true"
+        data-planning-configuration={impact.configurationKind}
+      >
+        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          Planning impact
+        </p>
+        <p
+          className="mt-1.5 text-sm leading-6 text-zinc-800"
+          data-replenishment-impact-bridge="true"
+        >
+          {impact.impactBridge}
+        </p>
+        <p className="mt-2 text-xs leading-5 text-zinc-500">
+          {impact.nextStep}
+        </p>
+        <p className="mt-2 text-xs leading-5 text-zinc-400">
+          {impact.commercialFence}
+        </p>
+        <a
+          href="#inventory-evidence"
+          className="mt-3 inline-flex min-h-11 items-center text-xs font-semibold text-zinc-800 underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
+          data-replenishment-sku-link="true"
+        >
+          Inspect a product to see SKU thresholds
+        </a>
       </div>
 
       <form
@@ -170,6 +241,7 @@ export function PlanningInputsEditor({
             id={REPLENISHMENT_FIELD_COPY.leadTimeDays.id}
             label={REPLENISHMENT_FIELD_COPY.leadTimeDays.label}
             hint={REPLENISHMENT_FIELD_COPY.leadTimeDays.hint}
+            drives={explainerByKey.leadTimeDays.drives}
             placeholder={REPLENISHMENT_FIELD_COPY.leadTimeDays.placeholder}
             value={leadTimeDays}
             disabled={!canEdit || pending}
@@ -180,6 +252,7 @@ export function PlanningInputsEditor({
             id={REPLENISHMENT_FIELD_COPY.safetyStockDays.id}
             label={REPLENISHMENT_FIELD_COPY.safetyStockDays.label}
             hint={REPLENISHMENT_FIELD_COPY.safetyStockDays.hint}
+            drives={explainerByKey.safetyStockDays.drives}
             placeholder={REPLENISHMENT_FIELD_COPY.safetyStockDays.placeholder}
             value={safetyStockDays}
             disabled={!canEdit || pending}
@@ -190,6 +263,7 @@ export function PlanningInputsEditor({
             id={REPLENISHMENT_FIELD_COPY.reviewPeriodDays.id}
             label={REPLENISHMENT_FIELD_COPY.reviewPeriodDays.label}
             hint={REPLENISHMENT_FIELD_COPY.reviewPeriodDays.hint}
+            drives={explainerByKey.reviewPeriodDays.drives}
             placeholder={REPLENISHMENT_FIELD_COPY.reviewPeriodDays.placeholder}
             value={reviewPeriodDays}
             disabled={!canEdit || pending}
@@ -206,25 +280,36 @@ export function PlanningInputsEditor({
             {error}
           </p>
         ) : null}
-        {savedNote ? (
-          <p
+        {saveFeedback ? (
+          <div
             role="status"
             className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950"
+            data-planning-save-feedback="true"
           >
-            {savedNote}
-          </p>
+            <p className="font-semibold" data-planning-save-headline="true">
+              {saveFeedback.headline}
+            </p>
+            {saveFeedback.warning ? (
+              <p
+                className="mt-1 text-sm leading-5 text-emerald-900/90"
+                data-planning-save-warning="true"
+              >
+                {saveFeedback.warning}
+              </p>
+            ) : null}
+          </div>
         ) : null}
 
         {canEdit ? (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs leading-5 text-zinc-500">
-              Partial saves are allowed. Clearing a field and saving restores
-              unknown for that setting only.
+              Partial saves are allowed. Clear value and save leaves that setting
+              blank — blank is never saved as zero.
             </p>
             <button
               type="submit"
               disabled={pending}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 text-sm font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {pending ? (
                 <LoaderCircle

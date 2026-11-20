@@ -7,21 +7,21 @@ import type { MerchantPlanningInputs } from "@/lib/planning-inputs/types";
 export const REPLENISHMENT_FIELD_COPY = {
   leadTimeDays: {
     id: "lead-time-days",
-    label: "Lead time (days)",
+    label: "Supplier lead time (days)",
     placeholder: "e.g. 7",
-    hint: "Days from placing a replenishment order until stock arrives. Leave blank when unknown; 0 means same-day replenishment as an assumption, not a supplier fact.",
+    hint: "Your assumed days from order to arrival. Blank stays blank (not zero). 0 means same-day by assumption — not a verified supplier fact.",
   },
   safetyStockDays: {
     id: "safety-stock-days",
-    label: "Safety stock (days)",
+    label: "Safety stock buffer (days)",
     placeholder: "e.g. 5",
-    hint: "Extra days of demand kept as a buffer. Leave blank when unknown; 0 means no extra buffer by assumption.",
+    hint: "Extra demand days you keep as a cushion. Blank stays blank (not zero). Feeds calculated safety stock — not a buy quantity.",
   },
   reviewPeriodDays: {
     id: "review-period-days",
-    label: "Review period (days)",
+    label: "Stock review frequency (days)",
     placeholder: "e.g. 7",
-    hint: "How often you check stock and plan replenishment. Leave blank when unknown; 0 is an explicit zero cadence assumption.",
+    hint: "How often you review stock and plan replenishment. Blank stays blank (not zero). Feeds calculated target stock — not an order quantity.",
   },
 } as const;
 
@@ -49,7 +49,7 @@ export function classifyMerchantPlanningConfiguration(
 }
 
 export function formatPersistedPlanningDay(value: number | null): string {
-  return value === null ? "unknown" : String(value);
+  return value === null ? "blank" : String(value);
 }
 
 export function formatPersistedPlanningSummary(

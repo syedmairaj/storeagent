@@ -82,24 +82,25 @@ describe("SKU intelligence inspector (UX-INV-1b.2)", () => {
     expect(workspace).not.toContain("EvidenceDisclosure");
   });
 
-  it("puts merchant interpretation first and discloses provenance progressively", () => {
+  it("puts stock condition and next step first, then facts and provenance", () => {
     const inspector = read(
       "components/inventory/sku-intelligence-inspector.tsx",
     );
-    const interpretationIdx = inspector.indexOf(
-      'data-inspector-section="interpretation"',
-    );
     const stockIdx = inspector.indexOf('data-inspector-section="stock"');
+    const nextIdx = inspector.indexOf('data-inspector-section="next"');
+    const factsIdx = inspector.indexOf('data-inspector-section="facts"');
     const provenanceIdx = inspector.indexOf(
       'data-inspector-section="provenance"',
     );
-    expect(interpretationIdx).toBeGreaterThan(-1);
-    expect(stockIdx).toBeGreaterThan(interpretationIdx);
-    expect(provenanceIdx).toBeGreaterThan(stockIdx);
+    expect(stockIdx).toBeGreaterThan(-1);
+    expect(nextIdx).toBeGreaterThan(stockIdx);
+    expect(factsIdx).toBeGreaterThan(nextIdx);
+    expect(provenanceIdx).toBeGreaterThan(factsIdx);
     expect(inspector).toContain("<details");
     expect(inspector).toContain("Metric provenance");
-    expect(inspector).toContain("not a live buy quantity");
+    expect(inspector).toContain("not buy quantities");
     expect(inspector).not.toContain('data-inspector-section="identity"');
+    expect(inspector).not.toContain('data-inspector-section="interpretation"');
   });
 
   it("keeps selected SKU evidence identity and stale provenance correct", () => {

@@ -113,7 +113,10 @@ describe("inventory intelligence architecture", () => {
     expect(inspector).toContain('data-sku-inspector="true"');
     expect(inspector).toContain("returnFocusRef");
     expect(inspector).toContain("aria-label=\"Close product inspector\"");
-    expect(inspector).toContain("data-inspector-interpretation");
+    expect(inspector).toContain('data-inspector-section="stock"');
+    expect(inspector).toContain('data-inspector-section="next"');
+    expect(inspector).toContain('data-inspector-section="facts"');
+    expect(inspector).not.toContain('data-inspector-section="interpretation"');
     expect(inspector).not.toContain("decideInventoryAction");
 
     const prioritize = read("lib/inventory-intelligence/prioritize.ts");

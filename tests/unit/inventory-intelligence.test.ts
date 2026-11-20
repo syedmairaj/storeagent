@@ -522,10 +522,10 @@ describe("SKU-specific evidence (UX-INV-1b.1)", () => {
       "4 of 30",
     );
     expect(evidence.facts.find((f) => f.id === "thresholds")?.value).toMatch(
-      /SS 2 · ROP 5 · Target 12/,
+      /Safety stock 2 · Reorder point 5 · Target stock 12/,
     );
     expect(evidence.facts.find((f) => f.id === "thresholds")?.value).toMatch(
-      /not a buy recommendation/i,
+      /historical while cover is not current/,
     );
     expect(evidence.nextStep).toMatch(/Upload updated stock/i);
     expect(evidence.lines.join(" ")).not.toMatch(/Section note/i);
@@ -560,7 +560,7 @@ describe("SKU-specific evidence (UX-INV-1b.1)", () => {
         "Available quantity",
         "Sales velocity",
         "Metric provenance",
-        "Calculated SS / ROP / target",
+        "Calculated safety stock / reorder point / target stock",
       ]),
     );
     expect(evidence.nextStep).toMatch(/known available quantity/i);
@@ -620,7 +620,9 @@ describe("SKU-specific evidence (UX-INV-1b.1)", () => {
       { stockObservationsStale: false },
     );
     expect(evidence.facts.find((f) => f.id === "thresholds")).toBeUndefined();
-    expect(evidence.missingLabels).toContain("Calculated SS / ROP / target");
+    expect(evidence.missingLabels).toContain(
+      "Calculated safety stock / reorder point / target stock",
+    );
   });
 
   it("marks thresholds historical when cover is stale and keeps interpretation SKU-specific", () => {

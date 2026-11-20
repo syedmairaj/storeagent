@@ -1,5 +1,5 @@
 /**
- * UX-INV-1b / 1b.1 presentation layer:
+ * UX-INV-1b / 1b.1 / 1c presentation layer:
  * stock condition ≠ cover availability ≠ decision eligibility.
  * SKU evidence uses trusted row fields only — no risk scores, financial
  * estimates, confidence, or M7 actions.
@@ -17,6 +17,13 @@ import type {
   InventoryCoverStatus,
   MerchantInventoryIntelligenceRow,
 } from "@/lib/inventory-intelligence/types";
+import {
+  calculatedThresholdsMissingLabel,
+  calculatedThresholdsSectionLabel,
+  formatCalculatedThresholdsValue,
+  formatPlanningAssumptionsForInspector,
+} from "@/lib/planning-inputs/replenishment-impact-presentation";
+import type { MerchantPlanningInputs } from "@/lib/planning-inputs/types";
 
 /** Adverse / review stock state — independent of whether cover math succeeded. */
 export type StockConditionKind =
@@ -56,6 +63,8 @@ export type SkuEvidenceBundle = {
   interpretation: string;
   /** True when velocity/cover/thresholds should be read as historical. */
   metricIsHistorical: boolean;
+  /** Compact org planning assumptions line when provided (UX-INV-1c). */
+  planningAssumptionsLine: string | null;
 };
 
 export type SkuAttentionPresentation = {
@@ -79,6 +88,11 @@ export type SkuAttentionContext = {
    * never presented as live OOS.
    */
   stockObservationsStale: boolean;
+  /**
+   * Persisted organization planning days when available (UX-INV-1c).
+   * Never invents defaults — blank/missing stays unknown.
+   */
+  planning?: MerchantPlanningInputs | null;
 };
 
 export function resolveStockCondition(
@@ -332,31 +346,22 @@ export function buildSkuEvidence(
   const ss = knownThreshold(row.safetyStock, row.safetyStockReasonCode);
   const rop = knownThreshold(row.reorderPoint, row.reorderPointReasonCode);
   const target = knownThreshold(row.targetStock, row.targetStockReasonCode);
-  if (ss !== null || rop !== null || target !== null) {
-    const bits: string[] = [];
-    if (ss !== null) {
-      bits.push(`SS ${ss}`);
-    }
-    if (rop !== null) {
-      bits.push(`ROP ${rop}`);
-    }
-    if (target !== null) {
-      bits.push(`Target ${target}`);
-    }
-    const historyNote = metricIsHistorical
-      ? " · historical while cover is not current"
-      : "";
-    const metricStamp = row.metricDate ? ` · metric ${row.metricDate}` : "";
+  const thresholdValue = formatCalculatedThresholdsValue({
+    safetyStock: ss,
+    reorderPoint: rop,
+    targetStock: target,
+    metricDate: row.metricDate,
+    historical: metricIsHistorical,
+  });
+  if (thresholdValue) {
     facts.push({
       id: "thresholds",
-      label: metricIsHistorical
-        ? "Historical calculated thresholds"
-        : "Calculated thresholds",
-      value: `${bits.join(" · ")}${metricStamp}${historyNote} (from planning assumptions — not a buy recommendation)`,
+      label: calculatedThresholdsSectionLabel(metricIsHistorical),
+      value: thresholdValue,
       source: "row.safetyStock+row.reorderPoint+row.targetStock",
     });
   } else {
-    missingLabels.push("Calculated SS / ROP / target");
+    missingLabels.push(calculatedThresholdsMissingLabel());
   }
 
   const nextStep = resolveNextStep(row, context);
@@ -369,8 +374,13 @@ export function buildSkuEvidence(
     metricIsHistorical,
   });
 
+  const planningAssumptionsLine = formatPlanningAssumptionsForInspector(
+    context.planning,
+  );
+
   const lines = [
     identityLine,
+    planningAssumptionsLine,
     ...facts
       .filter((fact) => fact.id !== "place")
       .map((fact) => `${fact.label}: ${fact.value}`),
@@ -389,6 +399,7 @@ export function buildSkuEvidence(
     lines,
     interpretation,
     metricIsHistorical,
+    planningAssumptionsLine,
   };
 }
 
