@@ -261,9 +261,8 @@ describe("Shopify adapter architecture", () => {
     expect(transport).toContain("ShopifyRo2TransportConfig");
     expect(adapters).toContain("Shopify-RO.2 read-only GraphQL transport");
     expect(adapters).toContain("Shopify-RO.1.2");
-    expect(adapters).toContain(
-      "Nested `first:N` selections without nested `pageInfo`",
-    );
+    expect(adapters).toContain("Shopify-RO.3");
+    expect(adapters).toContain("nested pagination proof");
 
     const ro2Doc = read("docs/SHOPIFY_RO2_TRANSPORT.md");
     expect(ro2Doc).toContain(
@@ -272,5 +271,13 @@ describe("Shopify adapter architecture", () => {
     expect(ro2Doc).toContain(
       "never** be interpreted as a complete catalog",
     );
+    expect(ro2Doc).toContain("Shopify-RO.3");
+    expect(ro2Doc).toContain("shopify-ro.3-v1");
+
+    expect(
+      fs.existsSync(
+        path.join(ROOT, "lib/providers/shopify/nested-pagination.ts"),
+      ),
+    ).toBe(true);
   });
 });

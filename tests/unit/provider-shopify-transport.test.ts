@@ -647,13 +647,14 @@ describe("Shopify-RO.2 injectable transport", () => {
   });
 });
 
-describe("Shopify-RO.2 nested connection completeness gate", () => {
+describe("Shopify-RO.2/RO.3 nested connection completeness gate", () => {
   /**
-   * Nested `first:N` selections without nested pageInfo must never be
-   * treated as evidence of a complete catalog/order/inventory sync.
-   * Top-level pageInfo alone is insufficient.
+   * RO.3 requests nested pageInfo on required child connections.
+   * A full first:N page or top-level hasNextPage=false alone still must
+   * never be treated as catalog completeness without following nested
+   * cursors (or explicit attestation). See RO.3 nested-pagination tests.
    */
-  const NESTED_FIRST_WITHOUT_PAGEINFO = [
+  const NESTED_FIRST_WITH_PAGEINFO = [
     {
       resource: "products" as const,
       needle: "variants(first: 100)",
@@ -672,15 +673,14 @@ describe("Shopify-RO.2 nested connection completeness gate", () => {
     },
   ];
 
-  it("refuses to claim nested first:N connections complete without independent pagination evidence", () => {
-    for (const entry of NESTED_FIRST_WITHOUT_PAGEINFO) {
+  it("requires nested pageInfo on RO.3 child connections and keeps top-level gate", () => {
+    for (const entry of NESTED_FIRST_WITH_PAGEINFO) {
       const document = SHOPIFY_RO2_OPERATIONS[entry.resource].document;
       expect(document).toContain(entry.needle);
 
       const nestedBlockStart = document.indexOf(entry.needle);
       expect(nestedBlockStart).toBeGreaterThanOrEqual(0);
 
-      // Inspect only the nested selection opened by this first:N call.
       const fromNeedle = document.slice(nestedBlockStart);
       const openBrace = fromNeedle.indexOf("{");
       expect(openBrace).toBeGreaterThanOrEqual(0);
@@ -705,11 +705,11 @@ describe("Shopify-RO.2 nested connection completeness gate", () => {
 
       expect(end).toBeGreaterThan(openBrace);
       const nestedBlock = fromNeedle.slice(0, end + 1);
-      expect(nestedBlock).not.toContain("pageInfo");
+      expect(nestedBlock).toContain("pageInfo");
+      expect(nestedBlock).toContain("hasNextPage");
+      expect(nestedBlock).toContain("endCursor");
     }
 
-    // A successful top-level page must still advertise incompleteness via
-    // pageInfo / cursorAfter — never via nested first:N alone.
     expect(
       SHOPIFY_RO2_OPERATIONS.products.document,
     ).toContain("pageInfo");

@@ -181,3 +181,19 @@ export interface ShopifyRo2ExecutePageInput {
    */
   after?: string | null;
 }
+
+/**
+ * Read-only GraphQL document execution (RO.3 nested continuations).
+ * Callers must supply approved operation documents only — no mutations.
+ */
+export interface ShopifyRo2ExecuteDocumentInput {
+  document: string;
+  variables: Readonly<Record<string, unknown>>;
+}
+
+export interface ShopifyRo2ExecuteDocumentResult {
+  data: Record<string, unknown>;
+  cost: ShopifyRo2CostExtensions | null;
+  apiVersion: ShopifyAdminApiVersion;
+  transportVersion: ShopifyRo2TransportVersion;
+}

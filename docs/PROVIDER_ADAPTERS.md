@@ -1239,7 +1239,8 @@ Owner-accepted closure rules:
 3. Offline fixture GraphQL shapes under
    `tests/fixtures/shopify/ro1-v1/` are schema-shape certified for pinned
    Admin API **2026-10** under Shopify-RO.1.2 (`shopify-ro.1.2-v1`).
-   Nested `first:N` completeness for SyncRun remains **unattested**.
+   Nested completeness for live SyncRun remains **uncertified** even after
+   offline RO.3 pagination proof (`shopify-ro.3-v1`).
    Live shop response packs and OAuth remain blocked.
 
 Provider-specific `displayFinancialStatus` and
@@ -1272,9 +1273,47 @@ Owner rules for RO.2:
    identity. Pagination loops and page caps fail closed.
 6. Throttling / cost-budget pacing and bounded retries are transport
    concerns. Engines must not import Shopify transport modules.
-7. Nested `first:N` selections without nested `pageInfo` must never be
-   treated as complete SyncRun / full-catalog evidence. See
+7. Nested `first:N` selections must never be treated as complete SyncRun /
+   full-catalog evidence without RO.3 nested pagination proof (opaque
+   cursors + nested `pageInfo`) or explicit offline attestation. See
    `docs/SHOPIFY_RO2_TRANSPORT.md` § Nested connection incompleteness.
+
+
+## Shopify-RO.3 nested pagination completeness
+
+Shopify-RO.3 (`shopify-ro.3-v1`) adds offline, deterministic nested
+GraphQL pagination so required child collections can be proven complete
+before any future SyncRun acceptance.
+
+**Implementation status:** Offline nested pagination (`shopify-ro.3-v1`) is
+**implemented and unit-tested** under mocked HTTP. Live nested completeness
+certification, OAuth, and SyncRun persistence/“complete” acceptance remain
+**blocked**. See `docs/SHOPIFY_RO2_TRANSPORT.md` § Shopify-RO.3.
+
+Owner rules for RO.3:
+
+1. Nested paths: product `variants`; inventoryItem `variants` (cardinality
+   exactly one) and `inventoryLevels`; order `lineItems` /
+   `fulfillmentOrders`; fulfillmentOrder `lineItems`.
+2. Reuse the injectable RO.2 transport (throttle / retry / page-limit).
+   Mocked HTTP only in unit tests — no live Shopify calls.
+3. Completeness requires closed nested `pageInfo` after following opaque
+   cursors. Full `first:N`, top-level `hasNextPage=false`, or empty
+   partial pages alone are not proof.
+4. Fail closed on repeated/missing cursors, page-limit exhaustion,
+   partial GraphQL errors, malformed nodes, conflicting duplicates, and
+   parent mismatches. Preserve partial aggregates as evidence without
+   certifying them complete.
+5. Preserve opaque GIDs, parent-child relationships, FO line/location
+   associations, missing≠zero, and
+   `incomingQuantityTrust=provider_observed`.
+6. Offline RO.3 unit PASS does not certify live shops. Global nested
+   completeness certification flags remain `false` until a separate
+   live-certification gate.
+7. No OAuth, SyncRun persistence, workers/cron, JWT, M7, purchasing, or
+   canonical metric/forecast formula changes under RO.3.
+
+Authoritative detail: `docs/SHOPIFY_RO2_TRANSPORT.md` § Shopify-RO.3.
 
 
 ## M0.7.12 frozen provider invariants

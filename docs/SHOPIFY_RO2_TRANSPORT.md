@@ -174,8 +174,10 @@ normalizers now consume the same shapes offline.
    `SHOPIFY_RO1_FIXTURES_API_VERSION_CERTIFIED = true` for offline
    2026-10 **schema-shape** packs.
    `SHOPIFY_RO1_NESTED_CONNECTION_COMPLETENESS_CERTIFIED = false` —
-   nested `first:N` pages remain incomplete SyncRun input without
-   attestation / nested pagination.
+   global/live SyncRun nested completeness remains uncertified.
+   RO.3 (`shopify-ro.3-v1`) implements offline nested pagination proof;
+   `SHOPIFY_RO3_LIVE_NESTED_COMPLETENESS_CERTIFIED = false` until a
+   separate live-certification gate.
    Still **not** live shop response packs (no network/OAuth).
 
 ## Credentials / network policy
@@ -189,39 +191,73 @@ normalizers now consume the same shapes offline.
 
 RO.2 top-level connections expose `pageInfo { hasNextPage endCursor }`.
 
-Several nested connections are intentionally bounded with `first:N` and
-**do not** request nested `pageInfo`:
+RO.3 (`shopify-ro.3-v1`) adds nested `pageInfo { hasNextPage endCursor }` on
+required child connections and parent-scoped continuation queries so nested
+cursors can be followed through the injectable RO.2 transport.
 
-| Parent operation | Nested selection | Bound |
-|---|---|---|
-| `products` | `variants` | `first: 100` |
-| `inventoryItems` | `inventoryLevels` | `first: 50` |
-| `inventoryItems` | `variants` | `first: 1` |
-| `orders` | `lineItems` | `first: 100` |
-| `orders` | `fulfillmentOrders` | `first: 20` |
-| `orders` / FO | `fulfillmentOrders.lineItems` | `first: 100` |
+| Parent operation | Nested selection | Bound | RO.3 continuation |
+|---|---|---|---|
+| `products` | `variants` | `first: 100` | `product(id) { variants }` |
+| `inventoryItems` | `inventoryLevels` | `first: 50` | `inventoryItem(id) { inventoryLevels }` |
+| `inventoryItems` | `variants` | `first: 1` | cardinality check (never multi-page complete) |
+| `orders` | `lineItems` | `first: 100` | `order(id) { lineItems }` |
+| `orders` | `fulfillmentOrders` | `first: 20` | `order(id) { fulfillmentOrders }` |
+| `orders` / FO | `fulfillmentOrders.lineItems` | `first: 100` | `fulfillmentOrder(id) { lineItems }` |
 
 **Hard gate for SyncRun / full-catalog acceptance:**
 
 - A successful RO.2 page (or a finished top-level `iterateResource` loop)
   must **never** be interpreted as a complete catalog, inventory, or order
-  sync while these nested bounds lack independent pagination evidence.
+  sync without RO.3 nested pagination proof (or explicit offline attestation).
+- A full nested `first:N` page, top-level `hasNextPage: false`, or an empty
+  partial page is **not** nested completeness proof by itself.
 - Downstream SyncRun completion, reconciliation “synced”, or merchant
-  “fully imported” claims are **forbidden** until nested connections are
-  either (a) paginated with opaque cursors + pageInfo safeguards, or
-  (b) explicitly attested incomplete / truncated with durable provenance.
-- Top-level `hasNextPage: false` alone is insufficient completeness proof.
+  “fully imported” claims remain **forbidden** until every required nested
+  connection is proven complete (closed nested pageInfo after following
+  opaque cursors) or durable incomplete attestation is recorded.
+- Offline RO.3 unit PASS does **not** flip live-shop nested completeness
+  certification (`SHOPIFY_RO1_NESTED_CONNECTION_COMPLETENESS_CERTIFIED`
+  remains `false`; `SHOPIFY_RO3_LIVE_NESTED_COMPLETENESS_CERTIFIED` is
+  `false`).
 
-This gate is regression-tested in
-`tests/unit/provider-shopify-transport.test.ts`
-(`Shopify-RO.2 nested connection completeness gate`).
+Implementation: `lib/providers/shopify/nested-pagination.ts`
+Regression: `tests/unit/provider-shopify-nested-pagination.test.ts` and
+`tests/unit/provider-shopify-transport.test.ts`.
+
+## Shopify-RO.3 nested pagination completeness
+
+**As-of:** 2026-11-20
+**Pagination version:** `shopify-ro.3-v1`
+**Implementation status:** Offline nested pagination (`shopify-ro.3-v1`) is **implemented and unit-tested** under mocked HTTP. Live nested completeness certification (`SHOPIFY_RO3_LIVE_NESTED_COMPLETENESS_CERTIFIED = false`), OAuth, and SyncRun persistence/“complete” acceptance remain **blocked**.
+**Transport:** reuses RO.2 injectable HTTP, throttle/retry/page-limit
+
+RO.3 responsibilities:
+
+- request nested `pageInfo` on approved child connections
+- continue truncated children via read-only parent-scoped queries
+- accumulate children deterministically per parent + connection identity
+- detect repeated/missing cursors, page-limit exhaustion, partial GraphQL
+  errors, malformed nodes, conflicting duplicates, parent mismatches
+- handle `inventoryItem.variants` cardinality conservatively (exactly one)
+- return per-connection completeness evidence and fail closed otherwise
+- preserve opaque GIDs, parent-child links, FO line/location associations
+- keep `incomingQuantityTrust=provider_observed` (no invented PO incoming)
+
+RO.3 non-goals (still blocked):
+
+- live Shopify calls / OAuth / credential storage
+- SyncRun persistence or “complete” certification of live shops
+- workers / cron / hosted JWT / M7
+- purchasing / mutations / canonical formula changes
 
 ## Next acceptance gates (owner)
 
 1. Shopify-RO.1.2 offline schema compatibility — **DONE** (`shopify-ro.1.2-v1`).
-2. Nested connection pagination (or durable incomplete attestation) before
-   SyncRun “complete” claims — still **blocked**.
+2. Nested connection pagination proof module — **DONE offline** (`shopify-ro.3-v1`).
+   Live-shop nested completeness certification and SyncRun “complete”
+   acceptance remain **blocked** until a separate live-certification gate.
 3. Separate milestone: OAuth / secure credential storage (still blocked).
 4. Separate milestone: SyncRun persistence + incremental cursors — **blocked**
-   on nested connection incompleteness hard gate above until resolved.
+   on live nested-completeness certification (offline RO.3 proof is a
+   prerequisite, not sufficient).
 5. Keep JWT / workers / cron / M7 **BLOCKED**.

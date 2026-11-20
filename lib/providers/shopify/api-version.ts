@@ -21,6 +21,18 @@ export type ShopifyRo2TransportVersion =
   typeof SHOPIFY_RO2_TRANSPORT_VERSION;
 
 /**
+ * Shopify-RO.3 nested pagination completeness contract version.
+ *
+ * Offline / deterministic only. Does not certify live-shop SyncRun
+ * completeness by itself — see SHOPIFY_RO1_NESTED_CONNECTION_COMPLETENESS_CERTIFIED.
+ */
+export const SHOPIFY_RO3_NESTED_PAGINATION_VERSION =
+  "shopify-ro.3-v1" as const;
+
+export type ShopifyRo3NestedPaginationVersion =
+  typeof SHOPIFY_RO3_NESTED_PAGINATION_VERSION;
+
+/**
  * Build the Admin GraphQL endpoint for a shop domain.
  *
  * Accepts bare `example.myshopify.com` or a full https URL host.

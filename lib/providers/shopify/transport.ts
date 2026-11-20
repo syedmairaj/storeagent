@@ -49,6 +49,8 @@ import {
   ShopifyRo2TransportError,
   type ShopifyRo2ConnectionPage,
   type ShopifyRo2CostExtensions,
+  type ShopifyRo2ExecuteDocumentInput,
+  type ShopifyRo2ExecuteDocumentResult,
   type ShopifyRo2ExecutePageInput,
   type ShopifyRo2GraphqlError,
   type ShopifyRo2TransportConfig,
@@ -181,6 +183,48 @@ export class ShopifyRo2GraphqlTransport {
       cursorAfter: pageInfo.hasNextPage
         ? pageInfo.endCursor
         : null,
+      cost,
+      apiVersion: SHOPIFY_ADMIN_API_VERSION,
+      transportVersion: SHOPIFY_RO2_TRANSPORT_VERSION,
+    };
+  }
+
+  /**
+   * Execute an approved read-only GraphQL document (RO.3 nested continuations).
+   *
+   * Reuses RO.2 throttle / retry / cost-budget safeguards. Rejects mutation
+   * documents. Does not normalize or persist.
+   */
+  async executeReadOnlyDocument(
+    input: ShopifyRo2ExecuteDocumentInput,
+  ): Promise<ShopifyRo2ExecuteDocumentResult> {
+    const document = input.document.trim();
+
+    if (!document) {
+      throw new ShopifyRo2TransportError({
+        code: "TRANSPORT_MISCONFIGURED",
+        message:
+          "Shopify RO.2 executeReadOnlyDocument requires a non-empty document.",
+        retryable: false,
+      });
+    }
+
+    if (/\bmutation\b/i.test(document)) {
+      throw new ShopifyRo2TransportError({
+        code: "TRANSPORT_MISCONFIGURED",
+        message:
+          "Shopify RO.2/RO.3 transport forbids GraphQL mutations.",
+        retryable: false,
+      });
+    }
+
+    const { data, cost } = await this.executeGraphql({
+      document,
+      variables: { ...input.variables },
+    });
+
+    return {
+      data,
       cost,
       apiVersion: SHOPIFY_ADMIN_API_VERSION,
       transportVersion: SHOPIFY_RO2_TRANSPORT_VERSION,

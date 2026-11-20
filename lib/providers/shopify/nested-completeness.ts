@@ -1,9 +1,13 @@
 /**
- * Offline nested-connection completeness contract for Shopify RO.1.2 / RO.2.
+ * Offline nested-connection completeness contract for Shopify RO.1.2 / RO.2 / RO.3.
  *
- * RO.2 queries bound nested connections with `first:N` and do not request
- * nested `pageInfo`. Those pages must never be accepted as complete sync
- * input without explicit attestation or independent nested pagination.
+ * RO.2 historically bound nested connections with `first:N` without nested
+ * `pageInfo`. RO.3 adds nested pageInfo + continuation queries so completeness
+ * can be proven by pagination evidence.
+ *
+ * Raw `hasNextPage=false` or a full first:N page alone is still insufficient
+ * without attestation or RO.3 pagination proof. Top-level pagination alone
+ * never proves nested completeness.
  *
  * This module is offline/deterministic only — no network, SyncRun writes,
  * or live Shopify calls.
@@ -23,8 +27,10 @@ import {
 } from "./payload";
 
 /**
- * Nested selections in RO.2 operations that lack nested pageInfo.
+ * Nested selection page-size bounds (initial page / continuation default).
  * Bounds match `lib/providers/shopify/operations.ts`.
+ * RO.3 requests nested pageInfo on these connections and continues via
+ * parent-scoped queries when hasNextPage is true.
  */
 export const SHOPIFY_RO2_NESTED_CONNECTION_BOUNDS = {
   productsVariants: { parent: "products", field: "variants", first: 100 },
@@ -64,8 +70,8 @@ export type ShopifyNestedCompletenessKind =
 export type ShopifyNestedConnectionAssessment = {
   kind: ShopifyNestedCompletenessKind;
   /**
-   * True only when an explicit complete attestation is present and no
-   * truncation evidence exists.
+   * True only when an explicit complete attestation or RO.3 pagination
+   * proof is present and no truncation evidence exists.
    */
   acceptableAsCompleteSyncInput: boolean;
   reasons: readonly string[];
@@ -77,6 +83,15 @@ export type ShopifyNestedCompletenessAttestation = {
    * Never inferred from top-level hasNextPage alone.
    */
   nestedChildrenComplete: boolean;
+  /**
+   * When true, completeness was proven by Shopify-RO.3 nested pagination
+   * (opaque cursors + closed nested pageInfo), not operator attestation alone.
+   */
+  paginationProven?: boolean;
+  /**
+   * RO.3 pagination contract version when paginationProven is true.
+   */
+  paginationVersion?: "shopify-ro.3-v1";
 };
 
 /**
@@ -84,9 +99,10 @@ export type ShopifyNestedCompletenessAttestation = {
  *
  * - Missing connection → incomplete (cannot prove completeness).
  * - `pageInfo.hasNextPage === true` → incomplete.
- * - `pageInfo` absent (RO.2 nested shape) → unattested unless attestation
- *   claims nestedChildrenComplete.
- * - `pageInfo.hasNextPage === false` with attestation → complete_attested.
+ * - `pageInfo` absent → unattested unless attestation claims
+ *   nestedChildrenComplete (RO.3 pagination should supply pageInfo).
+ * - `pageInfo.hasNextPage === false` with attestation / RO.3 proof →
+ *   complete_attested.
  */
 export function assessShopifyConnectionCompleteness(
   connection: unknown,
@@ -279,12 +295,13 @@ export function mayAcceptAsCompleteShopifySyncInput(input: {
 }
 
 /**
- * Helper for tests/docs: summarize RO.2 nested bounds without pageInfo.
+ * Helper for tests/docs: summarize nested incompleteness gate (RO.2/RO.3).
  */
 export function describeShopifyRo2NestedIncompletenessGate(): string {
   return (
-    "Nested first:N selections without nested pageInfo are incomplete sync " +
-    "input until paginated with opaque cursors or explicitly attested complete. " +
+    "Nested first:N pages are incomplete sync input until RO.3 paginates " +
+    "opaque nested cursors to closed pageInfo or an explicit offline " +
+    "attestation is supplied. Top-level hasNextPage=false alone is not proof. " +
     `Bounds: variants<=${SHOPIFY_RO2_NESTED_CONNECTION_BOUNDS.productsVariants.first}, ` +
     `inventoryLevels<=${SHOPIFY_RO2_NESTED_CONNECTION_BOUNDS.inventoryLevels.first}, ` +
     `order lineItems<=${SHOPIFY_RO2_NESTED_CONNECTION_BOUNDS.orderLineItems.first}, ` +
