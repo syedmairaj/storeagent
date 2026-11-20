@@ -2,8 +2,214 @@
 
 ## Active handoff
 
-> **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main is **COMPLETE** (pointer: `docs/IMPLEMENTATION_STATUS.md`). This does **not** unlock hosted JWT, workers/cron, M7 production create, purchasing, or paying launch.
-> **Latest strategy/addendum (2026-11-10):** See the immediately following **Product delivery acceleration, hosted parity and truthful landing-page plan**. That plan augments, but does not supersede, frozen engineering/PE1.b gates.
+> **Authoritative current state (2026-11-20):** See **§ 2026-11-20 — DOC-2026-11 Master Roadmap reconciliation** below (single status table). Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (verified):** `fe29703` — Shopify RO.1.2 offline normalizers; `main` **aligned with `origin/main`**. Latest UX commit `0402564` (UX-INV-1c.1). Shopify-RO.3 (`shopify-ro.3-v1`) **local uncommitted** only.
+> **Latest UI slice:** UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d planned. **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify, or paying launch.
+> **Prior docs reconciliation (2026-11-19):** Historical — HEAD pins to `7fc8f2a` / “RO.2 push pending” are **stale**; prefer 2026-11-20 section.
+> **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main is **COMPLETE**. This does **not** unlock hosted JWT, workers/cron, M7 production create, purchasing, or paying launch.
+> **Latest strategy/addendum (2026-11-10):** Product delivery acceleration plan remains historical strategy; prefer 2026-11-20 for connector/UX/Git/AI truth when they differ.
+
+## 2026-11-20 — DOC-2026-11 Master Roadmap reconciliation (docs only)
+
+> **Authority:** Documentation / product-vision reconciliation only (`DOC-2026-11`). No application source/test/schema edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M7 activation, or Git stage/commit/push/reset/stash/clean in this pass. Historical sections below remain historical evidence — **do not rewrite history**; use this dated section as current truth.
+> **Dirty tree:** Preserved (including unrelated modified `BACKGROUND_JOBS.md` / `SERVICE_ROLE_BOUNDARY.md`, deleted tracked DOCX, archives, SQL, `.tmp`, `.vitest`, `AGENTS.md`, and uncommitted RO.3 code/fixtures).
+
+### Git evidence (verified 2026-11-20)
+
+| Field | Value |
+|---|---|
+| Branch | `main` |
+| HEAD | `fe29703` — `feat(shopify): align RO.1.2 offline normalizers to Admin API 2026-10` |
+| vs `origin/main` | **Aligned** (same SHA) |
+| UX-INV latest | `0402564` — replenishment/incoming clarification (1c.1) |
+| UX-INV inspector | `f1426c4` — SKU intelligence inspector |
+| UX-INV Overview | `10d9de6` — merchant stock attention |
+| Shopify RO.2 | `7fc8f2a` — **CLOSED/PUSHED** (ancestor of HEAD) |
+| Shopify RO.1 | `0072a04` — **CLOSED/PUSHED** |
+| Shopify RO.3 | **Uncommitted local** — `shopify-ro.3-v1`; mocked HTTP only |
+
+**Sequence (pushed):** `d73790a` → `457a516` → `970bab0` → `0072a04` → `7fc8f2a` → `10d9de6` → `f1426c4` → `0402564` → `fe29703`.
+
+**Offline test evidence (tree + owner-reported session; not live Shopify):**
+
+| Suite | Evidence |
+|---|---|
+| RO.3 nested pagination | `tests/unit/provider-shopify-nested-pagination.test.ts` — **13** `it(` cases; owner-reported **PASS** under mocks |
+| Shopify unit surface | `tests/unit/provider-shopify*.test.ts` — **78** `it(` cases counted in tree; owner-reported **PASS** with RO.3 worktree |
+| CSV/provider | Owner-reported **63 PASS** in session — not re-executed in this docs pass |
+| Live Shopify / OAuth / SyncRun persistence | **None** |
+
+### Authoritative milestone matrix (current)
+
+Classification keys (multi-label allowed): **CLOSED/PUSHED** · **LOCAL IMPLEMENTED** · **TESTED** · **OWNER-ACCEPTED** · **BLOCKED** · **PLANNED**.
+
+| Milestone / workstream | CLOSED/PUSHED | LOCAL IMPLEMENTED | TESTED | OWNER-ACCEPTED | BLOCKED | PLANNED |
+|---|---|---|---|---|---|---|
+| M0–M4 foundations + commerce domain | Yes | Yes | Yes | Partial (local paths) | — | Hosted full onboarding |
+| CSV inventory + sales imports | Yes | Yes | Yes | **Yes** snapstore 2026-11-18 | — | Hosted onboarding |
+| Local Inventory → Metrics → Planning | Yes (`457a516`/`970bab0`) | Yes | Yes | **Yes** synthetic snapstore | — | Merchant multi-store |
+| M5.1–M5.7 metrics / adversarial | Yes | Yes | Local adversarial | Local eng | Hosted worker/rollover HTTP | — |
+| M5.8 closeout | — | — | — | — | — | **Yes** |
+| M6 P1–P4d forecast foundations | Yes | Yes | Local/fixture | Local eng | Production forecast operation | — |
+| M6 hosted schema | Yes (in 38→52) | — | — | Schema closeout | Production operation | — |
+| PE1.b.4a/4b synthetic lifecycle | Docs+evidence | Yes | Offline Env-A PASS | Synthetic only | ≠ JWT | — |
+| PE1.b.5 / 6a | Docs | — | — | — | JWT unproven | Execution |
+| PE1.b.6b hosted JWT J1–J13 | Worksheet only | — | — | — | **NOT EXECUTED** | LIMITED proof |
+| M7 engine + synthetic Actions / Decision Brief | Foundations + demo | Yes | Units + R2.e functional | Synthetic demo | Production create/activation | Live inbox |
+| M7 PB1 fencing / diagnostics | Yes (dormant) | Yes | Local adversarial | — | Commercial binding | — |
+| Hosted 38→52 migrations | **52/52 CLOSED** | — | Disposable rehearse reported | Schema | Ops activation | — |
+| DB drift prevention Phase 1 | Yes `d73790a` | Yes | check + 8/8 unit | Local checks | Actions run unverified; RLS equiv unproven | Disposable replay |
+| UX-INV-1a Overview | **Yes** `10d9de6` | Yes | Units | Local UI | Browser automation cert | — |
+| UX-INV-1b Stock health / attention | **Yes** | Yes | Units | Local UI | Browser automation cert | — |
+| UX-INV-1c / **1c.1** replenishment+incoming | **Yes** `0402564` | Yes | Units | Local UI | Browser automation cert | — |
+| UX-INV-1d premium polish | — | — | — | — | — | **Yes** |
+| Shopify RO.1 offline normalizers | **Yes** `0072a04` | Yes | Units | Offline | Live shop | — |
+| Shopify RO.2 transport | **Yes** `7fc8f2a` | Yes | Units (historical 17/17; suite grown) | Offline | Live shop | — |
+| Shopify RO.1.2 schema compatibility | **Yes** `fe29703` | Yes | Units (`ro12-schema`) | Offline | Live shop | — |
+| Shopify **RO.3** nested pagination | **No** (uncommitted) | **Yes** `shopify-ro.3-v1` | **Yes** offline mocks (13+ suite) | **Pending** owner Git/accept | Live nested cert; SyncRun complete | Git closure separate |
+| OAuth / SyncRun / quarantine UX / live shop | — | — | — | — | **Yes** | After live nested cert |
+| WooCommerce / Amazon | — | — | — | — | — | **Yes** |
+| AI-INV-1…6 | — | — | — | — | Safety/deps per gate | **All PLANNED** |
+| Supplier / cash intelligence | Partial schema | Partial | — | — | — | Quotes/RFQ V1 |
+| Billing / trial / observability / launch | Partial | — | — | — | Paying launch **NO-GO** | Launch gates |
+| Workers / cron / HTTP metric routes | Code present | — | — | — | **OFF / enablement blocked** | — |
+
+### Explicit proof-class distinctions
+
+| Proof class | State |
+|---|---|
+| Local synthetic snapstore (CSV→metrics→planning) | **OWNER-ACCEPTED** 2026-11-18 — ≠ production |
+| Hosted schema 52/52 | **CLOSED** — ≠ workers/JWT/M7 |
+| Hosted runtime / security (JWT J-matrix) | **BLOCKED / UNPROVEN** |
+| Offline Shopify RO.1 / RO.2 / RO.1.2 | **CLOSED/PUSHED** — fixtures ≠ live-certified |
+| Offline Shopify RO.3 | **LOCAL IMPLEMENTED + TESTED** — **not** Git-closed; **not** live-certified |
+| Real merchant validation / ROI / 1,000 customers | **Not achieved / not claimed** |
+| Authenticated browser viewport certification | **BLOCKED** for automation; owner screenshots ≠ automated PASS |
+| Multi-store / multi-location owner acceptance | **Pending** |
+| Incoming completeness (trusted PO path) | Still **unknown** on snapstore; fail-closed |
+
+### Outstanding gates (accurate)
+
+1. RO.3 **owner acceptance** + separate **Git closure** (pending) — still not live Shopify.
+2. Shopify secure connectivity / live nested-completeness certification.
+3. OAuth + least-privilege + authorized read-only SyncRun.
+4. PE1.b.6b LIMITED JWT isolation.
+5. Workers/cron enablement (separate).
+6. M5.8 / M6 production forecast / M7 create (separate authorizations).
+7. Multi-store + incoming-completeness merchant gates.
+8. Billing/trial/pilot/launch sign-off.
+9. Non-destructive DOCX Section 36+ sync (**PENDING**).
+
+### Planning artifacts this pass
+
+| Artifact | Role |
+|---|---|
+| `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` | **New** — product vision, pain map, AI-INV-1…6, premium UX, 90-day sequence |
+| `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md` | Dated reconciliation addendum |
+| `docs/IMPLEMENTATION_STATUS.md` | Pointer → this matrix |
+| `docs/PROJECT_HANDOFF.md` | Bootstrap refreshed to `fe29703` |
+| `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` | UX-INV-1c.1 + CURRENT vs FUTURE |
+| `docs/COMPETITIVE_UX_MERCHANT_PAIN_POINT_ROADMAP.md` | Pin + AI-INV pointer |
+| `docs/PROVIDER_ADAPTERS.md` / `SHOPIFY_RO2_TRANSPORT.md` | RO.3 already documented in dirty tree — preserved |
+| Canonical DOCX | **No rewrite** — Markdown sync source; Section 36+ **PENDING** |
+
+### Next smallest milestones (not authorized by this addendum alone)
+
+1. Owner accept RO.3 offline + authorize separate Git closure.
+2. Close documentation review for DOC-2026-11.
+3. Optionally authorize AI-INV-1 offline/mock read-only design/impl (proposed parallel).
+4. Keep PE1.b.6b / workers / M7 / live Shopify **BLOCKED**.
+
+---
+
+## 2026-11-19 — UX-INV-1a Merchant-First Overview (local UI)
+
+> **Authority:** Presentation-only Overview slice on existing readiness + inventory intelligence reads. No DB writes, migrations, workers, JWT, Shopify live, M7 activation, or Git commit/push in this pass. HEAD baseline remains `7fc8f2a` until owner commits.
+
+| Gate | Result |
+|---|---|
+| Contradictory “sales/planning missing” Overview copy | **FIXED** via `buildMerchantOverviewPresentation` |
+| Attention counts (OOS / low cover / high-cover review / limited evidence) | **Surfaced** from trusted available qty + valid `daysOfStock` bands (`14` / `60`) |
+| Tenant-boundary hero demoted | **DONE** (footer meta; auth/org resolution unchanged) |
+| Fake M7 decision queue | **ABSENT** (`data-commercial-queue="false"`) |
+| Inventory deep-link filters | **DONE** (`?filter=` → workspace initial filter) |
+| Next | UX-INV-1b Inventory stock-health vs cover labels |
+
+## 2026-11-19 — UX-INV-1b Stock Health & SKU Attention (local UI)
+
+> **Authority:** Presentation/ranking only on existing inventory intelligence rows. No DB writes, migrations, workers, JWT, Shopify live, M7 activation, or Git commit/push. Baseline `main` @ `10d9de6` (pushed).
+
+| Gate | Result |
+|---|---|
+| Stock condition ≠ cover availability ≠ decision eligibility | **DONE** (`presentSkuAttention`) |
+| Known zero never green/healthy solely for calculable cover | **DONE** (no `CheckCircle2` / “Known cover”) |
+| Stale zero → last recorded OOS + date (not live) | **DONE** (`stockObservationsStale`) |
+| Low/high cover as review heuristics only (14d / 60d) | **DONE** — no overstock/cash claims |
+| Known-zero demand vs unknown vs short history | **DONE** |
+| Attention-first sort/filter + URL filter parity | **DONE** |
+| History chip noise reduction + mobile evidence cards | **DONE** |
+| Focused vitest / typecheck / lint / build | **PASS** |
+| Acceptance fixes (stock-vs-evidence filters, stale velocity honesty, Overview grain-align copy, URL push/Back) | **DONE** (2026-11-20) |
+| Local `inventory_actions` count (read-only psql `:55322`) | **0** |
+| `commercialActionsEligible` | **hard-false** (`canCommercial = false`) |
+| Authenticated snapstore browser 320–1440 | **BLOCKED** for automation; owner screenshots are limited evidence only — never automated PASS |
+| Next | UX-INV-1c replenishment/incoming copy |
+
+## 2026-11-19 — November 2026 status reconciliation & execution plan (docs only)
+
+> **Authority:** Documentation / planning reconciliation only. No application UI edits, DB ops, hosted writes, JWT execution, Shopify live calls, workers/cron, M7 activation, or Git commit/push performed in this pass. Historical sections below remain historical evidence.
+
+### Git evidence (verified)
+
+| Field | Value |
+|---|---|
+| HEAD | `7fc8f2a` — `feat(shopify): add RO.2 read-only Admin GraphQL transport` |
+| vs `origin/main` | **Ahead by 1** — RO.2 **committed locally; not pushed** |
+| Sequence confirmed | `d73790a` → `457a516` → `970bab0` → `0072a04` → `7fc8f2a` |
+| RO.2 local tests | `tests/unit/provider-shopify-transport.test.ts` **17/17 PASS** (injectable mock HTTP; no live Shopify) |
+| Dirty tree | Preserved (including unrelated modified/deleted/untracked docs and SQL snippets) |
+
+### Workstream classification snapshot
+
+| Workstream | Classification (multi-label) |
+|---|---|
+| M0–M4 + CSV imports | Implemented; tested locally; **local E2E accepted** (snapstore); hosted onboarding unproven |
+| M5 metrics/planning | Implemented through M5.7 local; snapstore metrics/thresholds accepted; hosted worker/rollover HTTP **Blocked**; M5.8 **Planned** |
+| M6 foundations | Implemented/tested locally; hosted schema **CLOSED**; production forecast operation **Blocked** |
+| PE1.b.6b JWT | Worksheet foundation; J1–J13 **NOT EXECUTED** — **Blocked** |
+| M7 | Foundations + synthetic demo + hosted schema; production create/activation **Blocked** |
+| Hosted 38→52 | **Hosted schema applied** CLOSED 52/52; ops activation not authorized |
+| DB drift Phase 1 | Implemented; tested locally; Actions run unverified; RLS equivalence unproven |
+| Shopify RO.1 | Implemented + tested locally (offline) @ `0072a04` |
+| Shopify RO.2 | **Implemented in code + tested locally** @ `7fc8f2a`; remote publish **Pending**; SyncRun/OAuth **Blocked/Planned**; nested pagination incompleteness hard gate |
+| Woo/Amazon | **Planned** |
+| Overview/Inventory premium UX | Spec + **UX-INV-1a/1b implemented**; UX-INV-1c/1d still planned |
+
+| Supplier / cash / grounded AI / billing launch | Partial foundations or **Planned**; paying launch **NO-GO** |
+
+### Preserved snapstore acceptance (unchanged)
+
+20 positions / 60 snapshots; 25 orders/items; 20/20 metrics; planning 7/5/7; thresholds 20/20; 12 positive-demand / 8 known-zero; incoming unknown; `inventory_actions=0`. **Synthetic local ≠ production readiness.**
+
+### Planning artifacts added/updated this pass
+
+| Artifact | Role |
+|---|---|
+| `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md` | Reconciled Parts A–E execution plan; DOCX sync **PENDING** |
+| `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` | UX-INV-1 Overview/Inventory delivery spec |
+| `docs/IMPLEMENTATION_STATUS.md` | Pointer refreshed to HEAD `7fc8f2a` + RO.2 |
+| `docs/PROJECT_HANDOFF.md` | Next-session bootstrap refreshed |
+| `docs/COMPETITIVE_UX_MERCHANT_PAIN_POINT_ROADMAP.md` | Nov 2026 alignment addendum |
+| Canonical DOCX | **No destructive edit** — Markdown is sync source |
+
+### Next smallest milestones (not authorized by this addendum alone)
+
+1. Owner push/CI for RO.2 if desired (when still unpushed on a branch).
+2. UX-INV-1c replenishment impact + incoming guided copy (after UX-INV-1b).
+3. Shopify RO.1.2 offline schema compatibility (separate eng approval).
+4. PE1.b.6b owner gates remain the security track.
+
+---
 
 ## 2026-11-18 — Local Inventory CSV → Demand Metrics → Replenishment Planning acceptance (snapstore/Main)
 
@@ -63,8 +269,8 @@ StoreAgent.si is a **provider-independent AI Inventory & Buying Agent**, not ano
 | DB drift prevention Phase 1 (2026-11-18) | **Implemented:** `check:migrations`, `migrations.sha256`, DML/seed gates, unit tests 8/8 PASS, workflow file present; owner-reported local/remote versions aligned + dry-run up to date | GitHub Actions run **not verified**; disposable replay **not implemented**; hosted schema/RLS equivalence **not proven** by this gate; PE1.b.6b JWT still **BLOCKED**; auth `enable_signup`→`enabled` pending; never promote local synthetic inventory/sales as prod seeds/migrations. Detail: `docs/DB_DRIFT_PREVENTION_PHASE1.md` |
 | Hosted 38→52 migration track | **CLOSED** on pin `qlsqminsfdntpqdkhxjx`: ledger **52/52** latest `20261110140000`; S4/S5/S6 hosted-default grant fixes verified PASS; E.4 canary unchanged; fingerprint `59d7d64dbcc254544f04cdb81ccff699` MATCH | Schema deploy complete ≠ ops unlock; no workers/cron/JWT/M7/purchasing activation |
 | PE1.b.6b security | Hosted schema and owner worksheet foundation; J1–J13 NOT EXECUTED / UNPROVEN in handoff | Limited authorized hosted JWT A/B tenant isolation proof, gate review and sign-off |
-| Native connectors | Provider-neutral canonical architecture and CSV source | Shopify read-only GraphQL connector first; WooCommerce next, Amazon SP-API subject to feasibility/demand |
-| Commercial UI / AI | Local Inventory workspace + replenishment settings UX on `main` @ `457a516`; Actions remain synthetic demo | Real evidence-backed decision inbox, grounded AI explanations, merchant control and honest landing page |
+| Native connectors | Provider-neutral architecture + CSV; **Shopify RO.1** offline normalizers @ `0072a04`; **Shopify RO.2** transport @ `7fc8f2a` (local tests PASS; **push pending**; no live shop) | RO.1.2 schema compatibility; nested pagination completeness; OAuth/SyncRun/quarantine UX; then WooCommerce; Amazon SP-API subject to feasibility/demand |
+| Commercial UI / AI | Local Inventory workspace + replenishment settings UX; **UX-INV-1a/1b implemented (2026-11-19)** on `main` @ `10d9de6` baseline; Actions remain synthetic demo; UX-INV-1c+ planned | UX-INV-1c replenishment/incoming copy; real evidence-backed decision inbox; grounded AI; merchant control; honest landing page |
 | Supplier Intelligence | Product scope defined; supplier/PO tables and stated lead-time inputs exist | Trusted quote/cost/MOQ/lead-time risk/cash/margin comparison; no verified supplier reliability/savings claims |
 
 ### Proposed execution order and release gates
