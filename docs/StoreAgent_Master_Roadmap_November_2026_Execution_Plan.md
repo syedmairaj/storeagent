@@ -1,21 +1,55 @@
 # StoreAgent.si — November 2026 Execution Plan
 
 **Mode:** Documentation / planning reconciliation only
-**As-of current truth:** 2026-11-20 (DOC-2026-11) — supersedes stale HEAD pins in §1 below
-**Git HEAD verified (2026-11-20):** `fe29703` — `feat(shopify): align RO.1.2 offline normalizers to Admin API 2026-10`
-**Remote:** `main` **aligned with `origin/main`**
+**As-of current truth:** 2026-11-20 — **post-closure reconciliation** (RO.3 + AI-INV-1/1.1 Git-closed)
+**Git HEAD verified (2026-11-20 post-closure):** `38f63d6` — `feat(ai-inv-1): grounded inventory explainer with situational guidance`
+**Remote:** `main` **aligned with locally recorded `origin/main`** (same SHA at acceptance; **no CI claim**)
 **AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`
-**Authoritative status table:** living ledger § **2026-11-20 — DOC-2026-11 Master Roadmap reconciliation**
+**Authoritative status table:** living ledger § **2026-11-20 — post-closure reconciliation (RO.3 + AI-INV-1/1.1)**
 **Authority:** Augments the canonical master roadmap DOCX (`docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx`). Does **not** destructively rewrite frozen architecture, PE1.b gates, M5–M7 contracts, or historical ledger evidence.
-**DOCX synchronization:** **PENDING** — propose non-destructive **Section 36+** addendum pointing here + AI-INV doc + ledger § 2026-11-20. Do not rewrite/delete DOCX body in docs-only passes.
+**DOCX synchronization:** **PENDING** — propose non-destructive **Section 36+** addendum pointing here + AI-INV doc + ledger § post-closure. Do not rewrite/delete DOCX body in docs-only passes.
+
+---
+
+## 0B. 2026-11-20 post-closure reconciliation (RO.3 + AI-INV-1/1.1)
+
+> **Authority for current-status pins.** §0A (same calendar day, pre-Git-closure) and older §1 / Part A snapshots remain **historical evidence** — not rewritten. Prefer this §0B + living ledger § post-closure.
+
+| Topic | Current state |
+|---|---|
+| HEAD | `38f63d6` — AI-INV-1/1.1; `main` aligned with locally recorded `origin/main` |
+| UX-INV-1a–1c.1 | **CLOSED/PUSHED**; latest UX `0402564` |
+| Shopify RO.1 / RO.2 / RO.1.2 | **CLOSED/PUSHED** @ `0072a04` / `7fc8f2a` / `fe29703` |
+| Shopify-RO.3 | **CLOSED/PUSHED** @ `4f6ef0c` (`shopify-ro.3-v1`); offline mocked tests; live nested-completeness certification **FALSE** |
+| AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; offline/local focused **32/32** PASS; typecheck/lint/build PASS; **2** pre-existing lint warnings; soft-enable **OFF**; not live-certified |
+| AI-INV-2…6 | **PLANNED** |
+| AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4 | **PLANNED** (sequence preserved); no live market research / paid credits |
+| PE1.b.6b / workers / M6 prod / M7 create / purchasing / live Shopify / live model / launch | **Unchanged BLOCKED / NO-GO** |
+| ICP / 1,000 merchants | Hypothesis / aspirational goal — **not** traction claim |
+
+### Proposed next sequence (dependency-aware; not guaranteed)
+
+0. Owner review of this **post-closure docs** reconciliation (optional separate docs Git closure) — **this pass**
+1. Shopify secure connectivity architecture/security + nested **live**-certification gates
+2. OAuth / SyncRun read-only (after live nested cert + security)
+3. AI-INV-2…6 / AI-MKT-0…4 only under separate authorizations
+4. Data Health / onboarding / reliability
+5. Forecast validation + M6 production gates (after JWT where required)
+6. M7 inbox/create + guarded approvals (after hosted security gates)
+7. Cash/supplier + scenarios
+8. Pilot / billing / launch gates
+9. Premium marketing hero timed to shipped capabilities
+10. WooCommerce → Amazon by demand/feasibility
+
+Full matrix, pain map, and AI gates: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
 
 ---
 
 ## 0A. 2026-11-20 reconciliation addendum (DOC-2026-11)
 
-> Historical §1 / Part A tables that still say HEAD `7fc8f2a`, “RO.2 push pending”, “RO.1.2 Planned”, or “UX-INV-1c planned” are **preserved as 2026-11-19 snapshots**. Prefer this §0A + the living ledger for current truth.
+> **SUPERSEDED for current-status pins** by §0B above. Retained as historical evidence of the pre-RO.3/AI-INV Git-closure documentation pass. Historical §1 / Part A tables that still say HEAD `7fc8f2a`, “RO.2 push pending”, “RO.1.2 Planned”, or “UX-INV-1c planned” are **preserved as 2026-11-19 snapshots**.
 
-| Topic | Current state |
+| Topic | State as recorded (pre-closure) |
 |---|---|
 | UX-INV-1a–1c.1 | **CLOSED/PUSHED**; latest UX `0402564` |
 | Shopify RO.1 / RO.2 / RO.1.2 | **CLOSED/PUSHED** @ `0072a04` / `7fc8f2a` / `fe29703` |
@@ -24,7 +58,7 @@
 | PE1.b.6b / workers / M7 / live Shopify / paying launch | **Unchanged BLOCKED / NO-GO** |
 | ICP / 1,000 merchants | Hypothesis / aspirational goal — **not** traction claim |
 
-### Proposed next sequence (dependency-aware; not guaranteed)
+### Proposed next sequence (as recorded pre-closure — historical)
 
 0. RO.3 owner acceptance + separate Git closure (pending)
 1. Documentation reconciliation closure (this pass)
@@ -79,17 +113,27 @@ StoreAgent.si is a **premium, provider-independent, evidence-backed AI Inventory
 
 **Local RO.2 unit evidence (2026-11-19 session):** `tests/unit/provider-shopify-transport.test.ts` — **17/17 PASS** (mock HTTP only; no live Shopify).
 
-### Current extension (verified 2026-11-20)
+### Current extension (verified 2026-11-20 pre-closure) — historical pins
 
-| Commit / state | Subject | Role |
+> **SUPERSEDED for HEAD / RO.3 / AI-INV current pins** by §0B. Table below is the pre-closure snapshot.
+
+| Commit / state | Subject | Role (as of pre-closure) |
 |---|---|---|
 | `10d9de6` | Overview merchant stock attention | UX-INV-1a |
 | `f1426c4` | SKU intelligence inspector | UX-INV-1b lineage |
 | `0402564` | Replenishment/incoming clarification | UX-INV-1c.1 (latest UX) |
-| `fe29703` | RO.1.2 Admin API 2026-10 normalizers | **HEAD**; **on origin** |
+| `fe29703` | RO.1.2 Admin API 2026-10 normalizers | Then **HEAD**; **on origin** |
 | Uncommitted RO.3 | `shopify-ro.3-v1` nested pagination | LOCAL IMPLEMENTED + TESTED offline; Git pending |
 
-**Offline test evidence (2026-11-20):** owner-reported **13** RO.3 + **78** Shopify + **63** CSV/provider PASS under mocks — **no** live Shopify.
+### Post-closure Git extension (verified 2026-11-20)
+
+| Commit | Subject | Role |
+|---|---|---|
+| `4f6ef0c` | Shopify RO.3 offline nested pagination | **CLOSED/PUSHED**; live nested cert **FALSE** |
+| `38f63d6` | AI-INV-1/1.1 grounded explainer + situational guidance | **HEAD**; **CLOSED/PUSHED**; soft-enable **OFF** |
+
+**Offline test evidence (RO.3, 2026-11-20):** owner-reported **13** RO.3 + **78** Shopify + **63** CSV/provider PASS under mocks — **no** live Shopify.
+**Offline test evidence (AI-INV-1/1.1):** focused vitest **32/32 PASS**; typecheck/lint/build PASS; **2** pre-existing lint warnings — **no** live model/search.
 
 **Preserved snapstore/Main local acceptance (2026-11-18, synthetic only):**
 
@@ -103,7 +147,7 @@ StoreAgent.si is a **premium, provider-independent, evidence-backed AI Inventory
 | Demand split | 12 positive-demand; 8 known-zero-demand; 0 unknown v30 |
 | Incoming / actions | incoming unknown 20/20; `inventory_actions=0` |
 
-**Dirty tree preserved:** modified `docs/BACKGROUND_JOBS.md`, `docs/SERVICE_ROLE_BOUNDARY.md`; deleted tracked `docs/StoreAgent_Roadmap_2026.docx` (archive copies exist); uncommitted RO.3 code/fixtures/docs hunks; untracked SQL snippets, archives, AGENTS.md, vitest cache, etc.
+**Dirty tree preserved (post-closure docs pass):** modified `docs/BACKGROUND_JOBS.md`, `docs/SERVICE_ROLE_BOUNDARY.md`; deleted tracked `docs/StoreAgent_Roadmap_2026.docx` (archive copies exist); untracked SQL snippets, archives, AGENTS.md, vitest cache, `.tmp`, etc. RO.3 and AI-INV-1/1.1 are **no longer** uncommitted — both **CLOSED/PUSHED**.
 
 ---
 
@@ -139,12 +183,13 @@ A workstream may hold multiple labels. Schema ≠ operation. Synthetic ≠ merch
 | DB drift prevention Phase 1 | Yes (`d73790a`) | `check:migrations` + 8/8 unit PASS | — | Dry-run owner-reported up to date | Actions run **unverified**; RLS equivalence **unproven** | No | Disposable replay **Planned**; JWT still blocked |
 | Inventory intelligence workspace + replenishment UX | Yes (`457a516`+`970bab0`) | Units + snapstore acceptance | Local synthetic **COMPLETE** | — | — | No | Hosted onboarding unproven |
 | Overview/Inventory UX-INV-1a–1c.1 | Yes (`10d9de6`…`0402564`) | Units + local UI | Local UI accepted | — | — | No | UX-INV-1d **Planned**; browser automation cert **Blocked** |
-| AI-INV-1…6 grounded intelligence | Docs only | — | — | — | — | No | All **PLANNED** — see AI roadmap |
+| AI-INV-1 / 1.1 grounded explainer | Yes (`38f63d6`) **CLOSED/PUSHED** | Focused **32/32** + typecheck/lint/build | Offline/local only | N/A | Soft-enable **OFF**; not live-certified | No | Live model/search **Blocked**; AI-INV-2…6 **PLANNED** |
+| AI-INV-2…6 / AI-MKT-0…4 | Docs / roadmap | — | — | — | — | No | All **PLANNED** — sequence AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4 |
 | Shopify M0.7 boundary freezes | Yes (docs/contracts) | Architecture tests | — | N/A | N/A | No | Continues as adapter law |
 | Shopify RO.1 offline normalizers | Yes (`0072a04`) **CLOSED/PUSHED** | Unit normalization suites | Offline fixtures only | N/A | No live shop | No | Live cert **Blocked** |
 | Shopify RO.2 transport | Yes (`7fc8f2a`) **CLOSED/PUSHED** | Transport unit PASS (suite grown since 17/17) | No live E2E | N/A | No live shop; no OAuth | No | Nested live completeness **Blocked** for SyncRun; OAuth/SyncRun **Planned** |
 | Shopify RO.1.2 schema compatibility | Yes (`fe29703`) **CLOSED/PUSHED** | RO.1.2 unit suites | Offline fixtures | N/A | No live shop | No | Live shop **Blocked** |
-| Shopify RO.3 nested pagination | Yes local `shopify-ro.3-v1` (**uncommitted**) | Offline mock **TESTED** (13+) | No live E2E | N/A | Live nested cert **false** | No | **Git closure pending**; SyncRun complete **Blocked**; OAuth **Planned** |
+| Shopify RO.3 nested pagination | Yes (`4f6ef0c`) **CLOSED/PUSHED** | Offline mock **TESTED** (13+) | No live E2E | N/A | Live nested cert **FALSE** | No | SyncRun complete **Blocked**; OAuth **Planned** |
 | OAuth / SyncRun / quarantine UX | Partial design in docs | — | — | — | — | No | **Planned / Blocked** on live nested completeness |
 | WooCommerce / Amazon | Architecture reserved | — | — | — | — | No | **Planned** after Shopify |
 | Supplier intelligence | Product scope + tables/lead-time inputs | Partial | — | Partial schema | — | No | Quotes/landed cost/RFQ **Planned**; no auto-outreach |
@@ -305,24 +350,25 @@ Primary public source already captured (2026-11 competitive UX doc): Prediko Sho
 
 ## 6. Part E — Phased execution roadmap
 
-### NOW (docs + dependency-ready slices) — updated 2026-11-20
+### NOW (docs + dependency-ready slices) — updated 2026-11-20 post-closure
 
 | ID | Merchant problem | Current state | Intended outcome | Scope / non-goals | Dependencies | Security gates | Acceptance | Evidence / release |
 |---|---|---|---|---|---|---|---|---|
-| DOC-2026-11 | Conflicting status / vision sources | Stale HEAD pins across docs | One authoritative matrix + AI-INV roadmap | Docs only | Git verify `fe29703` | No hosted writes | Owner PASS review | Ledger § 2026-11-20 + AI roadmap |
+| DOC-2026-11-POST | Post-closure status drift | RO.3 + AI-INV Git-closed; docs lagging | One authoritative matrix @ `38f63d6` | Docs only | Git verify `38f63d6` | No hosted writes | Owner PASS review | Ledger § post-closure + AI roadmap |
+| DOC-2026-11 | Conflicting status / vision sources | **Historical** pre-closure pass (`fe29703` pins) | One matrix + AI-INV roadmap | Docs only | — | No hosted writes | Pre-closure review | Keep as history; superseded by POST |
 | DOC-NOV26 | (historical) | Closed into DOC-2026-11 | — | Historical | — | — | 2026-11-19 docs | Keep as history |
 | UX-INV-1a–1c.1 | Overview/Inventory confusion | **CLOSED/PUSHED** through `0402564` | Decision-first local UI | No fake M7 queue | M5 reads | No engine/M7 | Local UI + units; browser cert blocked | Delivery doc |
 | SHOP-RO2-GIT | RO.2 remote | **DONE** — on origin via later commits | — | — | — | — | Remote contains `7fc8f2a`+ | Historical |
-| SHOP-RO1.2 | Schema vs Admin `2026-10` | **CLOSED/PUSHED** @ `fe29703` | Offline compatibility | No OAuth | RO.2 | Fail-closed | Mapping tests | HEAD |
-| SHOP-RO3-GIT | Nested pagination offline | Local `shopify-ro.3-v1` uncommitted | Owner accept + Git closure | No live Shopify | RO.1.2 | No JWT/workers | Offline tests PASS; live cert still false | **Pending owner** |
-| AI-INV-1 | Unexplained inventory facts | **Local IMPLEMENTED** (AI-INV-1 + 1.1) | Safe read-only explainer + situational guidance | Offline/mock OK; no M6/M7 | M5 reads | Abstention + isolation | Golden Q&A + guidance situations | Git closure pending owner |
+| SHOP-RO1.2 | Schema vs Admin `2026-10` | **CLOSED/PUSHED** @ `fe29703` | Offline compatibility | No OAuth | RO.2 | Fail-closed | Mapping tests | Ancestor of HEAD |
+| SHOP-RO3-GIT | Nested pagination offline | **CLOSED/PUSHED** @ `4f6ef0c` | Offline completeness under mocks | No live Shopify | RO.1.2 | No JWT/workers | Offline tests PASS; live cert **FALSE** | Pushed — not live SyncRun |
+| AI-INV-1 / 1.1 | Unexplained inventory facts | **CLOSED/PUSHED** @ `38f63d6` | Safe read-only explainer + situational guidance | Offline/mock; soft-enable OFF; no M6/M7 | M5 reads | Abstention + isolation | Focused **32/32** + typecheck/lint/build | **HEAD**; not live-certified |
 | AI-MKT-0…4 | Credit-based market intelligence | **PLANNED only** | Sourced research + credits + zero-sales detective | No live web/AI/billing in this plan | AI-INV-1.1; rights review | Licensed sources; consent | Spec in AI roadmap | Future — not authorized |
 
 ### NEXT
 
 | ID | Focus | Notes |
 |---|---|---|
-| SHOP-RO-SAFE | OAuth, least-privilege, credential security, location SyncRun | Blocked on **live** nested-completeness certification (offline RO.3 insufficient) |
+| SHOP-RO-SAFE | Secure connectivity + nested **live**-cert plan; then OAuth / SyncRun | Offline RO.3 **CLOSED/PUSHED** ≠ live nested cert; SyncRun still blocked |
 | UX-INV-1d | Premium responsive polish | Parallelizable; engines unchanged; no M7 writes |
 | DATA-HEALTH | Freshness, multi-store evidence, limitation noise reduction | Honest labels; no invented confidence |
 | PE1.b.6b | Hosted JWT A/B isolation | Separately authorized; still BLOCKED |
@@ -345,15 +391,15 @@ Primary public source already captured (2026-11 competitive UX doc): Prediko Sho
 
 | Parallelizable now | Blocked on hosted JWT | Blocked on workers/cron | Blocked on M7 authorization |
 |---|---|---|---|
-| Docs, UX-INV-1d polish, AI-INV-1 offline/mock (if approved) | PE1.c forecast canary, multi-tenant runtime claims | M5.8 hosted rollover HTTP, alert jobs | Live decision inbox, Approve/Edit/Dismiss, PO drafts |
-| RO.3 Git closure (owner) | Hosted security PASS claims | Background sync schedulers | Production REORDER create |
-| Landing content design (truthful CTA) | — | — | Live AI purchase claims |
+| Docs post-closure review; UX-INV-1d polish; AI-INV-2…6 / AI-MKT design only if approved | PE1.c forecast canary, multi-tenant runtime claims | M5.8 hosted rollover HTTP, alert jobs | Live decision inbox, Approve/Edit/Dismiss, PO drafts |
+| Shopify secure connectivity / live-cert plan (docs/architecture) | Hosted security PASS claims | Background sync schedulers | Production REORDER create |
+| Landing content design (truthful CTA) | — | — | Live AI purchase claims; live model/search |
 
 ### Next smallest implementation milestone (recommended)
 
-1. **Owner:** accept RO.3 offline + authorize separate Git closure — **not** live Shopify.
-2. **Docs:** close DOC-2026-11 review; optional DOCX Section 36+.
-3. **Proposed parallel:** AI-INV-1 offline/mock read-only foundation (separate approval).
+1. **Owner:** accept DOC-2026-11 **post-closure** docs reconciliation (RO.3 + AI-INV-1/1.1 already **CLOSED/PUSHED**).
+2. **Docs:** optional DOCX Section 36+ sync (non-destructive).
+3. **Next eng (separate authorization):** Shopify secure connectivity / live nested-completeness certification plan — **not** SyncRun, OAuth, or AI-MKT spend.
 
 ---
 
@@ -369,7 +415,7 @@ Viewports: 320 / 390 / 768 / 1024 / 1280 / 1440(+ ultrawide). Touch targets ≥4
 
 | Artifact | Role |
 |---|---|
-| `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` | Canonical DOCX — **Section 36+ sync PENDING** (point to this file + AI-INV + ledger § 2026-11-20; do not wipe history) |
+| `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` | Canonical DOCX — **Section 36+ sync PENDING** (point to this file + AI-INV + ledger § post-closure; do not wipe history) |
 | This file | November 2026 Markdown planning source |
 | `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` | AI-INV + merchant pain/value + 90-day sequence |
 | `docs/IMPLEMENTATION_STATUS.md` | Concise pointer + current status |
@@ -377,7 +423,7 @@ Viewports: 320 / 390 / 768 / 1024 / 1280 / 1440(+ ultrawide). Touch targets ≥4
 | `docs/PROJECT_HANDOFF.md` | Next-session bootstrap |
 | `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` | Overview/Inventory UX delivery |
 | `docs/COMPETITIVE_UX_MERCHANT_PAIN_POINT_ROADMAP.md` | Aligned competitive UX (Actions + INV) |
-| `docs/PROVIDER_ADAPTERS.md` / `SHOPIFY_RO2_TRANSPORT.md` | Shopify RO.3 law (dirty RO.3 hunks preserved) |
+| `docs/PROVIDER_ADAPTERS.md` / `SHOPIFY_RO2_TRANSPORT.md` | Shopify RO.2/RO.3 law (committed; live cert still FALSE) |
 
 ---
 
@@ -385,11 +431,12 @@ Viewports: 320 / 390 / 768 / 1024 / 1280 / 1440(+ ultrawide). Touch targets ≥4
 
 | Gate | Verdict |
 |---|---|
-| Documentation reconciliation (DOC-2026-11) | **PASS** (pending owner read) — STOP |
+| Documentation reconciliation (DOC-2026-11 **post-closure**) | **PASS** (pending owner read) — **STOP FOR OWNER REVIEW** |
 | DOCX non-destructive Section 36+ sync | **BLOCKED / PENDING** |
-| RO.3 owner acceptance + Git closure | **PENDING** (local offline only) |
+| RO.3 Git closure | **CLOSED/PUSHED** @ `4f6ef0c` — live nested cert still **FALSE** |
 | RO.2 remote publish | **DONE** (historical; on origin) |
-| AI-INV-1 / 1.1 offline slice | **Local IMPLEMENTED** — Git closure pending owner; soft-enable OFF |
-| AI-MKT Market Brain | **PLANNED only** — no live web/AI, credits, or billing execution |
+| AI-INV-1 / 1.1 offline slice | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; not live-certified |
+| AI-INV-2…6 | **PLANNED** |
+| AI-MKT Market Brain (0→1→1.1→2→3→4) | **PLANNED only** — no live web/AI, credits, or billing execution |
 | Application/UI implementation beyond approved slices | **NO-GO** until separate slice approval |
-| Workers / JWT / M7 / live Shopify / purchasing | **BLOCKED** unchanged |
+| Workers / JWT / M6 prod / M7 / live Shopify / live model / purchasing / launch | **BLOCKED** unchanged |

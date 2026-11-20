@@ -3,12 +3,12 @@
 Bootstrap for new ChatGPT / Cursor sessions.
 
 **Active PE1.b.6b continuity (read first for JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`
-Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-20 DOC-2026-11**.
+Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-20 — post-closure reconciliation (RO.3 + AI-INV-1/1.1)**.
 **November 2026 execution plan:** `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md`
 **AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`
 **Overview/Inventory UX delivery:** `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` (UX-INV-1a–**1c.1 CLOSED**; 1d planned)
 
-Hosted 38→52 schema track: **CLOSED** at 52/52 (`docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`). DB drift prevention Phase 1: `docs/DB_DRIFT_PREVENTION_PHASE1.md` (local checks PASS; Actions run **not** yet verified; JWT still BLOCKED). **Local Inventory CSV → Demand Metrics → Replenishment Planning acceptance (snapstore/Main, 2026-11-18): COMPLETE** — synthetic local only; ≠ hosted/JWT/M7 unlock. Shopify **RO.1 / RO.2 / RO.1.2 CLOSED/PUSHED** @ HEAD `fe29703`. Shopify-**RO.3** local uncommitted (`shopify-ro.3-v1`) — not Git-closed, not live-certified. M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually; Markdown is sync source until DOCX Section 36+ is authorized.
+Hosted 38→52 schema track: **CLOSED** at 52/52 (`docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`). DB drift prevention Phase 1: `docs/DB_DRIFT_PREVENTION_PHASE1.md` (local checks PASS; Actions run **not** yet verified; JWT still BLOCKED). **Local Inventory CSV → Demand Metrics → Replenishment Planning acceptance (snapstore/Main, 2026-11-18): COMPLETE** — synthetic local only; ≠ hosted/JWT/M7 unlock. Shopify **RO.1 / RO.2 / RO.1.2 CLOSED/PUSHED**; Shopify-**RO.3 CLOSED/PUSHED** @ `4f6ef0c` (offline mocks; live nested-completeness certification **FALSE**). AI-INV-1 / AI-INV-1.1 **CLOSED/PUSHED** @ `38f63d6` (offline/local; model soft-enable **OFF**; not live-certified). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually; Markdown is sync source until DOCX Section 36+ is authorized.
 
 ## 1. Thesis and non-negotiables
 
@@ -26,16 +26,18 @@ Data determines reality. Deterministic forecasting and inventory logic calculate
 |---|---|
 | Repository | StoreAgent.si |
 | Branch | `main` |
-| HEAD (verify) | Expect `fe29703` — Shopify RO.1.2 (RO.2 `7fc8f2a`; RO.1 `0072a04`; UX `0402564`/`f1426c4`/`10d9de6`; inventory UX `457a516`/`970bab0`; drift `d73790a`) |
-| Remote | **Aligned with `origin/main`** |
-| As-of | 2026-11-20 — DOC-2026-11 docs reconciliation; PE1.b.6b JWT still BLOCKED; snapstore local planning acceptance COMPLETE (2026-11-18); RO.3 local-only |
+| HEAD (verify) | Expect `38f63d6` — AI-INV-1/1.1 grounded explainer (ancestors: RO.3 `4f6ef0c`; RO.1.2 `fe29703`; RO.2 `7fc8f2a`; RO.1 `0072a04`; UX `0402564`/`f1426c4`/`10d9de6`) |
+| Remote | **Aligned with locally recorded `origin/main`** at acceptance (same SHA). **No CI verification claimed** without evidence. |
+| As-of | 2026-11-20 — **post-closure reconciliation** (RO.3 + AI-INV-1/1.1 Git-closed); PE1.b.6b JWT still BLOCKED; snapstore local planning acceptance COMPLETE (2026-11-18) |
 | Hosted pin | `qlsqminsfdntpqdkhxjx` (trial; PE1 env class **Other** / Development & Testing per worksheet A2) |
+
+> **Superseded current-status pins:** Earlier DOC-2026-11 handoff text that expected HEAD `fe29703` and “RO.3 uncommitted / AI-INV docs-only” remains **historical**. Prefer this baseline + ledger § post-closure.
 
 Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Preserve dirty/untracked work; no drive-by Git.
 
 ## 3. Status matrix
 
-**Note:** M7 persistence / lifecycle **foundations** and hosted S1–S14 schema are present (ledger **52/52**); **production merchant activation** remains **BLOCKED**. Prefer the living status ledger § 2026-11-20 + November execution plan + AI-INV roadmap + this matrix + PE1.b.6b handover for current truth. Schema deploy ≠ workers/cron/JWT/M7 unlock.
+**Note:** M7 persistence / lifecycle **foundations** and hosted S1–S14 schema are present (ledger **52/52**); **production merchant activation** remains **BLOCKED**. Prefer the living status ledger § **2026-11-20 post-closure** + November execution plan + AI-INV roadmap + this matrix + PE1.b.6b handover for current truth. Schema deploy ≠ workers/cron/JWT/M7 unlock.
 
 | Area | Implemented | Local verified | Hosted verified | Planned / blocked |
 |---|---|---|---|---|
@@ -56,9 +58,10 @@ Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Pre
 | Inventory CSV → metrics → replenishment planning | Yes (local UX + M5 binding) | **COMPLETE** snapstore/Main 2026-11-18 (20 SKUs; 7/5/7; SS/ROP/target 20/20) | — | Hosted onboarding **unproven**; incoming unknown; multi-store owner test **pending**; M7 **forbidden** |
 | Overview/Inventory merchant-first UX | Spec + **UX-INV-1a–1c.1** | Unit suites; local UI | — | UX-INV-1d polish; browser automation cert **blocked**; no fake M7 queue |
 | Shopify RO.1 / RO.2 / RO.1.2 | Yes offline @ `0072a04` / `7fc8f2a` / `fe29703` | Unit suites | — | Live shop **blocked** |
-| Shopify RO.3 nested pagination | Yes local `shopify-ro.3-v1` (**uncommitted**) | Offline mock tests (13+); owner-reported PASS | — | Git closure **pending**; live nested cert **blocked**; SyncRun **blocked** |
+| Shopify RO.3 nested pagination | **CLOSED/PUSHED** @ `4f6ef0c` (`shopify-ro.3-v1`) | Offline mock tests PASS | — | Live nested cert **FALSE**; SyncRun **blocked**; OAuth **blocked** |
 | CSV → Shopify → Woo → Amazon | Product locked; CSV local PASS; Shopify RO offline | CSV + RO offline | — | Live Shopify first native; Woo/Amazon later |
-| AI-INV-1…6 | Docs only | — | — | All **PLANNED**; AI ≠ numeric authority |
+| AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6` | Offline/local focused **32/32** + typecheck/lint/build; soft-enable **OFF** | — | Not live-certified; no live model/search |
+| AI-INV-2…6 / AI-MKT-0…4 | Docs / roadmap | — | — | **PLANNED**; AI ≠ numeric authority; no paid credits/live research |
 | Billing / trial / ops | Partial docs/code | — | — | Paying launch **NO-GO** |
 
 ## 4. M5 snapshot
@@ -107,9 +110,9 @@ Local implementation/testing committed on `main` through **`6136874`** (P1 → P
 
 ## 6. Next three engineering steps
 
-1. **Owner:** RO.3 offline acceptance + separate **Git closure** when ready (`shopify-ro.3-v1`) — still **not** live Shopify / OAuth / SyncRun.
-2. **Docs:** Owner review of DOC-2026-11 (this handoff + AI-INV roadmap + ledger § 2026-11-20); optional DOCX Section 36+ sync.
-3. **Proposed parallel (not authorized):** AI-INV-1 safe offline/mock read-only explainer design — independent of live Shopify; **no** M6/M7 activation. Keep PE1.b.6b JWT and workers **BLOCKED**.
+1. **Docs:** Owner review of this **post-closure** reconciliation (RO.3 + AI-INV-1/1.1 Git-closed); optional DOCX Section 36+ sync — still **not** authorization for live Shopify or live AI.
+2. **Shopify secure connectivity / live nested-completeness certification** — separate gate; offline RO.3 ≠ SyncRun complete; OAuth/SyncRun **BLOCKED** until authorized.
+3. **Keep blocked:** PE1.b.6b JWT, workers/cron, M6 production forecast, M7 create/purchasing, real model/search, AI-MKT paid credits, paying launch. AI-INV-2…6 and AI-MKT-0…4 remain **PLANNED** only.
 
 ## 7. Hard bans
 
@@ -118,7 +121,8 @@ Local implementation/testing committed on `main` through **`6136874`** (P1 → P
 - Do not treat hosted schema deploy as production forecast operation, algorithm approval, or M7 eligibility.
 - Do not claim live historical PIT replay or merchant performance from fixture diagnostics.
 - Do not start M7 production create, buying automation, or live Shopify connection under a docs/UX-spec task.
-- Do not treat RO.3 unit PASS or uncommitted local code as SyncRun completeness or live nested-pagination certification.
+- Do not treat RO.3 offline CLOSED/PUSHED (`4f6ef0c`) or unit PASS as SyncRun completeness or live nested-pagination certification (`SHOPIFY_RO3_LIVE_NESTED_COMPLETENESS_CERTIFIED` remains **false**).
+- Do not treat AI-INV-1/1.1 CLOSED/PUSHED as live model enablement, market research, credits, or purchasing.
 - Do not claim shipped AI Inventory Agent, merchant ROI, or 1,000 customers.
 - Do not stage/overwrite roadmap DOCX / `docs/archive/` unless the user explicitly asks; prefer Markdown until DOCX sync is authorized.
 
@@ -129,7 +133,7 @@ From the master roadmap / October–November 2026 addenda (do not rewrite the DO
 - M6 forecasting → M7 decisions → approval-gated buying.
 - M7 decision classes: **REORDER / REDUCE / PROMOTE / WATCH**.
 - Available-stock planning, multi-location isolation, lead-time, supplier MOQ / supplier intelligence.
-- Connectors: **CSV → Shopify → WooCommerce → Amazon** (Shopify RO offline closed through RO.1.2; RO.3 local; live pending).
+- Connectors: **CSV → Shopify → WooCommerce → Amazon** (Shopify RO offline closed through RO.3 @ `4f6ef0c`; live nested cert / OAuth / SyncRun pending).
 - **7-day trial** (not 14), premium **decision-first** UX.
 - AI explains only; deterministic engines own numbers.
 - Position: **Inventory Decision Copilot / AI Inventory & Buying Agent** — not a stock dashboard.
@@ -161,8 +165,8 @@ From the master roadmap / October–November 2026 addenda (do not rewrite the DO
 
 ## 10. How to start a new chat
 
-1. Confirm HEAD (`fe29703` or newer). Note whether RO.3 remains uncommitted (`git status`).
-2. Read ledger § 2026-11-20 + `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` for current priority.
+1. Confirm HEAD (`38f63d6` or newer). Confirm `main` vs locally recorded `origin/main`. Preserve unrelated dirty-tree files.
+2. Read ledger § **2026-11-20 post-closure** + `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` for current priority.
 3. For PE1.b.6b: open `docs/M6_PE1_B6B_SESSION_HANDOVER.md` and paste the ChatGPT or Cursor prompt from that file.
 4. For Overview/Inventory UI: read `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` — engines unchanged; no fake M7 queue.
 5. Default ban: **no** production forecast activation, workers, PE1.c, live Shopify, M7 create, or paying launch claims without explicit approval.

@@ -2,17 +2,78 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-20):** See **§ 2026-11-20 — DOC-2026-11 Master Roadmap reconciliation** below (single status table). Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (verified):** `fe29703` — Shopify RO.1.2 offline normalizers; `main` **aligned with `origin/main`**. Latest UX commit `0402564` (UX-INV-1c.1). Shopify-RO.3 (`shopify-ro.3-v1`) **local uncommitted** only.
-> **Latest UI slice:** UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d planned. **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify, or paying launch.
-> **Prior docs reconciliation (2026-11-19):** Historical — HEAD pins to `7fc8f2a` / “RO.2 push pending” are **stale**; prefer 2026-11-20 section.
+> **Authoritative current state (2026-11-20 post-closure):** See **§ 2026-11-20 — post-closure reconciliation (RO.3 + AI-INV-1/1.1)** below. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (verified):** `38f63d6` — AI-INV-1/1.1; `main` **aligned with locally recorded `origin/main`** (same SHA at acceptance; **no CI claim**). Shopify RO.3 **CLOSED/PUSHED** @ `4f6ef0c`. Soft-enable AI **OFF**. Live nested cert **FALSE**.
+> **Latest UI slice:** UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d planned. **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify, live model/search, paid credits, or paying launch.
+> **Prior DOC-2026-11 section (same calendar day, pre-closure pins):** Historical — HEAD `fe29703` / “RO.3 uncommitted” / “AI-INV PLANNED” are **superseded** by the post-closure section below.
+> **Prior docs reconciliation (2026-11-19):** Historical — HEAD pins to `7fc8f2a` / “RO.2 push pending” are **stale**.
 > **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main is **COMPLETE**. This does **not** unlock hosted JWT, workers/cron, M7 production create, purchasing, or paying launch.
-> **Latest strategy/addendum (2026-11-10):** Product delivery acceleration plan remains historical strategy; prefer 2026-11-20 for connector/UX/Git/AI truth when they differ.
+> **Latest strategy/addendum (2026-11-10):** Product delivery acceleration plan remains historical strategy; prefer post-closure section for connector/UX/Git/AI truth when they differ.
+
+## 2026-11-20 — post-closure reconciliation (RO.3 + AI-INV-1/1.1)
+
+> **Authority:** Documentation-only status reconciliation after Git closure of Shopify RO.3 and AI-INV-1/1.1. No application source/test/schema edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M6/M7 activation, live AI/search, billing, or Git stage/commit/push in this docs pass.
+> **Historical rule:** § DOC-2026-11 Master Roadmap reconciliation (below) and older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only.
+> **Dirty tree preserved (unrelated):** modified `BACKGROUND_JOBS.md` / `SERVICE_ROLE_BOUNDARY.md`; deleted tracked `docs/StoreAgent_Roadmap_2026.docx`; archives; SQL; `AGENTS.md`; `.tmp`; `.vitest`; snippets.
+
+### Git evidence (verified 2026-11-20 post-closure)
+
+| Field | Value |
+|---|---|
+| Branch | `main` |
+| HEAD | `38f63d6` — `feat(ai-inv-1): grounded inventory explainer with situational guidance` |
+| vs locally recorded `origin/main` | **Aligned** (same SHA at acceptance) |
+| Local push | Confirmed to recorded `origin/main` — **do not claim CI verification** without evidence |
+| Shopify RO.3 | **CLOSED/PUSHED** @ `4f6ef0c` — `feat(shopify): add RO.3 offline nested pagination completeness` |
+| AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6` |
+| UX-INV latest | `0402564` (1c.1) — ancestor |
+| Shopify RO.1.2 / RO.2 / RO.1 | `fe29703` / `7fc8f2a` / `0072a04` — ancestors |
+
+**Sequence (pushed):** … → `fe29703` (RO.1.2) → `48f2b76` (docs) → `4f6ef0c` (RO.3) → `38f63d6` (AI-INV-1/1.1) = **HEAD**.
+
+### Closure evidence
+
+| Slice | Evidence |
+|---|---|
+| RO.3 offline | Committed `shopify-ro.3-v1`; mocked nested pagination suite; `SHOPIFY_RO3_LIVE_NESTED_COMPLETENESS_CERTIFIED = false` |
+| AI-INV-1/1.1 offline | Pre-commit gate: focused vitest **32/32 PASS**; typecheck **PASS**; lint **PASS** with **2** pre-existing warnings (`scripts/check-migration-integrity.mjs`); build **PASS**; soft-enable default **OFF** |
+| Live Shopify / OAuth / SyncRun / live model / paid credits | **None** |
+
+### Authoritative milestone deltas (current vs pre-closure)
+
+| Milestone | Pre-closure (DOC-2026-11 same-day) | Post-closure (this section) |
+|---|---|---|
+| Shopify RO.3 | Uncommitted / Git pending | **CLOSED/PUSHED** @ `4f6ef0c`; live cert **FALSE** |
+| AI-INV-1 / 1.1 | PLANNED or local Git pending | **CLOSED/PUSHED** @ `38f63d6`; not live-certified |
+| AI-INV-2…6 | PLANNED | **PLANNED** (unchanged) |
+| AI-MKT-0…4 | PLANNED (roadmap) | **PLANNED** — sequence AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4 preserved |
+| JWT / workers / M6 prod / M7 create / purchasing / launch | BLOCKED | **BLOCKED** (unchanged) |
+
+### Outstanding gates (accurate)
+
+1. Shopify secure connectivity + **live** nested-completeness certification (offline RO.3 ≠ SyncRun complete).
+2. OAuth + least-privilege + authorized read-only SyncRun.
+3. PE1.b.6b LIMITED JWT isolation.
+4. Workers/cron enablement (separate).
+5. M5.8 / M6 production forecast / M7 create (separate authorizations).
+6. AI-INV-2…6 and AI-MKT-0…4 (separate authorizations; no live search/credits).
+7. Multi-store + incoming-completeness merchant gates.
+8. Billing/trial/pilot/launch sign-off.
+9. Non-destructive DOCX Section 36+ sync (**PENDING**).
+
+### Next smallest milestones (not authorized by this addendum)
+
+1. Owner accept this post-closure docs reconciliation (optional separate docs Git closure).
+2. Shopify secure connectivity architecture / live-cert plan — **not** started by this pass.
+3. Keep PE1.b.6b / workers / M7 / live Shopify / live AI / AI-MKT spend **BLOCKED**.
+
+---
 
 ## 2026-11-20 — DOC-2026-11 Master Roadmap reconciliation (docs only)
 
-> **Authority:** Documentation / product-vision reconciliation only (`DOC-2026-11`). No application source/test/schema edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M7 activation, or Git stage/commit/push/reset/stash/clean in this pass. Historical sections below remain historical evidence — **do not rewrite history**; use this dated section as current truth.
-> **Dirty tree:** Preserved (including unrelated modified `BACKGROUND_JOBS.md` / `SERVICE_ROLE_BOUNDARY.md`, deleted tracked DOCX, archives, SQL, `.tmp`, `.vitest`, `AGENTS.md`, and uncommitted RO.3 code/fixtures).
+> **SUPERSEDED for current-status pins** by § **2026-11-20 — post-closure reconciliation** above. Retained as historical evidence of the pre-RO.3/AI-INV Git-closure documentation pass (HEAD pin `fe29703`, RO.3 uncommitted, AI-INV PLANNED).
+> **Authority (historical):** Documentation / product-vision reconciliation only (`DOC-2026-11`). No application source/test/schema edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M7 activation, or Git stage/commit/push/reset/stash/clean in that pass. Historical sections below remain historical evidence — **do not rewrite history**.
+> **Dirty tree (as recorded then):** Preserved (including unrelated modified `BACKGROUND_JOBS.md` / `SERVICE_ROLE_BOUNDARY.md`, deleted tracked DOCX, archives, SQL, `.tmp`, `.vitest`, `AGENTS.md`, and then-uncommitted RO.3 code/fixtures).
 
 ### Git evidence (verified 2026-11-20)
 
