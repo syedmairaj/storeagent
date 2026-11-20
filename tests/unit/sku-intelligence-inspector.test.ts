@@ -82,19 +82,21 @@ describe("SKU intelligence inspector (UX-INV-1b.2)", () => {
     expect(workspace).not.toContain("EvidenceDisclosure");
   });
 
-  it("puts stock condition and next step first, then facts and provenance", () => {
+  it("puts stock condition and next step first, then explainer, facts and provenance", () => {
     const inspector = read(
       "components/inventory/sku-intelligence-inspector.tsx",
     );
     const stockIdx = inspector.indexOf('data-inspector-section="stock"');
     const nextIdx = inspector.indexOf('data-inspector-section="next"');
+    const explainerIdx = inspector.indexOf("<SkuExplainerPanel");
     const factsIdx = inspector.indexOf('data-inspector-section="facts"');
     const provenanceIdx = inspector.indexOf(
       'data-inspector-section="provenance"',
     );
     expect(stockIdx).toBeGreaterThan(-1);
     expect(nextIdx).toBeGreaterThan(stockIdx);
-    expect(factsIdx).toBeGreaterThan(nextIdx);
+    expect(explainerIdx).toBeGreaterThan(nextIdx);
+    expect(factsIdx).toBeGreaterThan(explainerIdx);
     expect(provenanceIdx).toBeGreaterThan(factsIdx);
     expect(inspector).toContain("<details");
     expect(inspector).toContain("Metric provenance");

@@ -4,6 +4,7 @@ import { useEffect, useId, useRef } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 
+import { SkuExplainerPanel } from "@/components/inventory/sku-explainer-panel";
 import {
   presentSkuAttention,
   type SkuAttentionContext,
@@ -111,6 +112,7 @@ export function SkuIntelligenceInspector({
           >
             {row && presentation ? (
               <InspectorBody
+                row={row}
                 presentation={presentation}
                 stockObservationsStale={stockObservationsStale}
               />
@@ -123,9 +125,11 @@ export function SkuIntelligenceInspector({
 }
 
 function InspectorBody({
+  row,
   presentation,
   stockObservationsStale,
 }: {
+  row: MerchantInventoryIntelligenceRow;
   presentation: ReturnType<typeof presentSkuAttention>;
   stockObservationsStale: boolean;
 }) {
@@ -168,6 +172,12 @@ function InspectorBody({
           {evidence.nextStep}
         </p>
       </section>
+
+      <SkuExplainerPanel
+        row={row}
+        organizationId={row.organizationId}
+        stockObservationsStale={stockObservationsStale}
+      />
 
       {/* Concise fact groups */}
       <section data-inspector-section="facts">

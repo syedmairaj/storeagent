@@ -20,7 +20,7 @@
 | UX-INV-1a–1c.1 | **CLOSED/PUSHED**; latest UX `0402564` |
 | Shopify RO.1 / RO.2 / RO.1.2 | **CLOSED/PUSHED** @ `0072a04` / `7fc8f2a` / `fe29703` |
 | Shopify-RO.3 | **LOCAL IMPLEMENTED + TESTED** offline (`shopify-ro.3-v1`); **uncommitted**; **not** live-certified; owner Git acceptance **pending** |
-| AI-INV-1…6 | Documented as **PLANNED**; AI-INV-1 offline/mock read-only slice is a **proposed** parallel — not authorization |
+| AI-INV-1…6 / AI-MKT | AI-INV-1/1.1 local implemented (Git pending); AI-INV-2…6 + AI-MKT-0…4 **PLANNED**; no live market research |
 | PE1.b.6b / workers / M7 / live Shopify / paying launch | **Unchanged BLOCKED / NO-GO** |
 | ICP / 1,000 merchants | Hypothesis / aspirational goal — **not** traction claim |
 
@@ -315,7 +315,8 @@ Primary public source already captured (2026-11 competitive UX doc): Prediko Sho
 | SHOP-RO2-GIT | RO.2 remote | **DONE** — on origin via later commits | — | — | — | — | Remote contains `7fc8f2a`+ | Historical |
 | SHOP-RO1.2 | Schema vs Admin `2026-10` | **CLOSED/PUSHED** @ `fe29703` | Offline compatibility | No OAuth | RO.2 | Fail-closed | Mapping tests | HEAD |
 | SHOP-RO3-GIT | Nested pagination offline | Local `shopify-ro.3-v1` uncommitted | Owner accept + Git closure | No live Shopify | RO.1.2 | No JWT/workers | Offline tests PASS; live cert still false | **Pending owner** |
-| AI-INV-1 | Unexplained inventory facts | **PLANNED** | Safe read-only explainer | Offline/mock OK; no M6/M7 | M5 reads | Abstention + isolation | Golden Q&A | Proposed parallel |
+| AI-INV-1 | Unexplained inventory facts | **Local IMPLEMENTED** (AI-INV-1 + 1.1) | Safe read-only explainer + situational guidance | Offline/mock OK; no M6/M7 | M5 reads | Abstention + isolation | Golden Q&A + guidance situations | Git closure pending owner |
+| AI-MKT-0…4 | Credit-based market intelligence | **PLANNED only** | Sourced research + credits + zero-sales detective | No live web/AI/billing in this plan | AI-INV-1.1; rights review | Licensed sources; consent | Spec in AI roadmap | Future — not authorized |
 
 ### NEXT
 
@@ -326,6 +327,7 @@ Primary public source already captured (2026-11 competitive UX doc): Prediko Sho
 | DATA-HEALTH | Freshness, multi-store evidence, limitation noise reduction | Honest labels; no invented confidence |
 | PE1.b.6b | Hosted JWT A/B isolation | Separately authorized; still BLOCKED |
 | AI-INV-2/3 | Data readiness + connected context | After SyncRun signals / OAuth |
+| AI-MKT-0 | Research/data rights & country/category feasibility | Docs/legal only — no live providers |
 
 ### LATER
 
@@ -333,6 +335,7 @@ Primary public source already captured (2026-11 competitive UX doc): Prediko Sho
 |---|---|---|
 | M7-INBOX / AI-INV-6 | Commercial decision inbox + decision agent | Explicit M7.2 create-class approval + hosted security |
 | AI-INV-4/5 | Forecast/scenario + cash/supplier | M6 eligibility; trusted costs/quotes; no auto-buy |
+| AI-MKT-1…4 | On-demand market research, credits, opportunity advisor, experiments | After AI-MKT-0; provider-independent web_search/Search-grounding adapters; never equate LLM search with verified sales |
 | M6-VAL | Forecast validation / alerts | Production forecast eligibility + consent |
 | WOO-AMZ | WooCommerce / Amazon | After Shopify reliability |
 | LAUNCH | Billing/trial/pilot/observability | Independent launch sign-off; still NO-GO now |
@@ -386,6 +389,7 @@ Viewports: 320 / 390 / 768 / 1024 / 1280 / 1440(+ ultrawide). Touch targets ≥4
 | DOCX non-destructive Section 36+ sync | **BLOCKED / PENDING** |
 | RO.3 owner acceptance + Git closure | **PENDING** (local offline only) |
 | RO.2 remote publish | **DONE** (historical; on origin) |
-| AI-INV-1 offline slice | **PLANNED / proposed** — not authorized by docs alone |
-| Application/UI implementation from this plan | **NO-GO** until separate slice approval |
+| AI-INV-1 / 1.1 offline slice | **Local IMPLEMENTED** — Git closure pending owner; soft-enable OFF |
+| AI-MKT Market Brain | **PLANNED only** — no live web/AI, credits, or billing execution |
+| Application/UI implementation beyond approved slices | **NO-GO** until separate slice approval |
 | Workers / JWT / M7 / live Shopify / purchasing | **BLOCKED** unchanged |

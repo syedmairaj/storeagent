@@ -71,8 +71,16 @@ For each pain: merchant question → trusted inputs → current capability → f
 | Cost controls | Per-org daily token budget; cache identical fact answers; short context windows |
 | Exit criteria | Offline/mock-backed PASS suite; merchant honesty review; no M6/M7 unlock |
 | Exclusions | Live SyncRun, forecast inventing, REORDER create, purchasing |
-| Status | **PLANNED** |
-| Sequence note | **Proposed** that AI-INV-1 **may begin** as a safe offline/mock-backed read-only slice **before** live Shopify and **without** activating M6/M7 production — proposed only, **not authorization** |
+| Status | **IMPLEMENTED locally (AI-INV-1 + AI-INV-1.1 guidance)** — Git closure pending owner; soft-enable default OFF |
+| Sequence note | Offline/mock read-only slice **before** live Shopify and **without** activating M6/M7 production |
+
+### AI-INV-1.1 — Contextual guidance upgrade (companion to AI-INV-1)
+
+| Field | Content |
+|---|---|
+| Scope | Situation-specific merchant guidance (recorded OOS + sales vs in-stock zero sales vs stale/short history) with prioritized 1–3 next steps and untested zero-sales hypotheses |
+| Safety | Hypotheses labeled **untested**; never confirmed causes; no invented demand/profit/lost sales/forecasts/buy qty |
+| Status | **IMPLEMENTED locally** with AI-INV-1 — pending owner Git closure |
 
 ### AI-INV-2 — Data Readiness Assistant
 
@@ -148,6 +156,53 @@ For each pain: merchant question → trusted inputs → current capability → f
 | Exit criteria | Authorized create + explanation + lifecycle PASS on pilot org |
 | Exclusions | Auto-buy; silent approval; invented impact $ |
 | Status | **PLANNED** |
+
+### Workstream AI-MKT — Credit-based AI Market Intelligence Advisor (**ALL PLANNED**)
+
+**Thesis:** Optional, merchant-confirmed external market research sits **outside** free internal inventory Q&A. Credits apply only to authorized external research. LLM web search ≠ verified transaction sales.
+
+**Future provider-independent interfaces (architecture only — NOT live):**
+
+| Interface | Role |
+|---|---|
+| OpenAI Responses + `web_search` tool | Sourced web retrieval behind a StoreAgent research adapter |
+| Gemini Search grounding | Alternate grounded-search adapter with the same evidence contract |
+
+Adapters must normalize to one research evidence DTO; product code never binds to a single vendor SDK in V1 design.
+
+#### Research evidence contract (required fields)
+
+| Field | Requirement |
+|---|---|
+| Source | URL + provider id |
+| Time | Retrieval date + underlying observation period |
+| Scope | Country / currency / category / product / variant |
+| Claim class | `observed_fact` \| `estimate` \| `hypothesis` |
+| Signal class | Search interest ≠ advertising popularity ≠ sales ranking ≠ **actual units sold** |
+| Quality | Comparison quality, limitations, permitted usage |
+| Fail-closed | Explicit `unknown` / `insufficient_evidence` when sources do not support a claim |
+
+**Never:** equate web search with verified sales; invent trend/market-share; skip licensed-source / consent gates where required.
+
+#### Credit model (proposed)
+
+| Class | Billing |
+|---|---|
+| Internal grounded Q&A (AI-INV-1.x) | Included in product — no external research credits |
+| Optional external market research | Merchant confirmation → idempotent credit **reservation** → settlement / refund on failure |
+
+Controls: per-org caps, cache identical research keys, clear confirmation UX, no silent spend.
+
+| Id | Scope | Status | Dependencies |
+|---|---|---|---|
+| **AI-MKT-0** | Research/data rights & country/category feasibility | **PLANNED** | Legal/licensing review; country allowlists |
+| **AI-MKT-1** | On-demand sourced SKU/country market research | **PLANNED** | AI-MKT-0; provider adapters; evidence contract |
+| **AI-MKT-1.1** | Credit ledger, cost caps, cache, billing controls | **PLANNED** | Billing primitives; idempotent reserve/settle |
+| **AI-MKT-2** | Zero-Sales Detective: internal analytics + market hypotheses | **PLANNED** | AI-INV-1.1 situations; AI-MKT-1 for optional external |
+| **AI-MKT-3** | Country/Product/Color/Variant Opportunity Advisor | **PLANNED** | AI-MKT-1 + comparison quality gates |
+| **AI-MKT-4** | Controlled experiments, outcome tracking, supplier/cash scenarios | **PLANNED** | M7/supplier gates where actions apply; no auto-buy |
+
+**Exclusions until separately authorized:** live web/AI calls, paid tool spend, billing execution, schema/migrations for credits, OAuth/SyncRun, workers, hosted JWT unlock, M6/M7 activation.
 
 ---
 
