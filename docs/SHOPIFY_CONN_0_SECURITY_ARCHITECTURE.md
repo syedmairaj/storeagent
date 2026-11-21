@@ -1,17 +1,17 @@
 # SHOPIFY-CONN-0 — Security Architecture Contract
 
-**Status:** DRAFT — amended CONN-0A; awaiting owner acceptance
-**Baseline:** `main` @ `4a692c1`
-**As-of:** 2026-11-20 (CONN-0A targeted amendment)
-**Mode:** Architecture / security freeze only. No OAuth, vault, SyncRun, workers, JWT, M6/M7, or live Shopify implementation in this milestone.
+**Status:** ACCEPTED / CLOSED — CONN-0A owner-approved via Git on `main` @ `965e6d7` (`docs(shopify): freeze CONN-0A security architecture`)
+**Baseline:** `main` @ `965e6d7`
+**As-of:** 2026-11-20 (CONN-0A freeze); acceptance label corrected 2026-11-21 (CONN-1B docs)
+**Mode:** Architecture / security freeze only. No OAuth, vault schema, SyncRun, workers, JWT, M6/M7, or live Shopify implementation in this milestone.
 
-**Authority chain:** This contract gates CONN-1…CONN-6. It does not supersede RO.1–RO.3 law in `docs/PROVIDER_ADAPTERS.md` / `docs/SHOPIFY_RO2_TRANSPORT.md`, tenancy in `docs/CROSS_ORG_THREAT_MODEL.md`, or service-role rules in `docs/SERVICE_ROLE_BOUNDARY.md`.
+**Authority chain:** This contract gates CONN-1…CONN-6. Vault schema/crypto details are frozen in `docs/SHOPIFY_CONN_1_VAULT_CONTRACT.md` (CONN-1B). It does not supersede RO.1–RO.3 law in `docs/PROVIDER_ADAPTERS.md` / `docs/SHOPIFY_RO2_TRANSPORT.md`, tenancy in `docs/CROSS_ORG_THREAT_MODEL.md`, or service-role rules in `docs/SERVICE_ROLE_BOUNDARY.md`.
 
 **Legend**
 - **Verified** — required or documented by Shopify platform docs (cited).
-- **StoreAgent proposal** — StoreAgent.si product/security choice; owner may amend before CONN-1+.
+- **StoreAgent proposal** — StoreAgent.si product/security choice frozen by CONN-0A acceptance; vault implementation detail lives in the CONN-1 vault contract.
 
-**Non-claims:** This document does **not** claim Shopify App Store submission, review, or approval. Public-distribution readiness is architectural only.
+**Non-claims:** This document does **not** claim Shopify App Store submission, review, or approval. Public-distribution readiness is architectural only. Acceptance of CONN-0A does **not** authorize CONN-1 implementation, migrations, or runtime code.
 
 ---
 
@@ -217,9 +217,11 @@ Source: [Authenticate a standalone or API-only app](https://shopify.dev/docs/app
 
 ### Vault invariants (StoreAgent proposal)
 
+**Normative detail:** `docs/SHOPIFY_CONN_1_VAULT_CONTRACT.md` freezes table design, AEAD/envelope rules, grants, and shop-ownership uniqueness. Summary invariants below remain binding; where wording differed historically (“platform KMS” / production secret manager as primary), CONN-1’s dedicated encrypted table + app AES-256-GCM + server-only KEK (production secret-manager **gated**) is authoritative.
+
 1. **Separate** from `public.integrations.configuration` (M2.6 already forbids credentials there).
 2. **Server-only** decrypt path; never `NEXT_PUBLIC_*`; never browser; never AI tools.
-3. Encrypt at rest (AES-256-GCM or platform KMS); envelope key in server secret manager.
+3. Encrypt at rest with **AES-256-GCM** (application AEAD) and envelope DEK/KEK; KEK is server-only (env for Phase A; production secret-manager product separately gated in CONN-1).
 4. Store ciphertext for `access_token` + `refresh_token`, plus `access_expires_at`, `refresh_expires_at`, `scope`, `integration_id`, `organization_id`.
 5. **Row-level tenant binding:** vault row FK to `(organization_id, integration_id)`; service-role reads must filter by those ids (`docs/SERVICE_ROLE_BOUNDARY.md`).
 6. **Redaction:** logs/observability use `redactObservabilityValue`; never log tokens, client secret, or raw OAuth codes (`lib/observability/redact.ts` pattern).
@@ -388,7 +390,7 @@ Each milestone needs **separate owner authorization**. None are started by CONN-
 
 | ID | Scope | Depends on | Explicit exclusions | Exit evidence |
 |---|---|---|---|---|
-| **CONN-1** | Credential vault schema + encrypt/decrypt API + RLS/service-role denial tests (no Shopify network) | Owner accept CONN-0 | OAuth UI, live calls, SyncRun, workers | Migration + unit/adversarial PASS |
+| **CONN-1** | Credential vault schema + encrypt/decrypt API + RLS/service-role denial tests (no Shopify network) | CONN-0A accepted + `docs/SHOPIFY_CONN_1_VAULT_CONTRACT.md` owner-accepted; separate implementation authorization | OAuth UI, live calls, SyncRun, workers | Migration + unit/adversarial PASS |
 | **CONN-2** | OAuth authorize/callback (state, HMAC, shop validate, install identity, scope check) → vault write; **dev-store oriented** | CONN-1 + app credentials | SyncRun complete, live nested cert flip, write scopes, App Store submission | Offline OAuth mock + adversarial PASS |
 | **CONN-3** | Webhook HMAC, `app/uninstalled`, privacy trio handlers, replay idempotency | CONN-1/2 | Data topic fan-out sync, workers ON, App Store approval claim | Webhook unit/adversarial PASS |
 | **CONN-4** | Live nested-completeness certification on **development store** first (+ controlled live reads) | CONN-2; development shop | Production SyncRun complete; JWT; workers; App Store approval | Owner-signed live pack; flag policy documented |
@@ -442,6 +444,20 @@ PE1.b.6b JWT execution; workers/cron activation; M6 production forecast operatio
 
 ## 13. Acceptance / STOP
 
-Owner must accept or amend this document before any CONN-1 implementation.
+### Acceptance (current)
 
-**STOP.** Do not start CONN-1, OAuth, vault migrations, live Shopify calls, workers, JWT, M6/M7, App Store submission, or Git commit/push under this freeze alone.
+CONN-0A is **ACCEPTED / CLOSED** by owner-approved Git closure on `main` @ `965e6d7`.
+
+Vault design detail is separately frozen in `docs/SHOPIFY_CONN_1_VAULT_CONTRACT.md`. CONN-1 **implementation** (migrations, encrypt/decrypt code, tests) still requires explicit owner authorization after that contract is accepted.
+
+### Historical STOP evidence (preserved)
+
+At CONN-0A freeze time, this document stated:
+
+> Owner must accept or amend this document before any CONN-1 implementation.
+>
+> **STOP.** Do not start CONN-1, OAuth, vault migrations, live Shopify calls, workers, JWT, M6/M7, App Store submission, or Git commit/push under this freeze alone.
+
+That STOP remains historically true for the CONN-0 freeze alone: accepting CONN-0A does not start CONN-1 code, OAuth, vault migrations, live Shopify calls, workers, JWT, M6/M7, App Store submission, or Git operations under CONN-0 alone.
+
+**Current STOP (post-acceptance):** Do not implement CONN-1 until the CONN-1 vault contract is owner-accepted **and** a separate implementation slice is authorized. OAuth, live Shopify, SyncRun, workers, JWT, M6/M7, and App Store submission remain blocked.
