@@ -2,9 +2,9 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-22 DOC-TRACK-1):** See **§ 2026-11-22 — DOC-TRACK-1 master milestone reconciliation** below. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (verified):** `173a357` — CONN-1c-β offline refresh fencing; `main` **≡ `origin/main`** (same SHA; **no CI claim**). Binding **`NOT_YET_VERIFIED`**. Hosted CONN vault migrations **not applied**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
-> **Latest connector slice:** CONN-1c-β **CLOSED/PUSHED** @ `173a357` (PARTIAL offline; V5 two-session disposable PG PASS). CONN-MP-0 **CLOSED/PUSHED** @ `1e18029` (D13/D14 deferred). CONN-1d **not started**.
+> **Authoritative current state (2026-11-22 DOC-TRACK-2):** See **§ 2026-11-22 — DOC-TRACK-2 security milestone reconciliation** below. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (verified):** `5c1c76b` — CONN-1d-C offline disconnect fencing; `main` **≡ `origin/main`** (same SHA; **no CI claim**). Binding **`NOT_YET_VERIFIED`**. Hosted CONN vault migrations **not applied**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
+> **Latest connector slice:** CONN-1d-A/B/C **CLOSED/PUSHED** @ `636725c` / `0f3e1d2` / `5c1c76b` (PARTIAL offline). CONN-MP-0 **CLOSED/PUSHED** @ `1e18029` (D13/D14 deferred). CONN-1d-D **PLANNED, not started**.
 > **Latest UI / AI:** UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d **PLANNED** (merchant-first simplification + premium polish). AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6`; AI-INV-2…6 + AI-MKT-0…4 **PLANNED**.
 > **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify OAuth/SyncRun, live model/search, paid credits, hosted vault apply, or paying launch.
 > **Prior § 2026-11-20 post-closure (HEAD `38f63d6`):** Historical — superseded for *current* HEAD/CONN pins by § 2026-11-22.
@@ -12,8 +12,77 @@
 > **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main remains **COMPLETE** (≠ hosted unlock).
 > **Latest strategy/addendum (2026-11-10):** Historical product strategy; prefer § 2026-11-22 for connector/UX/Git/AI truth when they differ.
 
+## 2026-11-22 — DOC-TRACK-2 security milestone reconciliation
+
+> **Authority:** Documentation-only reconciliation of the CONN-1d-A/B/C closures (**DOC-TRACK-2**). No application source/test/schema/migration edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M6/M7 activation, live AI/search, billing, hosted vault apply, or Git stage/commit/push in this docs pass.
+> **Historical rule:** § DOC-TRACK-1 below and all older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only. The CONN-1 vault contract is unchanged.
+
+### Git evidence (verified 2026-11-22 DOC-TRACK-2)
+
+| Field | Value |
+|---|---|
+| Branch | `main` |
+| HEAD | `5c1c76b` — `security(shopify): close CONN-1d-C offline disconnect fencing` |
+| Full SHA | `5c1c76b9a708e04feb0b7a8415ef537a5b71879b` |
+| vs `origin/main` | **Aligned** (same SHA; no CI claim) |
+| Staging | Empty at reconciliation start |
+| Migration inventory | **56** files = **56** `supabase/migrations.sha256` entries (latest `20261122140000`) |
+
+**Sequence (pushed):** … → `1e18029` (CONN-MP-0) → `173a357` (1c-β) → `0e2fc33` (DOC-TRACK-1 docs) → `636725c` (1d-A) → `0f3e1d2` (1d-B) → `5c1c76b` (1d-C) = **HEAD**.
+
+### Closure evidence
+
+| Milestone | State | Evidence | Limits |
+|---|---|---|---|
+| CONN-1d-A | **CLOSED/PUSHED** @ `636725c` | Secret-ingestion guards (`lib/security/secret-ingestion.ts`), redaction, guarded CSV persistence paths; unit tests. No standalone report — commit message is the record | V12 offline **PASS**; V11 **PARTIAL**: DB-level bypass, unsupported object types and stringified/encoded payloads not covered |
+| CONN-1d-B | **CLOSED/PUSHED** @ `0f3e1d2` | `docs/SHOPIFY_CONN_1D_B_V8_IMPLEMENTATION_REPORT.md`; disposable-PG membership/role matrix | V8 offline SQL role + claim-stub **PASS**; claim stub ≠ real JWT; hosted JWT/PostgREST **NOT VERIFIED** |
+| CONN-1d-C | **CLOSED/PUSHED** @ `5c1c76b` | `docs/SHOPIFY_CONN_1D_C_DISCONNECT_REVOKE_IMPLEMENTATION_REPORT.md`; migration `20261122140000` | Offline **PARTIAL**; not hosted-applied |
+
+CONN-1d-C delivered, verified on disposable PostgreSQL only:
+
+- α create/CAS returns `fenced` when the integration is `disconnected` or `revoked`.
+- `disconnect_or_revoke` RPC with lock order integrations → credentials → external accounts. A held β refresh lease yields `lease_held`: terminal status is committed, the vault is retained and ownership is not released. The repository reports `credentialsDestroyed` only for `completed` and `already_terminal`.
+- Phase A ownership release only on `completed`, including the case of an absent vault with still-active ownership.
+- Two-session races with blocking-PID barriers; deadlock delta 0.
+- β adversarial fixture made compatible with the terminal fence (seed active, then revoke as table owner). It passes on both α+β and α+β+1d-C schemas; the fence was not weakened.
+- V15 rollback drops only the disconnect RPC and keeps the α fence; it does not restore credential resurrection.
+
+### Authoritative milestone deltas (vs DOC-TRACK-1)
+
+| Milestone | DOC-TRACK-1 pin | 2026-11-22 DOC-TRACK-2 |
+|---|---|---|
+| HEAD | `173a357` | **`5c1c76b`** |
+| DOC-TRACK-1 | Pending owner review | **CLOSED/PUSHED** @ `0e2fc33` |
+| CONN-1d | PLANNED / not started | **1d-A/B/C CLOSED/PUSHED** (PARTIAL offline); **1d-D PLANNED, not started** |
+| Migration inventory | 55 | **56** |
+| Production credential binding | `NOT_YET_VERIFIED` | **`NOT_YET_VERIFIED`** (unchanged) |
+| D13 / D14 | DEFERRED | **DEFERRED** (unchanged) |
+| Hosted CONN vault migrations | Not applied | **Not applied** (now four: `20261121120000`, `20261122120000`, `20261122130000`, `20261122140000`) |
+| UX-INV-1d / AI-INV-2…6 / AI-MKT-0…4 / multi-provider | As recorded | **Unchanged** |
+| JWT / workers / M6 prod / M7 / launch | BLOCKED / NO-GO | **Unchanged** |
+
+### Remaining security blockers
+
+1. Production `IntegrationOwnershipLookup` wiring + binding re-verify (binding `NOT_YET_VERIFIED`).
+2. D13 revoke/retention and D14 KEK custody — **DEFERRED**.
+3. Hosted apply of the four CONN vault migrations — **not authorized**.
+4. V11 gaps (DB-level bypass, unsupported object types, stringified/encoded payloads).
+5. V8 hosted JWT/PostgREST verification (PE1.b.6b still BLOCKED).
+6. `lease_held` is pending cleanup: callers must retry after lease expiry until `completed`; no automated retry exists (workers/cron OFF).
+7. OAuth, Shopify HTTP, webhooks, SyncRun — not started.
+
+### Next smallest milestones (not authorized by this addendum)
+
+1. Owner review of DOC-TRACK-2 (optional docs Git closure).
+2. **CONN-1d-D** — optional docs-only security acceptance report + V1–V15 re-matrix; explicit owner authorization only; no production claims.
+3. Production binding + KEK / hosted vault apply (separate gates) → then OAuth / SyncRun.
+4. UX-INV-1d (parallelizable UI slice); AI-INV-2…6 / AI-MKT-0…4 under separate authorizations.
+
+---
+
 ## 2026-11-22 — DOC-TRACK-1 master milestone reconciliation
 
+> **SUPERSEDED for current-status pins** by § **2026-11-22 — DOC-TRACK-2** above. Retained as historical evidence (HEAD pin `173a357`).
 > **Authority:** Documentation-only master milestone reconciliation (**DOC-TRACK-1**). No application source/test/schema edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M6/M7 activation, live AI/search, billing, hosted vault apply, or Git stage/commit/push in this docs pass.
 > **Historical rule:** § 2026-11-20 post-closure and older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only.
 > **Canonical compact handoff created:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Untracked dated draft `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF_2026-11-22.md` (pre-β; HEAD `1e18029`) is **not** current — preserve, do not treat as fresher.

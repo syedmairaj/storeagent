@@ -4,11 +4,11 @@ The full living status ledger is:
 
 `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md`
 
-**Canonical compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**DOC-TRACK-1**).
+**Canonical compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**DOC-TRACK-1**, reconciled by **DOC-TRACK-2**).
 
-**Authoritative current-state table (use this, not older pins):** ledger § **2026-11-22 — DOC-TRACK-1 master milestone reconciliation**.
+**Authoritative current-state table (use this, not older pins):** ledger § **2026-11-22 — DOC-TRACK-2 security milestone reconciliation**.
 
-> **Superseded current-status pointers:** ledger § 2026-11-20 post-closure (HEAD `38f63d6`) and § DOC-2026-11 pre-closure (`fe29703` / RO.3 uncommitted / AI-INV PLANNED) remain **historical evidence** — do not treat as fresher than § 2026-11-22.
+> **Superseded current-status pointers:** ledger § 2026-11-22 DOC-TRACK-1 (HEAD `173a357`, CONN-1d not started), § 2026-11-20 post-closure (HEAD `38f63d6`) and § DOC-2026-11 pre-closure (`fe29703` / RO.3 uncommitted / AI-INV PLANNED) remain **historical evidence** — do not treat as fresher than § 2026-11-22.
 
 Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 
@@ -18,23 +18,29 @@ Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 **Session bootstrap:** `docs/PROJECT_HANDOFF.md`
 **Canonical DOCX:** `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` — **Section 36+ Markdown sync PENDING** (do not treat older DOCX status tables as fresher than this pointer + ledger § 2026-11-22).
 
-## Git baseline (current — 2026-11-22 DOC-TRACK-1)
+## Git baseline (current — 2026-11-22 DOC-TRACK-2)
 
 | Field | Value |
 |---|---|
 | Branch | `main` |
-| HEAD | `173a357` — `feat(shopify): close CONN-1c beta offline refresh fencing` |
+| HEAD | `5c1c76b` — `security(shopify): close CONN-1d-C offline disconnect fencing` |
 | vs `origin/main` | **Aligned** (same SHA; **no CI claim**) |
-| CONN-1c-β | **CLOSED/PUSHED** @ `173a357` — PARTIAL offline; V5 two-session disposable PG PASS; binding **NOT_YET_VERIFIED** |
+| CONN-1d-C | **CLOSED/PUSHED** @ `5c1c76b` — terminal fence + lease-aware disconnect/revoke + Phase A ownership release; offline **PARTIAL**; migration `20261122140000` |
+| CONN-1d-B | **CLOSED/PUSHED** @ `0f3e1d2` — V8 offline SQL role + claim-stub **PASS**; hosted JWT/PostgREST **NOT VERIFIED** |
+| CONN-1d-A | **CLOSED/PUSHED** @ `636725c` — V12 offline **PASS**; V11 **PARTIAL** (DB-level bypass, unsupported object types, stringified/encoded payloads) |
+| DOC-TRACK-1 | **CLOSED/PUSHED** @ `0e2fc33` (docs-only) |
+| Migration inventory | **56** files / **56** manifest entries |
+| Production binding | **`NOT_YET_VERIFIED`**; D13/D14 **DEFERRED** |
+| CONN-1c-β | **CLOSED/PUSHED** @ `173a357` — PARTIAL offline; V5 two-session disposable PG PASS |
 | CONN-MP-0 | **CLOSED/PUSHED** @ `1e18029` — docs-only; D13/D14 **DEFERRED** |
 | CONN-1c-α / 1b / 1a / 0A | **CLOSED/PUSHED** @ `a918217` / `00557c7` / `3d1f6ad` / `965e6d7` — hosted vault migrations **not applied** |
 | Shopify RO.3 | **CLOSED/PUSHED** @ `4f6ef0c`; live nested cert **FALSE** |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; not live-certified |
 | UX-INV-1a–1c.1 | **CLOSED/PUSHED** through `0402564`; UX-INV-1d **PLANNED** |
 | Prior pins (ancestors) | `38f63d6` AI-INV · `4f6ef0c` RO.3 · `fe29703` RO.1.2 · `7fc8f2a` RO.2 · `0072a04` RO.1 |
-| Next eng | **CONN-1d** — **not started**; STOP without owner authorization |
+| Next eng | **CONN-1d-D** (optional docs-only acceptance report + V1–V15 re-matrix) — **PLANNED, not started**; STOP without owner authorization |
 
-> **STALE WARNING:** Any doc still pinning HEAD `38f63d6` / `1e18029` / `fe29703`, or “CONN-1c-β not begun”, as *current* truth is **superseded** by ledger § 2026-11-22 + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`.
+> **STALE WARNING:** Any doc still pinning HEAD `173a357` / `38f63d6` / `1e18029` / `fe29703`, or “CONN-1d not started”, as *current* truth is **superseded** by ledger § 2026-11-22 DOC-TRACK-2 + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`.
 
 ## Shopify connector track
 
@@ -47,7 +53,9 @@ Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 | RO.3 nested pagination completeness | **CLOSED/PUSHED** @ `4f6ef0c` (`shopify-ro.3-v1`); offline mocked tests; **live nested-completeness certification FALSE** |
 | Nested pagination as SyncRun “complete” | **Hard gate** — offline RO.3 ≠ live SyncRun complete |
 | CONN-0A / 1 vault / 1a / 1b / 1c-α / 1c-β | **CLOSED/PUSHED** through `173a357` (PARTIAL offline; binding **NOT_YET_VERIFIED**; hosted apply **BLOCKED**) |
-| CONN-1d / OAuth / SyncRun / live shop | **Blocked / Planned** — do not start CONN-1d without owner authorization |
+| CONN-1d-A / 1d-B / 1d-C | **CLOSED/PUSHED** @ `636725c` / `0f3e1d2` / `5c1c76b` (PARTIAL offline; V12 + V8 offline PASS; V11 PARTIAL; hosted JWT NOT VERIFIED; hosted apply **BLOCKED**) |
+| CONN-1d-D | **PLANNED** — not started; owner authorization required |
+| OAuth / SyncRun / live shop | **Blocked / Planned** |
 | CONN-MP-0 | **CLOSED/PUSHED** @ `1e18029` (docs-only; D13/D14 deferred) |
 | WooCommerce / Amazon / Noon | **Planned** after Shopify-first path (Amazon/Noon enum needs contract change) |
 
@@ -112,7 +120,7 @@ Synthetic **local** acceptance only (`snapstore` / America/Chicago). **≠** hos
 | Demand semantics | **12** positive v30; **8** known-zero v30 (`SS/ROP/Target=0`, cover `zero_demand`) — **0** unknown v30 |
 | Incoming / actions | Incoming **unknown** 20/20; `inventory_position` null; **no** invented ROQ; `inventory_actions=0` |
 | Merchant UX | CSV kind detection; one next action; freshness labels; explicit store/location scope; responsive evidence workspace; **Replenishment settings** copy; ready-state banner reflects planning unknown/partial/complete without unlocking commercial eligibility |
-| Implementation HEAD pin (acceptance) | Inventory/CSV/freshness/replenishment UX on `main` @ `457a516` (+ readiness `970bab0`); UX-INV through `0402564`; Shopify RO through `4f6ef0c`; AI-INV @ `38f63d6`; CONN through **current HEAD** `173a357` (CONN-1c-β) |
+| Implementation HEAD pin (acceptance) | Inventory/CSV/freshness/replenishment UX on `main` @ `457a516` (+ readiness `970bab0`); UX-INV through `0402564`; Shopify RO through `4f6ef0c`; AI-INV @ `38f63d6`; CONN through **current HEAD** `5c1c76b` (CONN-1d-C) |
 
 ### Boundary (do not collapse)
 
@@ -124,7 +132,7 @@ Synthetic **local** acceptance only (`snapstore` / America/Chicago). **≠** hos
 | Actual merchant business outcomes / savings | **Not claimed** |
 | Overview/Inventory merchant-first UX | **UX-INV-1a through 1c.1 CLOSED/PUSHED**; UX-INV-1d **PLANNED** (task→action→result + premium polish; no fake M7) |
 | AI Inventory Explainer / Decision Agent | AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6` (offline; soft-enable OFF); AI-INV-2…6 + AI-MKT **PLANNED**; AI ≠ numeric authority |
-| Shopify credential vault / refresh fencing | CONN-1a…1c-β **CLOSED/PUSHED** through `173a357` (PARTIAL offline); production binding **NOT_YET_VERIFIED**; hosted migrations **not applied** |
+| Shopify credential vault / refresh fencing / disconnect-revoke | CONN-1a…1d-C **CLOSED/PUSHED** through `5c1c76b` (PARTIAL offline); production binding **NOT_YET_VERIFIED**; hosted migrations **not applied** |
 
 ### Remaining risks (explicit)
 
@@ -136,4 +144,4 @@ Synthetic **local** acceptance only (`snapstore` / America/Chicago). **≠** hos
 - Local synthetic data must **never** promote into production migrations, seeds, or hosted copies.
 - Authenticated browser 320–ultrawide certification remains **BLOCKED** for automation.
 
-Detail: living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` (§ **2026-11-22 DOC-TRACK-1**). Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Session bootstrap: `docs/PROJECT_HANDOFF.md`.
+Detail: living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` (§ **2026-11-22 DOC-TRACK-2**). Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Session bootstrap: `docs/PROJECT_HANDOFF.md`.
