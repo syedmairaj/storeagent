@@ -1,9 +1,9 @@
 import "server-only";
 
 /**
- * SHOPIFY-CONN-1c-α — server-only tenant-scoped credential persistence.
+ * SHOPIFY-CONN-1c-α/β — server-only tenant-scoped credential persistence.
  * Encrypt/decrypt via CONN-1b; sealed bytes only over SECURITY DEFINER RPCs.
- * No acquire/rotate/release lease RPCs, OAuth, or runtime KEK wiring.
+ * β adds acquire/rotate/release lease wrappers (offline). No OAuth or KEK wiring.
  */
 
 import {
@@ -108,6 +108,16 @@ export type CredentialClearOutcome =
   | "fenced"
   | "not_found";
 
+export type CredentialRotateUnderLeaseOutcome =
+  | "rotated"
+  | "fenced"
+  | "not_found";
+
+export type CredentialReleaseOutcome =
+  | "released"
+  | "fenced"
+  | "not_found";
+
 export type CredentialPersistenceErrorCode =
   | "invalid_scope"
   | "scope_mismatch"
@@ -116,7 +126,16 @@ export type CredentialPersistenceErrorCode =
   | "malformed_rpc_response"
   | "malformed_bytea"
   | "unexpected_outcome"
-  | "invalid_generation";
+  | "invalid_generation"
+  | "invalid_lease_seconds"
+  | "invalid_owner_id";
+
+/** Lease owner id shape — mirrors β SQL allowlist. */
+const REFRESH_LOCK_OWNER_ID_RE = /^[A-Za-z0-9_.:-]{1,200}$/;
+
+export const REFRESH_LOCK_LEASE_SECONDS_MIN = 30 as const;
+export const REFRESH_LOCK_LEASE_SECONDS_MAX = 300 as const;
+export const REFRESH_LOCK_LEASE_SECONDS_DEFAULT = 60 as const;
 
 export class CredentialPersistenceError extends Error {
   readonly code: CredentialPersistenceErrorCode;
@@ -198,6 +217,55 @@ type LoadRpcRow = {
   last_rotated_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+type AcquireRpcRow = {
+  acquired: boolean;
+  refresh_lock_token: string | null;
+  refresh_lock_expires_at: string | null;
+  credential_generation: number | string | bigint | null;
+  id: string | null;
+  organization_id: string | null;
+  integration_id: string | null;
+  provider: string | null;
+  token_kind: string | null;
+  access_ciphertext: string | Buffer | null;
+  access_nonce: string | Buffer | null;
+  access_auth_tag: string | Buffer | null;
+  refresh_ciphertext: string | Buffer | null;
+  refresh_nonce: string | Buffer | null;
+  refresh_auth_tag: string | Buffer | null;
+  dek_wrapped: string | Buffer | null;
+  dek_wrap_nonce: string | Buffer | null;
+  dek_wrap_auth_tag: string | Buffer | null;
+  key_version: number | null;
+  access_expires_at: string | null;
+  refresh_expires_at: string | null;
+  scope: string | null;
+  last_rotated_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type AcquireRefreshLockDenied = {
+  acquired: false;
+};
+
+export type AcquireRefreshLockGranted = {
+  acquired: true;
+  refreshLockToken: string;
+  refreshLockExpiresAt: string;
+  record: LoadedCredentialRecord;
+};
+
+export type AcquireRefreshLockResult =
+  | AcquireRefreshLockDenied
+  | AcquireRefreshLockGranted;
+
+export type RotateUnderLeaseResult = {
+  credentialId: string | null;
+  credentialGeneration: number | null;
+  outcome: CredentialRotateUnderLeaseOutcome;
 };
 
 function requiredTrimmed(value: string): string {
@@ -934,6 +1002,361 @@ export async function clearIntegrationCredentials(input: {
 
   if (
     outcome !== "cleared"
+    && outcome !== "fenced"
+    && outcome !== "not_found"
+  ) {
+    throw new CredentialPersistenceError("unexpected_outcome");
+  }
+
+  return outcome;
+}
+
+function parseRefreshLockOwnerId(value: unknown): string {
+  if (typeof value !== "string") {
+    throw new CredentialPersistenceError("invalid_owner_id");
+  }
+  const ownerId = value.trim();
+  if (
+    ownerId.length === 0
+    || value !== ownerId
+    || !REFRESH_LOCK_OWNER_ID_RE.test(ownerId)
+  ) {
+    throw new CredentialPersistenceError("invalid_owner_id");
+  }
+  return ownerId;
+}
+
+function parseLeaseSeconds(value: unknown): number {
+  if (
+    typeof value !== "number"
+    || !Number.isInteger(value)
+    || value < REFRESH_LOCK_LEASE_SECONDS_MIN
+    || value > REFRESH_LOCK_LEASE_SECONDS_MAX
+  ) {
+    throw new CredentialPersistenceError("invalid_lease_seconds");
+  }
+  return value;
+}
+
+function parseClaimToken(value: unknown): string {
+  if (typeof value !== "string") {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+  const token = value.trim();
+  if (token.length === 0 || value !== token) {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+  return token;
+}
+
+function assertDeniedAcquireHasNoSecrets(row: AcquireRpcRow): void {
+  if (
+    row.refresh_lock_token != null
+    || row.refresh_lock_expires_at != null
+    || row.credential_generation != null
+    || row.id != null
+    || row.access_ciphertext != null
+    || row.access_nonce != null
+    || row.access_auth_tag != null
+    || row.refresh_ciphertext != null
+    || row.refresh_nonce != null
+    || row.refresh_auth_tag != null
+    || row.dek_wrapped != null
+    || row.dek_wrap_nonce != null
+    || row.dek_wrap_auth_tag != null
+    || row.key_version != null
+  ) {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+}
+
+function parseAcquireRow(
+  row: AcquireRpcRow | undefined,
+  scope: TrustedCredentialScope,
+): AcquireRefreshLockResult {
+  if (!row || typeof row.acquired !== "boolean") {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+
+  if (!row.acquired) {
+    assertDeniedAcquireHasNoSecrets(row);
+    return { acquired: false };
+  }
+
+  if (
+    row.refresh_lock_token == null
+    || row.refresh_lock_expires_at == null
+    || row.credential_generation == null
+    || row.id == null
+    || row.organization_id == null
+    || row.integration_id == null
+    || row.provider == null
+    || row.token_kind == null
+    || row.access_ciphertext == null
+    || row.access_nonce == null
+    || row.access_auth_tag == null
+    || row.dek_wrapped == null
+    || row.dek_wrap_nonce == null
+    || row.dek_wrap_auth_tag == null
+    || row.key_version == null
+    || row.created_at == null
+    || row.updated_at == null
+  ) {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+
+  const refreshLockToken = parseClaimToken(row.refresh_lock_token);
+  if (
+    typeof row.refresh_lock_expires_at !== "string"
+    || row.refresh_lock_expires_at.trim().length === 0
+  ) {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+
+  const loadRow: LoadRpcRow = {
+    id: row.id,
+    organization_id: row.organization_id,
+    integration_id: row.integration_id,
+    provider: row.provider,
+    token_kind: row.token_kind,
+    access_ciphertext: row.access_ciphertext,
+    access_nonce: row.access_nonce,
+    access_auth_tag: row.access_auth_tag,
+    refresh_ciphertext: row.refresh_ciphertext,
+    refresh_nonce: row.refresh_nonce,
+    refresh_auth_tag: row.refresh_auth_tag,
+    dek_wrapped: row.dek_wrapped,
+    dek_wrap_nonce: row.dek_wrap_nonce,
+    dek_wrap_auth_tag: row.dek_wrap_auth_tag,
+    key_version: row.key_version,
+    access_expires_at: row.access_expires_at,
+    refresh_expires_at: row.refresh_expires_at,
+    scope: row.scope,
+    credential_generation: row.credential_generation,
+    last_rotated_at: row.last_rotated_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+
+  const record = mapLoadRow(loadRow);
+
+  if (
+    record.organizationId !== scope.organizationId
+    || record.integrationId !== scope.integrationId
+    || record.provider !== scope.provider
+  ) {
+    throw new CredentialPersistenceError("scope_mismatch");
+  }
+
+  return {
+    acquired: true,
+    refreshLockToken,
+    refreshLockExpiresAt: row.refresh_lock_expires_at,
+    record,
+  };
+}
+
+function parseRotateUnderLeaseOutcome(
+  row: ReplaceRpcRow | undefined,
+): RotateUnderLeaseResult {
+  if (!row || typeof row.outcome !== "string") {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+
+  if (
+    row.outcome !== "rotated"
+    && row.outcome !== "fenced"
+    && row.outcome !== "not_found"
+  ) {
+    throw new CredentialPersistenceError("unexpected_outcome");
+  }
+
+  let credentialGeneration: number | null = null;
+  if (row.credential_generation != null) {
+    try {
+      credentialGeneration = parsePositiveSafeGeneration(
+        row.credential_generation,
+      );
+    } catch (error) {
+      if (isCredentialPersistenceError(error)) {
+        throw new CredentialPersistenceError("malformed_rpc_response");
+      }
+      throw error;
+    }
+  }
+
+  return {
+    credentialId: row.credential_id,
+    credentialGeneration,
+    outcome: row.outcome,
+  };
+}
+
+/**
+ * Acquire single-flight refresh lease. Denied callers receive no secrets.
+ */
+export async function acquireIntegrationCredentialRefreshLock(input: {
+  scope: TrustedCredentialScope;
+  ownerId: string;
+  leaseSeconds?: number;
+  client: IntegrationCredentialRpcClient;
+}): Promise<AcquireRefreshLockResult> {
+  assertTrustedCredentialScope(
+    input.scope,
+    "integration_credentials.acquire_refresh_lock",
+  );
+
+  const ownerId = parseRefreshLockOwnerId(input.ownerId);
+  const leaseSeconds = parseLeaseSeconds(
+    input.leaseSeconds ?? REFRESH_LOCK_LEASE_SECONDS_DEFAULT,
+  );
+
+  const rows = await callRpc<AcquireRpcRow[] | AcquireRpcRow>(
+    input.client,
+    "acquire_integration_credential_refresh_lock",
+    {
+      p_organization_id: input.scope.organizationId,
+      p_integration_id: input.scope.integrationId,
+      p_provider: input.scope.provider,
+      p_owner_id: ownerId,
+      p_lease_seconds: leaseSeconds,
+    },
+  );
+
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  return parseAcquireRow(row, input.scope);
+}
+
+/**
+ * Acquire + decrypt. On CredentialCryptoError, releases own lease and
+ * rethrows crypto error — never clears vault ciphertext.
+ */
+export async function acquireAndDecryptIntegrationCredentialRefreshLock(input: {
+  scope: TrustedCredentialScope;
+  ownerId: string;
+  leaseSeconds?: number;
+  kekResolver: KekResolver;
+  client: IntegrationCredentialRpcClient;
+}): Promise<
+  | AcquireRefreshLockDenied
+  | (AcquireRefreshLockGranted & {
+      plaintext: DecryptedCredentialSet;
+    })
+> {
+  const acquired = await acquireIntegrationCredentialRefreshLock({
+    scope: input.scope,
+    ownerId: input.ownerId,
+    leaseSeconds: input.leaseSeconds,
+    client: input.client,
+  });
+
+  if (!acquired.acquired) {
+    return acquired;
+  }
+
+  try {
+    const plaintext = decryptCredentialSet(
+      acquired.record.envelope,
+      input.kekResolver,
+    );
+    return { ...acquired, plaintext };
+  } catch (error) {
+    if (isCredentialCryptoError(error)) {
+      try {
+        await releaseIntegrationCredentialRefreshLock({
+          scope: input.scope,
+          ownerId: input.ownerId,
+          claimToken: acquired.refreshLockToken,
+          client: input.client,
+        });
+      } catch {
+        // Release best-effort; preserve original crypto failure.
+      }
+      throw error;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Atomic rotate under a live refresh lease (owner + claim token + generation).
+ */
+export async function rotateIntegrationCredentialsUnderLease(input: {
+  scope: TrustedCredentialScope;
+  plaintext: PlaintextCredentialSet;
+  ownerId: string;
+  claimToken: string;
+  expectedGeneration: number;
+  kekResolver: KekResolver;
+  accessExpiresAt?: string | null;
+  refreshExpiresAt?: string | null;
+  scopeGranted?: string | null;
+  client: IntegrationCredentialRpcClient;
+}): Promise<RotateUnderLeaseResult> {
+  assertTrustedCredentialScope(
+    input.scope,
+    "integration_credentials.rotate_under_lease",
+  );
+  assertScopeMatchesPlaintext(input.scope, input.plaintext);
+
+  const ownerId = parseRefreshLockOwnerId(input.ownerId);
+  const claimToken = parseClaimToken(input.claimToken);
+  const expectedGeneration = parsePositiveSafeGeneration(
+    input.expectedGeneration,
+  );
+
+  const args = {
+    ...sealedArgsFromPlaintext(input.plaintext, input.kekResolver, {
+      accessExpiresAt: input.accessExpiresAt ?? null,
+      refreshExpiresAt: input.refreshExpiresAt ?? null,
+      scope: input.scopeGranted ?? null,
+    }),
+    p_owner_id: ownerId,
+    p_claim_token: claimToken,
+    p_expected_generation: expectedGeneration,
+  };
+
+  const rows = await callRpc<ReplaceRpcRow[] | ReplaceRpcRow>(
+    input.client,
+    "rotate_integration_credential_set",
+    args,
+  );
+
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  return parseRotateUnderLeaseOutcome(row);
+}
+
+/**
+ * Release own refresh lease when owner+token still match.
+ */
+export async function releaseIntegrationCredentialRefreshLock(input: {
+  scope: TrustedCredentialScope;
+  ownerId: string;
+  claimToken: string;
+  client: IntegrationCredentialRpcClient;
+}): Promise<CredentialReleaseOutcome> {
+  assertTrustedCredentialScope(
+    input.scope,
+    "integration_credentials.release_refresh_lock",
+  );
+
+  const ownerId = parseRefreshLockOwnerId(input.ownerId);
+  const claimToken = parseClaimToken(input.claimToken);
+
+  const outcome = await callRpc<string>(
+    input.client,
+    "release_integration_credential_refresh_lock",
+    {
+      p_organization_id: input.scope.organizationId,
+      p_integration_id: input.scope.integrationId,
+      p_provider: input.scope.provider,
+      p_owner_id: ownerId,
+      p_claim_token: claimToken,
+    },
+  );
+
+  if (
+    outcome !== "released"
     && outcome !== "fenced"
     && outcome !== "not_found"
   ) {
