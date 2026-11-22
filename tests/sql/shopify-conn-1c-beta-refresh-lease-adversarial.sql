@@ -43,7 +43,7 @@ VALUES
   ),
   (
     :'integ_rev'::uuid, :'org_a'::uuid, :'store_a'::uuid,
-    'shopify', 'revoked', 'Org A Shopify β revoked'
+    'shopify', 'active', 'Org A Shopify β revoked'
   ),
   (
     :'integ_b'::uuid, :'org_b'::uuid, :'store_b'::uuid,
@@ -169,6 +169,14 @@ BEGIN
   IF outcome <> 'inserted' THEN
     RAISE EXCEPTION 'seed integ_rev expected inserted, got %', outcome;
   END IF;
+
+  -- Terminal statuses fence α create, so integ_rev is seeded while active
+  -- and revoked afterwards (B10 fixture).
+  EXECUTE 'RESET ROLE';
+  UPDATE public.integrations
+  SET status = 'revoked'
+  WHERE id = integ_rev;
+  EXECUTE 'SET ROLE service_role';
 
   SELECT r.outcome INTO outcome
   FROM public.replace_integration_credential_set(

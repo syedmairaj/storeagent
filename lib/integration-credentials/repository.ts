@@ -1,9 +1,10 @@
 import "server-only";
 
 /**
- * SHOPIFY-CONN-1c-α/β — server-only tenant-scoped credential persistence.
- * Encrypt/decrypt via CONN-1b; sealed bytes only over SECURITY DEFINER RPCs.
- * β adds acquire/rotate/release lease wrappers (offline). No OAuth or KEK wiring.
+ * SHOPIFY-CONN-1c-α/β + CONN-1d-C — server-only tenant-scoped credential
+ * persistence. Encrypt/decrypt via CONN-1b; sealed bytes only over SECURITY
+ * DEFINER RPCs. β adds acquire/rotate/release; 1d-C adds disconnect/revoke.
+ * No OAuth or KEK wiring.
  */
 
 import {
@@ -101,7 +102,8 @@ export type CredentialPersistOutcome =
   | "inserted"
   | "replaced"
   | "conflict"
-  | "not_found";
+  | "not_found"
+  | "fenced";
 
 export type CredentialClearOutcome =
   | "cleared"
@@ -117,6 +119,33 @@ export type CredentialReleaseOutcome =
   | "released"
   | "fenced"
   | "not_found";
+
+export type CredentialDisconnectReasonClass =
+  | "merchant_disconnect"
+  | "uninstall"
+  | "hard_auth_failure";
+
+export type CredentialDisconnectTerminalStatus =
+  | "disconnected"
+  | "revoked";
+
+export type CredentialDisconnectOutcome =
+  | "completed"
+  | "lease_held"
+  | "already_terminal"
+  | "conflict"
+  | "not_found";
+
+export type DisconnectOrRevokeResult = {
+  outcome: CredentialDisconnectOutcome;
+  integrationStatus: string | null;
+  credentialGeneration: number | null;
+  vaultPresent: boolean;
+  refreshLockExpiresAt: string | null;
+  externalAccountReleased: boolean;
+  /** True only for completed / already_terminal — never lease_held. */
+  credentialsDestroyed: boolean;
+};
 
 export type CredentialPersistenceErrorCode =
   | "invalid_scope"
@@ -787,6 +816,7 @@ function parseReplaceOutcome(row: ReplaceRpcRow | undefined): ReplaceCredentialR
     && row.outcome !== "replaced"
     && row.outcome !== "conflict"
     && row.outcome !== "not_found"
+    && row.outcome !== "fenced"
   ) {
     throw new CredentialPersistenceError("unexpected_outcome");
   }
@@ -1364,6 +1394,157 @@ export async function releaseIntegrationCredentialRefreshLock(input: {
   }
 
   return outcome;
+}
+
+type DisconnectRpcRow = {
+  outcome: string;
+  integration_status: string | null;
+  credential_generation: number | string | bigint | null;
+  vault_present: boolean;
+  refresh_lock_expires_at: string | null;
+  external_account_released: boolean;
+};
+
+const DISCONNECT_REASON_TO_STATUS: Record<
+  CredentialDisconnectReasonClass,
+  CredentialDisconnectTerminalStatus
+> = {
+  merchant_disconnect: "disconnected",
+  uninstall: "revoked",
+  hard_auth_failure: "revoked",
+};
+
+function parseDisconnectReasonClass(
+  value: unknown,
+): CredentialDisconnectReasonClass {
+  if (
+    value !== "merchant_disconnect"
+    && value !== "uninstall"
+    && value !== "hard_auth_failure"
+  ) {
+    throw new CredentialPersistenceError("invalid_scope");
+  }
+  return value;
+}
+
+function parseOptionalGenerationOrNull(
+  value: number | null | undefined,
+): number | null {
+  if (value == null) {
+    return null;
+  }
+  return parsePositiveSafeGeneration(value);
+}
+
+function parseDisconnectRow(
+  row: DisconnectRpcRow | undefined,
+): DisconnectOrRevokeResult {
+  if (!row || typeof row.outcome !== "string") {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+
+  if (
+    row.outcome !== "completed"
+    && row.outcome !== "lease_held"
+    && row.outcome !== "already_terminal"
+    && row.outcome !== "conflict"
+    && row.outcome !== "not_found"
+  ) {
+    throw new CredentialPersistenceError("unexpected_outcome");
+  }
+
+  if (typeof row.vault_present !== "boolean") {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+  if (typeof row.external_account_released !== "boolean") {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+
+  let credentialGeneration: number | null = null;
+  if (row.credential_generation != null) {
+    try {
+      credentialGeneration = parsePositiveSafeGeneration(
+        row.credential_generation,
+      );
+    } catch (error) {
+      if (isCredentialPersistenceError(error)) {
+        throw new CredentialPersistenceError("malformed_rpc_response");
+      }
+      throw error;
+    }
+  }
+
+  if (
+    row.integration_status != null
+    && typeof row.integration_status !== "string"
+  ) {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+
+  if (
+    row.refresh_lock_expires_at != null
+    && typeof row.refresh_lock_expires_at !== "string"
+  ) {
+    throw new CredentialPersistenceError("malformed_rpc_response");
+  }
+
+  // Never map lease_held (or conflict/not_found) to credentials-cleared success.
+  const credentialsDestroyed =
+    row.outcome === "completed" || row.outcome === "already_terminal";
+
+  return {
+    outcome: row.outcome,
+    integrationStatus: row.integration_status,
+    credentialGeneration,
+    vaultPresent: row.vault_present,
+    refreshLockExpiresAt: row.refresh_lock_expires_at,
+    externalAccountReleased: row.external_account_released,
+    credentialsDestroyed,
+  };
+}
+
+/**
+ * CONN-1d-C disconnect/revoke. Requires branded TrustedCredentialScope.
+ * lease_held means terminal status committed with vault retained — not cleared.
+ * Production binding remains NOT_YET_VERIFIED.
+ */
+export async function disconnectOrRevokeIntegrationCredentials(input: {
+  scope: TrustedCredentialScope;
+  reasonClass: CredentialDisconnectReasonClass;
+  terminalStatus: CredentialDisconnectTerminalStatus;
+  expectedGeneration: number | null;
+  client: IntegrationCredentialRpcClient;
+}): Promise<DisconnectOrRevokeResult> {
+  assertTrustedCredentialScope(
+    input.scope,
+    "integration_credentials.disconnect_or_revoke",
+  );
+
+  const reasonClass = parseDisconnectReasonClass(input.reasonClass);
+  const mapped = DISCONNECT_REASON_TO_STATUS[reasonClass];
+  if (input.terminalStatus !== mapped) {
+    throw new CredentialPersistenceError("invalid_scope");
+  }
+
+  const expectedGeneration = parseOptionalGenerationOrNull(
+    input.expectedGeneration,
+  );
+
+  const rows = await callRpc<DisconnectRpcRow[] | DisconnectRpcRow>(
+    input.client,
+    "disconnect_or_revoke_integration_credentials",
+    {
+      p_organization_id: input.scope.organizationId,
+      p_integration_id: input.scope.integrationId,
+      p_provider: input.scope.provider,
+      p_expected_generation: expectedGeneration,
+      p_terminal_status: input.terminalStatus,
+      p_reason_class: reasonClass,
+    },
+  );
+
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  return parseDisconnectRow(row);
 }
 
 export type { CredentialCryptoError };
