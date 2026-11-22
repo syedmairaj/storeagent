@@ -2,13 +2,14 @@
 
 Bootstrap for new ChatGPT / Cursor sessions.
 
-**Active PE1.b.6b continuity (read first for JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`
-Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-20 — post-closure reconciliation (RO.3 + AI-INV-1/1.1)**.
+**Read first (compact current truth):** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**DOC-TRACK-1**).
+**Active PE1.b.6b continuity (JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`
+Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-22 — DOC-TRACK-1 master milestone reconciliation**.
 **November 2026 execution plan:** `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md`
 **AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`
-**Overview/Inventory UX delivery:** `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` (UX-INV-1a–**1c.1 CLOSED**; 1d planned)
+**Overview/Inventory UX delivery:** `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` (UX-INV-1a–**1c.1 CLOSED**; 1d **PLANNED** merchant-first simplification + premium polish)
 
-Hosted 38→52 schema track: **CLOSED** at 52/52 (`docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`). DB drift prevention Phase 1: `docs/DB_DRIFT_PREVENTION_PHASE1.md` (local checks PASS; Actions run **not** yet verified; JWT still BLOCKED). **Local Inventory CSV → Demand Metrics → Replenishment Planning acceptance (snapstore/Main, 2026-11-18): COMPLETE** — synthetic local only; ≠ hosted/JWT/M7 unlock. Shopify **RO.1 / RO.2 / RO.1.2 CLOSED/PUSHED**; Shopify-**RO.3 CLOSED/PUSHED** @ `4f6ef0c` (offline mocks; live nested-completeness certification **FALSE**). AI-INV-1 / AI-INV-1.1 **CLOSED/PUSHED** @ `38f63d6` (offline/local; model soft-enable **OFF**; not live-certified). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually; Markdown is sync source until DOCX Section 36+ is authorized.
+Hosted 38→52 schema track: **CLOSED** at 52/52 (`docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`). DB drift prevention Phase 1: `docs/DB_DRIFT_PREVENTION_PHASE1.md` (local checks PASS; Actions run **not** yet verified; JWT still BLOCKED). **Local Inventory CSV → Demand Metrics → Replenishment Planning acceptance (snapstore/Main, 2026-11-18): COMPLETE** — synthetic local only; ≠ hosted/JWT/M7 unlock. Shopify **RO.1–RO.3 CLOSED/PUSHED** (RO.3 @ `4f6ef0c`; live nested cert **FALSE**). **CONN-0A…1c-β CLOSED/PUSHED** through `173a357` (PARTIAL offline; binding **NOT_YET_VERIFIED**; hosted vault migrations **not applied**). **CONN-MP-0 CLOSED/PUSHED** @ `1e18029` (D13/D14 deferred). AI-INV-1 / 1.1 **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**). M5.6/M5.7: `docs/M5_6_HANDOFF.md`. Product roadmap DOCX — do not overwrite casually; Markdown is sync source until DOCX Section 36+ is authorized.
 
 ## 1. Thesis and non-negotiables
 
@@ -26,18 +27,18 @@ Data determines reality. Deterministic forecasting and inventory logic calculate
 |---|---|
 | Repository | StoreAgent.si |
 | Branch | `main` |
-| HEAD (verify) | Expect `38f63d6` — AI-INV-1/1.1 grounded explainer (ancestors: RO.3 `4f6ef0c`; RO.1.2 `fe29703`; RO.2 `7fc8f2a`; RO.1 `0072a04`; UX `0402564`/`f1426c4`/`10d9de6`) |
-| Remote | **Aligned with locally recorded `origin/main`** at acceptance (same SHA). **No CI verification claimed** without evidence. |
-| As-of | 2026-11-20 — **post-closure reconciliation** (RO.3 + AI-INV-1/1.1 Git-closed); PE1.b.6b JWT still BLOCKED; snapstore local planning acceptance COMPLETE (2026-11-18) |
-| Hosted pin | `qlsqminsfdntpqdkhxjx` (trial; PE1 env class **Other** / Development & Testing per worksheet A2) |
+| HEAD (verify) | Expect `173a357` — CONN-1c-β offline refresh fencing (ancestors: CONN-MP-0 `1e18029`; 1c-α `a918217`; 1b `00557c7`; 1a `3d1f6ad`; AI-INV `38f63d6`; RO.3 `4f6ef0c`; UX `0402564`) |
+| Remote | **Aligned with `origin/main`** at DOC-TRACK-1 verification (same SHA). **No CI verification claimed** without evidence. |
+| As-of | 2026-11-22 — **DOC-TRACK-1**; CONN-1c-β CLOSED/PUSHED (PARTIAL); binding **NOT_YET_VERIFIED**; PE1.b.6b JWT still BLOCKED; snapstore local planning COMPLETE (2026-11-18) |
+| Hosted pin | `qlsqminsfdntpqdkhxjx` (trial; PE1 env class **Other** / Development & Testing per worksheet A2); CONN vault migrations **not hosted-applied** |
 
-> **Superseded current-status pins:** Earlier DOC-2026-11 handoff text that expected HEAD `fe29703` and “RO.3 uncommitted / AI-INV docs-only” remains **historical**. Prefer this baseline + ledger § post-closure.
+> **Superseded current-status pins:** Text expecting HEAD `38f63d6` / `1e18029` / `fe29703`, or “CONN-1c-β not begun”, is **historical**. Prefer this baseline + ledger § 2026-11-22 + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`.
 
 Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Preserve dirty/untracked work; no drive-by Git.
 
 ## 3. Status matrix
 
-**Note:** M7 persistence / lifecycle **foundations** and hosted S1–S14 schema are present (ledger **52/52**); **production merchant activation** remains **BLOCKED**. Prefer the living status ledger § **2026-11-20 post-closure** + November execution plan + AI-INV roadmap + this matrix + PE1.b.6b handover for current truth. Schema deploy ≠ workers/cron/JWT/M7 unlock.
+**Note:** M7 persistence / lifecycle **foundations** and hosted S1–S14 schema are present (ledger **52/52**); **production merchant activation** remains **BLOCKED**. Prefer `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` + living ledger § **2026-11-22 DOC-TRACK-1** + November plan + AI-INV roadmap + this matrix + PE1.b.6b handover for current truth. Schema deploy ≠ workers/cron/JWT/M7 unlock; CONN offline close ≠ hosted vault / binding verified.
 
 | Area | Implemented | Local verified | Hosted verified | Planned / blocked |
 |---|---|---|---|---|
@@ -59,7 +60,9 @@ Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Pre
 | Overview/Inventory merchant-first UX | Spec + **UX-INV-1a–1c.1** | Unit suites; local UI | — | UX-INV-1d polish; browser automation cert **blocked**; no fake M7 queue |
 | Shopify RO.1 / RO.2 / RO.1.2 | Yes offline @ `0072a04` / `7fc8f2a` / `fe29703` | Unit suites | — | Live shop **blocked** |
 | Shopify RO.3 nested pagination | **CLOSED/PUSHED** @ `4f6ef0c` (`shopify-ro.3-v1`) | Offline mock tests PASS | — | Live nested cert **FALSE**; SyncRun **blocked**; OAuth **blocked** |
-| CSV → Shopify → Woo → Amazon | Product locked; CSV local PASS; Shopify RO offline | CSV + RO offline | — | Live Shopify first native; Woo/Amazon later |
+| CONN-0A…1c-β credential vault path | **CLOSED/PUSHED** through `173a357` | Disposable/offline suites (β V5 two-session PASS) | Migrations **not** hosted-applied | Binding **NOT_YET_VERIFIED**; CONN-1d **not started** |
+| CONN-MP-0 multi-provider architecture | **CLOSED/PUSHED** @ `1e18029` (docs) | — | — | D13/D14 deferred; impl separately gated |
+| CSV → Shopify → Woo → Amazon/Noon | Product locked; CSV local PASS; Shopify RO + CONN offline | CSV + RO + CONN offline | — | Live Shopify first; Woo/Amazon/Noon later |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6` | Offline/local focused **32/32** + typecheck/lint/build; soft-enable **OFF** | — | Not live-certified; no live model/search |
 | AI-INV-2…6 / AI-MKT-0…4 | Docs / roadmap | — | — | **PLANNED**; AI ≠ numeric authority; no paid credits/live research |
 | Billing / trial / ops | Partial docs/code | — | — | Paying launch **NO-GO** |
@@ -110,9 +113,9 @@ Local implementation/testing committed on `main` through **`6136874`** (P1 → P
 
 ## 6. Next three engineering steps
 
-1. **Docs:** Owner review of this **post-closure** reconciliation (RO.3 + AI-INV-1/1.1 Git-closed); optional DOCX Section 36+ sync — still **not** authorization for live Shopify or live AI.
-2. **Shopify secure connectivity / live nested-completeness certification** — separate gate; offline RO.3 ≠ SyncRun complete; OAuth/SyncRun **BLOCKED** until authorized.
-3. **Keep blocked:** PE1.b.6b JWT, workers/cron, M6 production forecast, M7 create/purchasing, real model/search, AI-MKT paid credits, paying launch. AI-INV-2…6 and AI-MKT-0…4 remain **PLANNED** only.
+1. **Owner review of DOC-TRACK-1** (`docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`) — optional docs Git closure; **not** authorization for CONN-1d, hosted vault apply, live Shopify, or live AI.
+2. **CONN-1d** (after explicit owner authorization) — then production binding / KEK / hosted vault apply gates before OAuth; offline RO.3 ≠ SyncRun complete.
+3. **Parallel PLANNED:** UX-INV-1d merchant-first simplification + premium polish (separate UI slice). **Keep blocked:** PE1.b.6b JWT, workers/cron, M6 production forecast, M7 create/purchasing, real model/search, AI-MKT paid credits, paying launch. AI-INV-2…6 and AI-MKT-0…4 remain **PLANNED** only.
 
 ## 7. Hard bans
 
@@ -123,8 +126,10 @@ Local implementation/testing committed on `main` through **`6136874`** (P1 → P
 - Do not start M7 production create, buying automation, or live Shopify connection under a docs/UX-spec task.
 - Do not treat RO.3 offline CLOSED/PUSHED (`4f6ef0c`) or unit PASS as SyncRun completeness or live nested-pagination certification (`SHOPIFY_RO3_LIVE_NESTED_COMPLETENESS_CERTIFIED` remains **false**).
 - Do not treat AI-INV-1/1.1 CLOSED/PUSHED as live model enablement, market research, credits, or purchasing.
+- Do not treat CONN-1c-β CLOSED/PUSHED as production binding verified, hosted vault applied, OAuth, or SyncRun.
+- Do not start CONN-1d, hosted vault apply, or production resolver without explicit owner authorization.
 - Do not claim shipped AI Inventory Agent, merchant ROI, or 1,000 customers.
-- Do not stage/overwrite roadmap DOCX / `docs/archive/` unless the user explicitly asks; prefer Markdown until DOCX sync is authorized.
+- Do not stage/overwrite roadmap DOCX / `docs/archive/` / protected dirty files unless the user explicitly asks; prefer Markdown until DOCX sync is authorized.
 
 ## 8. Product north star (preserve)
 
@@ -152,7 +157,8 @@ From the master roadmap / October–November 2026 addenda (do not rewrite the DO
 | `docs/M6_PE1_B6B_HOSTED_JWT_RUNTIME_EVIDENCE.md` | J1–J13 results (still empty) |
 | `docs/M6_PE1_B5_HOSTED_CANARY_READINESS_GAP_AUDIT.md` | Hosted readiness gaps |
 | `docs/M6_PE1_B4A_*` / `B4B_*` | Offline synthetic lifecycle contract + evidence |
-| `docs/PROJECT_HANDOFF.md` | This file — session start |
+| `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` | **DOC-TRACK-1 compact current truth** |
+| `docs/PROJECT_HANDOFF.md` | This file — longer session start |
 | `docs/IMPLEMENTATION_STATUS.md` | Pointer → living status ledger |
 | `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` | Living milestone ledger |
 | `docs/HOSTED_38to52_MIGRATION_RUNBOOK.md` | Hosted 38→52 closeout (CLOSED 52/52) |
@@ -165,9 +171,9 @@ From the master roadmap / October–November 2026 addenda (do not rewrite the DO
 
 ## 10. How to start a new chat
 
-1. Confirm HEAD (`38f63d6` or newer). Confirm `main` vs locally recorded `origin/main`. Preserve unrelated dirty-tree files.
-2. Read ledger § **2026-11-20 post-closure** + `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` for current priority.
+1. Confirm HEAD (`173a357` or newer verified closure). Confirm `main` ≡ `origin/main`. Preserve unrelated dirty-tree files.
+2. Read `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` + ledger § **2026-11-22 DOC-TRACK-1** first.
 3. For PE1.b.6b: open `docs/M6_PE1_B6B_SESSION_HANDOVER.md` and paste the ChatGPT or Cursor prompt from that file.
-4. For Overview/Inventory UI: read `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` — engines unchanged; no fake M7 queue.
-5. Default ban: **no** production forecast activation, workers, PE1.c, live Shopify, M7 create, or paying launch claims without explicit approval.
+4. For Overview/Inventory UI: read `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` — UX-INV-1d still PLANNED; engines unchanged; no fake M7 queue.
+5. Default ban: **no** CONN-1d / hosted vault apply / production forecast / workers / PE1.c / live Shopify / M7 create / paying launch without explicit approval.
 6. Preserve unrelated dirty-tree files; no drive-by Git unless requested.

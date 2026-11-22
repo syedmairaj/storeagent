@@ -2,22 +2,25 @@
 
 **Document ID:** DOC-2026-11 / AI-INV
 **Mode:** Planning & product vision only — **not authorization** to deploy live models, enable workers, run JWT, connect live Shopify, activate M6/M7, spend credits, or claim merchant ROI.
-**As-of:** 2026-11-20 — **post-closure** (AI-INV-1/1.1 Git-closed; AI-INV-2…6 + AI-MKT still PLANNED)
-**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-20 — post-closure reconciliation (RO.3 + AI-INV-1/1.1)**
-**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO transport docs
+**As-of:** 2026-11-22 — **DOC-TRACK-1** (AI-INV-1/1.1 still CLOSED/PUSHED; AI-INV-2…6 + AI-MKT still PLANNED; connector HEAD advanced)
+**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-22 — DOC-TRACK-1 master milestone reconciliation**
+**Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
+**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports
 
-### 2026-11-20 post-closure status pin
+### 2026-11-22 DOC-TRACK-1 status pin
 
 | Slice | Status |
 |---|---|
-| Git HEAD | `38f63d6` — `main` aligned with locally recorded `origin/main` (**no CI claim**) |
+| Git HEAD | `173a357` — CONN-1c-β; `main` ≡ `origin/main` (**no CI claim**) |
+| CONN-1c-β / CONN-MP-0 | **CLOSED/PUSHED** @ `173a357` / `1e18029` (PARTIAL offline / docs-only); binding **NOT_YET_VERIFIED** |
 | Shopify RO.3 | **CLOSED/PUSHED** @ `4f6ef0c`; offline mocks; live nested cert **FALSE** |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; offline/local **32/32** PASS; soft-enable **OFF**; not live-certified |
 | AI-INV-2…6 | **PLANNED** |
-| AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4 | **PLANNED** (sequence preserved); no live search / paid credits |
+| AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4 | **PLANNED** (sequence preserved); no live search / paid credits; OpenAI/Gemini grounding = future adapters ≠ transaction DBs |
+| UX-INV-1d | **PLANNED** (merchant-first simplification + premium polish) |
 | Hosted JWT / workers / M6 prod / M7 create / purchasing / launch | **BLOCKED / NOT AUTHORIZED** |
 
-> Prior same-day pins that listed AI-INV-1 as “Git pending” or “local only” are **superseded** by this section for current status; historical milestone text below retains pre-closure wording where labeled.
+> Prior pins expecting HEAD `38f63d6` as *current* Git tip, or AI-INV-1 as “Git pending”, are **superseded** for current status; historical milestone text below retains earlier wording where labeled.
 
 ---
 
@@ -271,7 +274,7 @@ Distinguish **CURRENT UI** (shipped local) vs **FUTURE** mockups/features. No fa
 | UX-INV-1b Stock health / attention | **CLOSED/PUSHED** (with 1a lineage; inspector `f1426c4`) |
 | UX-INV-1c Replenishment / incoming | **CLOSED/PUSHED** |
 | UX-INV-1c.1 Clarification pass | **CLOSED/PUSHED** @ `0402564` (latest UX) |
-| UX-INV-1d Premium polish | **PLANNED** |
+| UX-INV-1d Merchant-first task→action→result + premium responsive polish | **PLANNED** (DOC-TRACK-1; not implementation permission) |
 | Marketing hero implementation | **PLANNED** — time to demonstrable shipped capabilities |
 | Browser/merchant viewport certification | **BLOCKED** for automation without authorized session |
 
@@ -282,8 +285,9 @@ Distinguish **CURRENT UI** (shipped local) vs **FUTURE** mockups/features. No fa
 | Step | Work | Parallelizable? | Blocked by | Owner approval | Test / exit gate | Deliverable |
 |---|---|---|---|---|---|---|
 | 0 | **RO.3 + AI-INV-1/1.1 Git closure** | — | — | **DONE** @ `4f6ef0c` / `38f63d6` | Offline mocks / focused **32/32**; live cert **FALSE**; soft-enable **OFF** | Pushed — still not live Shopify / live model |
-| 1 | **Post-closure documentation reconciliation** | — | Owner review of DOC-2026-11 post-closure | **This pass** | Cross-doc consistency | Markdown + DOCX sync plan |
-| 2 | Shopify secure connectivity architecture + security approval + nested **live**-certification gates | Docs/architecture parallel | Live nested completeness; security review | Required | Live cert flags remain false until PASS | Architecture packet; live cert plan |
+| 0b | **CONN-0A…1c-β + CONN-MP-0** | — | — | **DONE** through `173a357` / `1e18029` | PARTIAL offline; binding **NOT_YET_VERIFIED**; D13/D14 deferred | Not hosted vault / OAuth / SyncRun |
+| 1 | **DOC-TRACK-1 master handoff reconciliation** | — | Owner review of DOC-TRACK-1 | **This pass** | Cross-doc consistency | `STOREAGENT_MASTER_MILESTONE_HANDOFF.md` + pointer updates |
+| 2 | **CONN-1d** then binding/KEK/hosted apply → nested **live**-cert / OAuth / SyncRun | Docs/architecture parallel | Owner auth per gate | Required | Live cert flags remain false until PASS; binding verified separately | Security path before live Shopify |
 | 3 | **AI-INV-2…6** / **AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4** (sequence preserved) | Partial vs connector if independently gated | Per-slice deps; not M6/M7 unless gated | Separate slice approval | Per-slice exit criteria; no paid credits without AI-MKT-1.1 | Next AI/market slices only when authorized |
 | 4 | OAuth / least-privilege credentials + authorized read-only SyncRun | After 2 | RO.3 live cert + security | Required | SyncRun incomplete≠complete; audit | Credential vault + SyncRun v1 |
 | 5 | Data Health / reconciliation, onboarding, reliability | Partial parallel with 4 | Sync signals | Product | Quarantine UX; multi-store | Data Health surface |
@@ -298,7 +302,7 @@ Distinguish **CURRENT UI** (shipped local) vs **FUTURE** mockups/features. No fa
 
 | Parallelizable now (with separate gates) | Still blocked |
 |---|---|
-| Docs; UX-INV-1d polish; AI-INV-2…6 / AI-MKT-0…4 design only if approved | Live Shopify; OAuth/SyncRun; PE1.b.6b JWT J-matrix; workers/cron; M6 production; M7 create; purchasing; live model/search; paid credits; paying launch |
+| Docs; UX-INV-1d merchant-first + polish; AI-INV-2…6 / AI-MKT-0…4 design only if approved | CONN-1d without owner auth; hosted vault apply; live Shopify; OAuth/SyncRun; PE1.b.6b JWT J-matrix; workers/cron; M6 production; M7 create; purchasing; live model/search; paid credits; paying launch |
 
 ### Preserved security / hosted prerequisites (do not demote)
 
@@ -319,7 +323,7 @@ Canonical DOCX: `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` remains
 
 1. This file (AI-INV + merchant value)
 2. `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md`
-3. Living ledger § **2026-11-20 post-closure reconciliation** (current status table)
+3. Living ledger § **2026-11-22 DOC-TRACK-1** + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (current status)
 
 **Do not** rewrite, delete, or replace DOCX body in the documentation pass that produced this Markdown.
 
@@ -327,8 +331,8 @@ Canonical DOCX: `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` remains
 
 ## 7. Owner decisions requested
 
-1. Accept DOC-2026-11 **post-closure** documentation reconciliation (RO.3 + AI-INV-1/1.1 already **CLOSED/PUSHED**)?
+1. Accept **DOC-TRACK-1** master handoff reconciliation (CONN-1c-β / CONN-MP-0 already **CLOSED/PUSHED**; AI-INV-1/1.1 unchanged)?
 2. Authorize non-destructive DOCX Section 36+ sync?
-3. Authorize next engineering slice (Shopify secure connectivity / live nested cert plan — **not** SyncRun yet)?
+3. Authorize next engineering slice (**CONN-1d** — **not** OAuth/SyncRun/hosted vault apply yet)?
 4. Keep PE1.b.6b / workers / M6 prod / M7 create / live Shopify / live model / AI-MKT spend / paying launch **BLOCKED** (recommended YES)?
-5. Keep AI-INV-2…6 and AI-MKT-0…4 **PLANNED** until separately authorized?
+5. Keep AI-INV-2…6 and AI-MKT-0…4 **PLANNED**; keep UX-INV-1d **PLANNED** until separately authorized?

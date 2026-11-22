@@ -3,10 +3,12 @@
 **Status:** PROPOSED planning document (docs only)
 **Baseline verified (original):** `main` @ `3723e16` — `feat(actions): add gated synthetic AI explanation delivery`
 **Reconciled (2026-11-19):** Historical — then HEAD `7fc8f2a` (Shopify RO.2).
-**Reconciled (2026-11-20 / DOC-2026-11):** Git HEAD `fe29703` (RO.1.2); `main`≡`origin/main`; UX-INV-1a–**1c.1 CLOSED/PUSHED** (`0402564`); Shopify RO.1/RO.2/RO.1.2 CLOSED/PUSHED; RO.3 local uncommitted only; snapstore planning acceptance COMPLETE (2026-11-18).
-**Authoritative status table:** living ledger § 2026-11-20.
+**Reconciled (2026-11-20 / DOC-2026-11):** Historical — then HEAD `fe29703` (RO.1.2); RO.3 then local uncommitted; AI-INV then mostly PLANNED.
+**Reconciled (2026-11-22 / DOC-TRACK-1):** Current pins → living ledger § **2026-11-22** + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. HEAD `173a357` (CONN-1c-β); RO.3 **CLOSED/PUSHED** @ `4f6ef0c` (live nested cert **FALSE**); AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6` (soft-enable OFF); UX-INV-1d **PLANNED** (merchant-first simplification + premium polish). Competitive themes below unchanged.
+**Authoritative status table:** living ledger § 2026-11-22 DOC-TRACK-1 (not older header pins in this file).
 **Merchant pain → AI capability map (canonical):** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` — do not fork a third contradictory pain matrix.
-**Authority when docs conflict:** existing freezes win for shipped contracts — especially `docs/M7_4A_DECISION_FIRST_UX_CONTRACT.md`, `docs/M7_4E_AI_NATIVE_DECISION_BRIEF_CONTRACT.md`, `docs/M7_4E_E3_AI_EXPLANATION_ADAPTER_CONTRACT.md`, `docs/FORECASTING.md`, `docs/DECISION_ENGINE.md`, `docs/INVENTORY_FORMULAS.md`, M5–M7 persistence/lifecycle freezes, and `docs/IMPLEMENTATION_STATUS.md` / `docs/PROJECT_HANDOFF.md` for operational truth. UX-INV-1 owns Overview/Inventory presentation; AI-INV owns grounded intelligence planning; this file owns competitive themes + Actions E3.3-R2 planning.
+**Authority when docs conflict:** existing freezes win for shipped contracts — especially `docs/M7_4A_DECISION_FIRST_UX_CONTRACT.md`, `docs/M7_4E_AI_NATIVE_DECISION_BRIEF_CONTRACT.md`, `docs/M7_4E_E3_AI_EXPLANATION_ADAPTER_CONTRACT.md`, `docs/FORECASTING.md`, `docs/DECISION_ENGINE.md`, `docs/INVENTORY_FORMULAS.md`, M5–M7 persistence/lifecycle freezes, and `docs/IMPLEMENTATION_STATUS.md` / `docs/PROJECT_HANDOFF.md` / master handoff for operational truth. UX-INV-1 owns Overview/Inventory presentation; AI-INV owns grounded intelligence planning; this file owns competitive themes + Actions E3.3-R2 planning.
+**Why edited under DOC-TRACK-1:** Header/§0a still claimed RO.3 “local uncommitted” and AI-INV “all PLANNED”, conflicting with CLOSED/PUSHED evidence — current-state consistency only; competitive analysis body preserved.
 **This document does not authorize** UI implementation, SQL, hosted operations, workers/cron/HTTP enablement, live AI providers, purchasing, dependency changes, or Git operations. It does **not** alter E0–E3.3 Decision Brief math/validation, M5–M7 deterministic engines, or approval contracts.
 
 ---
@@ -17,9 +19,9 @@
 |---|---|
 | Positioning | Preserve **Inventory Decision Copilot / AI Inventory & Buying Agent** — not stock tracker / ERP / autonomous buyer |
 | Actions E3.3-R2 | Functional acceptance **CLOSED** (`docs/E3_3_R2_E_ACCEPTANCE_CLOSEOUT.md`); visual ≥9/10 not claimed; R2.c deferred; still synthetic-only |
-| Overview/Inventory | **UX-INV-1a–1c.1 CLOSED/PUSHED**; UX-INV-1d planned; no fake M7 queue |
-| Connectors | CSV local PASS; Shopify RO.1/RO.2/RO.1.2 offline **CLOSED/PUSHED**; RO.3 offline local-only; live sync still unclaimed |
-| AI intelligence | AI-INV-1…6 **PLANNED** in `AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` — not shipped |
+| Overview/Inventory | **UX-INV-1a–1c.1 CLOSED/PUSHED**; UX-INV-1d **PLANNED** (task→action→result + premium polish); no fake M7 queue |
+| Connectors | CSV local PASS; Shopify RO.1–RO.3 offline **CLOSED/PUSHED** (RO.3 @ `4f6ef0c`; live nested cert **FALSE**); CONN-0A…1c-β **CLOSED/PUSHED** through `173a357` (PARTIAL; binding unverified); live OAuth/SyncRun still unclaimed |
+| AI intelligence | AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6` (soft-enable OFF); AI-INV-2…6 + AI-MKT-0…4 **PLANNED** |
 | Competitive sources | Prediko App Store reviews remain the dated public hypothesis set in §1; treat as individual merchant signals, not proof StoreAgent wins |
 | Differentiation matrix | Expanded merchant-pain map lives in AI-INV roadmap; November plan §5 remains complementary — avoid duplicate contradictory P0 lists |
 | ICP / 1,000 merchants | Hypothesis / aspirational goal only — not traction |

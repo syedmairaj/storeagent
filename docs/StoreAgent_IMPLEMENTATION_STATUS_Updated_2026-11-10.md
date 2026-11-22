@@ -2,18 +2,77 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-20 post-closure):** See **§ 2026-11-20 — post-closure reconciliation (RO.3 + AI-INV-1/1.1)** below. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (verified):** `38f63d6` — AI-INV-1/1.1; `main` **aligned with locally recorded `origin/main`** (same SHA at acceptance; **no CI claim**). Shopify RO.3 **CLOSED/PUSHED** @ `4f6ef0c`. Soft-enable AI **OFF**. Live nested cert **FALSE**.
-> **Latest UI slice:** UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d planned. **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify, live model/search, paid credits, or paying launch.
-> **Prior DOC-2026-11 section (same calendar day, pre-closure pins):** Historical — HEAD `fe29703` / “RO.3 uncommitted” / “AI-INV PLANNED” are **superseded** by the post-closure section below.
-> **Prior docs reconciliation (2026-11-19):** Historical — HEAD pins to `7fc8f2a` / “RO.2 push pending” are **stale**.
-> **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main is **COMPLETE**. This does **not** unlock hosted JWT, workers/cron, M7 production create, purchasing, or paying launch.
-> **Latest strategy/addendum (2026-11-10):** Product delivery acceleration plan remains historical strategy; prefer post-closure section for connector/UX/Git/AI truth when they differ.
+> **Authoritative current state (2026-11-22 DOC-TRACK-1):** See **§ 2026-11-22 — DOC-TRACK-1 master milestone reconciliation** below. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (verified):** `173a357` — CONN-1c-β offline refresh fencing; `main` **≡ `origin/main`** (same SHA; **no CI claim**). Binding **`NOT_YET_VERIFIED`**. Hosted CONN vault migrations **not applied**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
+> **Latest connector slice:** CONN-1c-β **CLOSED/PUSHED** @ `173a357` (PARTIAL offline; V5 two-session disposable PG PASS). CONN-MP-0 **CLOSED/PUSHED** @ `1e18029` (D13/D14 deferred). CONN-1d **not started**.
+> **Latest UI / AI:** UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d **PLANNED** (merchant-first simplification + premium polish). AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6`; AI-INV-2…6 + AI-MKT-0…4 **PLANNED**.
+> **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify OAuth/SyncRun, live model/search, paid credits, hosted vault apply, or paying launch.
+> **Prior § 2026-11-20 post-closure (HEAD `38f63d6`):** Historical — superseded for *current* HEAD/CONN pins by § 2026-11-22.
+> **Prior DOC-2026-11 / 2026-11-19 pins:** Historical — do not treat as fresher than § 2026-11-22.
+> **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main remains **COMPLETE** (≠ hosted unlock).
+> **Latest strategy/addendum (2026-11-10):** Historical product strategy; prefer § 2026-11-22 for connector/UX/Git/AI truth when they differ.
+
+## 2026-11-22 — DOC-TRACK-1 master milestone reconciliation
+
+> **Authority:** Documentation-only master milestone reconciliation (**DOC-TRACK-1**). No application source/test/schema edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M6/M7 activation, live AI/search, billing, hosted vault apply, or Git stage/commit/push in this docs pass.
+> **Historical rule:** § 2026-11-20 post-closure and older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only.
+> **Canonical compact handoff created:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Untracked dated draft `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF_2026-11-22.md` (pre-β; HEAD `1e18029`) is **not** current — preserve, do not treat as fresher.
+> **Dirty tree preserved (unrelated):** modified `BACKGROUND_JOBS.md` / `SERVICE_ROLE_BOUNDARY.md`; deleted tracked `docs/StoreAgent_Roadmap_2026.docx`; archives; SQL; `AGENTS.md`; `.tmp`; `.vitest`; snippets; dated handoff draft.
+
+### Git evidence (verified 2026-11-22 DOC-TRACK-1)
+
+| Field | Value |
+|---|---|
+| Branch | `main` |
+| HEAD | `173a357` — `feat(shopify): close CONN-1c beta offline refresh fencing` |
+| Full SHA | `173a357f0b5cf1719ee8295ccd461f1cd75bdfc3` |
+| vs `origin/main` | **Aligned** (left-right `0 0`) |
+| Staging | Empty at reconciliation start |
+| CONN-1c-β | **CLOSED/PUSHED** @ `173a357` — PARTIAL offline; report `docs/SHOPIFY_CONN_1C_BETA_IMPLEMENTATION_REPORT.md`; V5 two-session disposable PG PASS |
+| CONN-MP-0 | **CLOSED/PUSHED** @ `1e18029` — docs-only; D13/D14 **DEFERRED** |
+| CONN-1c-α / 1b / 1a / 0A | **CLOSED/PUSHED** @ `a918217` / `00557c7` / `3d1f6ad` / `965e6d7` |
+| AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6` (ancestor); soft-enable **OFF** |
+| Shopify RO.3 | **CLOSED/PUSHED** @ `4f6ef0c` (ancestor); live nested cert **FALSE** |
+| UX-INV latest | `0402564` (1c.1) — ancestor; UX-INV-1d **PLANNED** |
+
+**Sequence (pushed):** … → `38f63d6` (AI-INV) → `4a692c1` (docs) → `965e6d7` (CONN-0A) → `abb407d` (vault contract) → `3d1f6ad` (1a) → `00557c7` (1b) → `a918217` (1c-α) → `1e18029` (CONN-MP-0) → `173a357` (1c-β) = **HEAD**.
+
+### Authoritative milestone deltas (vs 2026-11-20 post-closure)
+
+| Milestone | 2026-11-20 post-closure pin | 2026-11-22 DOC-TRACK-1 |
+|---|---|---|
+| HEAD | `38f63d6` | **`173a357`** |
+| CONN-0A…1c-β | Not yet in post-closure section | **CLOSED/PUSHED** through `173a357` (PARTIAL offline) |
+| CONN-MP-0 | Not present | **CLOSED/PUSHED** @ `1e18029`; D13/D14 deferred |
+| Production credential binding | N/A | **`NOT_YET_VERIFIED`** |
+| Hosted CONN vault migrations | N/A | **NOT authorized / not applied** |
+| CONN-1d | N/A | **PLANNED / not started** |
+| UX-INV-1d | Planned (polish) | **PLANNED** — expanded: merchant-first task→action→result + premium polish |
+| AI-INV / AI-MKT / JWT / workers / M6/M7 / launch | CLOSED or BLOCKED as recorded | **Unchanged** classes |
+
+### Outstanding gates (accurate)
+
+1. Owner accept DOC-TRACK-1 docs reconciliation (optional docs Git closure).
+2. **CONN-1d** security acceptance — **do not start** without explicit authorization.
+3. Production `IntegrationOwnershipLookup` + binding re-verify; D13/D14; hosted vault apply.
+4. Shopify OAuth / live nested cert / SyncRun (after security path).
+5. PE1.b.6b JWT; workers/cron; M6 production; M7 create/purchasing.
+6. UX-INV-1d implementation (separate UI slice).
+7. AI-INV-2…6 / AI-MKT-0…4; DOCX Section 36+ sync; paying launch.
+
+### Next smallest milestones (not authorized by this addendum)
+
+1. Owner review of DOC-TRACK-1 / `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`.
+2. **CONN-1d** only after explicit owner authorization.
+3. Keep hosted vault apply / binding / OAuth / JWT / workers / M6 prod / M7 / live AI / AI-MKT spend **BLOCKED**.
+
+---
 
 ## 2026-11-20 — post-closure reconciliation (RO.3 + AI-INV-1/1.1)
 
-> **Authority:** Documentation-only status reconciliation after Git closure of Shopify RO.3 and AI-INV-1/1.1. No application source/test/schema edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M6/M7 activation, live AI/search, billing, or Git stage/commit/push in this docs pass.
-> **Historical rule:** § DOC-2026-11 Master Roadmap reconciliation (below) and older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only.
+> **SUPERSEDED for current-status pins** by § **2026-11-22 — DOC-TRACK-1** above. Retained as historical evidence of RO.3 + AI-INV-1/1.1 Git-closure documentation (HEAD pin `38f63d6`).
+> **Authority (historical):** Documentation-only status reconciliation after Git closure of Shopify RO.3 and AI-INV-1/1.1. No application source/test/schema edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M6/M7 activation, live AI/search, billing, or Git stage/commit/push in this docs pass.
+> **Historical rule:** § DOC-2026-11 Master Roadmap reconciliation (below) and older dated sections remain **historical evidence** — not rewritten.
 > **Dirty tree preserved (unrelated):** modified `BACKGROUND_JOBS.md` / `SERVICE_ROLE_BOUNDARY.md`; deleted tracked `docs/StoreAgent_Roadmap_2026.docx`; archives; SQL; `AGENTS.md`; `.tmp`; `.vitest`; snippets.
 
 ### Git evidence (verified 2026-11-20 post-closure)

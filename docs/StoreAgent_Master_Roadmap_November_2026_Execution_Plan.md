@@ -1,19 +1,50 @@
 # StoreAgent.si — November 2026 Execution Plan
 
 **Mode:** Documentation / planning reconciliation only
-**As-of current truth:** 2026-11-20 — **post-closure reconciliation** (RO.3 + AI-INV-1/1.1 Git-closed)
-**Git HEAD verified (2026-11-20 post-closure):** `38f63d6` — `feat(ai-inv-1): grounded inventory explainer with situational guidance`
-**Remote:** `main` **aligned with locally recorded `origin/main`** (same SHA at acceptance; **no CI claim**)
+**As-of current truth:** 2026-11-22 — **DOC-TRACK-1 master milestone reconciliation**
+**Git HEAD verified (2026-11-22):** `173a357` — `feat(shopify): close CONN-1c beta offline refresh fencing`
+**Remote:** `main` **≡ `origin/main`** (same SHA; **no CI claim**)
+**Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
 **AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`
-**Authoritative status table:** living ledger § **2026-11-20 — post-closure reconciliation (RO.3 + AI-INV-1/1.1)**
+**Authoritative status table:** living ledger § **2026-11-22 — DOC-TRACK-1 master milestone reconciliation**
 **Authority:** Augments the canonical master roadmap DOCX (`docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx`). Does **not** destructively rewrite frozen architecture, PE1.b gates, M5–M7 contracts, or historical ledger evidence.
-**DOCX synchronization:** **PENDING** — propose non-destructive **Section 36+** addendum pointing here + AI-INV doc + ledger § post-closure. Do not rewrite/delete DOCX body in docs-only passes.
+**DOCX synchronization:** **PENDING** — propose non-destructive **Section 36+** addendum pointing here + AI-INV doc + ledger § 2026-11-22 + master handoff. Do not rewrite/delete DOCX body in docs-only passes.
+
+---
+
+## 0C. 2026-11-22 DOC-TRACK-1 reconciliation (CONN path + handoff)
+
+> **Authority for current-status pins.** §0B / §0A and older Part A snapshots remain **historical evidence** — not rewritten. Prefer this §0C + living ledger § 2026-11-22 + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`.
+
+| Topic | Current state |
+|---|---|
+| HEAD | `173a357` — CONN-1c-β; `main` ≡ `origin/main` |
+| CONN-0A…1c-β | **CLOSED/PUSHED** through `173a357` (PARTIAL offline; V5 two-session PASS); binding **NOT_YET_VERIFIED**; hosted vault migrations **not applied** |
+| CONN-MP-0 | **CLOSED/PUSHED** @ `1e18029` (docs-only; D13/D14 **DEFERRED**) |
+| CONN-1d | **PLANNED / not started** — STOP without owner authorization |
+| UX-INV-1a–1c.1 | **CLOSED/PUSHED**; UX-INV-1d **PLANNED** (merchant-first task→action→result + premium polish) |
+| Shopify RO.1–RO.3 | **CLOSED/PUSHED**; live nested cert **FALSE** |
+| AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF** |
+| AI-INV-2…6 / AI-MKT-0…4 | **PLANNED** (sequence preserved) |
+| PE1.b.6b / workers / M6 prod / M7 create / purchasing / live Shopify / live model / launch | **Unchanged BLOCKED / NO-GO** |
+
+### Proposed next sequence (dependency-aware; not guaranteed)
+
+0. Owner review of DOC-TRACK-1 / master handoff (optional docs Git closure) — **this pass**
+1. **CONN-1d** (explicit owner authorization only)
+2. Production binding + KEK / hosted vault apply (separate gates) → then OAuth / SyncRun path
+3. **UX-INV-1d** (parallelizable UI slice)
+4. AI-INV-2…6 / AI-MKT-0…4 only under separate authorizations
+5. Data Health / onboarding / reliability
+6. Forecast validation + M6 production gates (after JWT where required)
+7. M7 inbox/create + guarded approvals
+8. Cash/supplier + scenarios; pilot / billing / launch; Woo/Amazon/Noon by demand
 
 ---
 
 ## 0B. 2026-11-20 post-closure reconciliation (RO.3 + AI-INV-1/1.1)
 
-> **Authority for current-status pins.** §0A (same calendar day, pre-Git-closure) and older §1 / Part A snapshots remain **historical evidence** — not rewritten. Prefer this §0B + living ledger § post-closure.
+> **SUPERSEDED for current-status pins** by §0C above. Retained as historical evidence of RO.3 + AI-INV Git-closure pins (HEAD `38f63d6`). §0A and older §1 / Part A snapshots remain **historical evidence** — not rewritten.
 
 | Topic | Current state |
 |---|---|

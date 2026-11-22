@@ -5,8 +5,18 @@
 **Does not authorize** engine formula changes, M7 activation, workers, JWT, Shopify live sync, purchasing, or Git operations.
 **Parent plan:** `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md`
 **AI + premium homepage roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` §4 (CURRENT vs FUTURE)
-**Authoritative status:** ledger § 2026-11-20
+**Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
+**Authoritative status:** ledger § 2026-11-22 DOC-TRACK-1
 **Yields to:** M5 metrics contracts, `docs/INVENTORY_FORMULAS.md`, inventory readiness types, M7.4a / E3.3-R2 (Actions demo), `docs/DESIGN_SYSTEM.md`.
+
+### 2026-11-22 DOC-TRACK-1 note (UX-INV-1d scope — PLANNED only)
+
+Current local screenshots show excessive explanations, repeated readiness warnings, and limited action prominence. **UX-INV-1d remains PLANNED** (not implementation permission under DOC-TRACK-1):
+
+- Merchant-first **task → action → result** dashboard simplification + premium responsive polish
+- One primary next safe task; actionable attention queue; short merchant-friendly explanations
+- Expandable evidence/provenance; clear results and next step
+- Preserve honest Unknown/stale states; **no fake M7 action authorization**
 
 ---
 
@@ -117,7 +127,7 @@ Primary job: **attention-ranked SKU evidence**.
 | **UX-INV-1b** | Inventory stock-health vs cover availability; filter/label pass; history noise reduction; SKU inspector lineage | None (presentation/ranking only) | **CLOSED/PUSHED** (inspector `f1426c4`) |
 | **UX-INV-1c** | Replenishment impact copy + incoming guided explanation (read-only) | None | **CLOSED/PUSHED** |
 | **UX-INV-1c.1** | Clarification pass on replenishment/incoming evidence merchant UX | None | **CLOSED/PUSHED** @ `0402564` |
-| **UX-INV-1d** | Premium responsive polish (skeletons, motion, density) | None | **PLANNED** |
+| **UX-INV-1d** | Merchant-first task→action→result simplification + premium responsive polish (skeletons, motion, density); reduce repeated readiness chrome; increase action prominence | None | **PLANNED** (DOC-TRACK-1 recorded; not authorized to implement here) |
 | **UX-INV-PO** (later) | Guided PO incoming evidence workflow | Only if separately contracted attestation writers | Fail-closed completeness rules |
 | **Marketing hero / Decision Inbox / AI assistant** | See AI roadmap §4 | Separately gated | **FUTURE** — no fabricated metrics or active buying |
 
@@ -195,6 +205,6 @@ Actions E3.3-R2 remains the **demo decision inbox** track. Do not merge live M7 
 | Implement UX-INV-1a under a later explicit slice | **CLOSED/PUSHED** (2026-11-19) |
 | Implement UX-INV-1b Inventory stock-health / SKU attention | **CLOSED/PUSHED** (browser cert BLOCKED) |
 | Implement UX-INV-1c / 1c.1 replenishment + incoming | **CLOSED/PUSHED** @ `0402564` (browser cert BLOCKED without authorized session) |
-| UX-INV-1d premium polish | **PLANNED** |
+| UX-INV-1d merchant-first simplification + premium polish | **PLANNED** — requires separate UI slice authorization |
 | Ship fake M7 inbox on Overview | **NO-GO** |
 | Change formulas / enable workers / JWT / live Shopify from this doc | **NO-GO** |
