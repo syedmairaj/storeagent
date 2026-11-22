@@ -9,6 +9,8 @@ import {
   CsvPersistenceHistoryConflictError,
 } from "@/lib/providers/csv/persistence-errors";
 
+import { assertNonSecretIngestionPayload } from "@/lib/security/secret-ingestion";
+
 import type {
   CsvBindingLookup,
   CsvPersistedResource,
@@ -44,9 +46,12 @@ function sourceMetadata(adapterVersion: string): {
     throw new Error("CSV persistence adapterVersion must not be blank.");
   }
 
-  return {
-    adapterVersion: normalized,
-  };
+  return assertNonSecretIngestionPayload(
+    {
+      adapterVersion: normalized,
+    },
+    "provider_bindings.source_metadata",
+  );
 }
 
 function persistenceDisposition(value: string): CsvPersistenceDisposition {

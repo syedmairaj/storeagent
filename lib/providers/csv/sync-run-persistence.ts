@@ -8,6 +8,8 @@ import type {
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
+import { guardOptionalNonSecretJson } from "@/lib/security/secret-ingestion";
+
 import { assertSyncRunCountsValid } from "./accounting";
 import type { CsvTrustedImportContext } from "./trusted-context";
 
@@ -303,7 +305,10 @@ export function createCsvSyncRunPersistence(
 
         p_idempotency_key: idempotencyKey,
 
-        p_reconciliation_metadata: input.reconciliationMetadata ?? null,
+        p_reconciliation_metadata: guardOptionalNonSecretJson(
+          input.reconciliationMetadata ?? null,
+          "sync_runs.reconciliation_metadata",
+        ),
       });
     },
 
@@ -331,7 +336,10 @@ export function createCsvSyncRunPersistence(
 
         p_failed_count: input.counts.failed,
 
-        p_reconciliation_metadata: input.reconciliationMetadata ?? null,
+        p_reconciliation_metadata: guardOptionalNonSecretJson(
+          input.reconciliationMetadata ?? null,
+          "sync_runs.reconciliation_metadata",
+        ),
       });
     },
 
@@ -345,9 +353,15 @@ export function createCsvSyncRunPersistence(
 
         p_sync_run_id: syncRunId,
 
-        p_error_summary: input.errorSummary,
+        p_error_summary: guardOptionalNonSecretJson(
+          input.errorSummary,
+          "sync_runs.error_summary",
+        ),
 
-        p_reconciliation_metadata: input.reconciliationMetadata ?? null,
+        p_reconciliation_metadata: guardOptionalNonSecretJson(
+          input.reconciliationMetadata ?? null,
+          "sync_runs.reconciliation_metadata",
+        ),
       });
     },
   };

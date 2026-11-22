@@ -7,6 +7,7 @@ import {
   buildCsvTrustedImportContext,
   type CsvTrustedImportContext,
 } from "@/lib/providers/csv/trusted-context";
+import { assertNonSecretIngestionPayload } from "@/lib/security/secret-ingestion";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type AdminClient = ReturnType<typeof createSupabaseAdminClient>;
@@ -69,6 +70,13 @@ export async function ensureCsvStoreIntegration(input: {
   let row = (existing?.[0] as IntegrationRow | undefined) ?? null;
 
   if (!row) {
+    const configuration = assertNonSecretIngestionPayload(
+      {
+        purpose: "merchant_inventory_import_v1",
+      },
+      "integrations.configuration",
+    );
+
     const { data: created, error: createError } = await client
       .from("integrations")
       .insert({
@@ -77,9 +85,7 @@ export async function ensureCsvStoreIntegration(input: {
         provider: "csv",
         status: "active",
         display_name: "CSV inventory import",
-        configuration: {
-          purpose: "merchant_inventory_import_v1",
-        },
+        configuration,
       })
       .select(
         "id,organization_id,store_id,provider,status,display_name,configuration,created_at,updated_at",

@@ -4,6 +4,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 import { normalizeExternalId } from "@/lib/providers/external-identity";
 
+import { guardOptionalNonSecretJson } from "@/lib/security/secret-ingestion";
+
 import type { CsvPersistenceDisposition } from "./resource-orchestration";
 
 import type { CsvTrustedImportContext } from "./trusted-context";
@@ -75,7 +77,10 @@ export async function bindCsvLocation(
 
     p_canonical_location_id: canonicalLocationId,
 
-    p_source_metadata: input.sourceMetadata ?? null,
+    p_source_metadata: guardOptionalNonSecretJson(
+      input.sourceMetadata ?? null,
+      "provider_bindings.source_metadata",
+    ),
   });
 
   if (error) {
