@@ -2,9 +2,9 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-22 DOC-TRACK-2):** See **§ 2026-11-22 — DOC-TRACK-2 security milestone reconciliation** below. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (verified):** `5c1c76b` — CONN-1d-C offline disconnect fencing; `main` **≡ `origin/main`** (same SHA; **no CI claim**). Binding **`NOT_YET_VERIFIED`**. Hosted CONN vault migrations **not applied**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
-> **Latest connector slice:** CONN-1d-A/B/C **CLOSED/PUSHED** @ `636725c` / `0f3e1d2` / `5c1c76b` (PARTIAL offline). CONN-MP-0 **CLOSED/PUSHED** @ `1e18029` (D13/D14 deferred). CONN-1d-D **PLANNED, not started**.
+> **Authoritative current state (2026-11-23 CONN-1d-D):** See **§ 2026-11-23 — CONN-1d-D security acceptance documentation** below. Security re-matrix: `docs/SHOPIFY_CONN_1D_SECURITY_ACCEPTANCE_REPORT.md`. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (verified):** `b3ac033` — DOC-TRACK-2 docs reconciliation; `main` **≡ `origin/main`** (same SHA; **no CI claim**). Binding **`NOT_YET_VERIFIED`**. Hosted CONN vault migrations **not applied**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
+> **Latest connector slice:** CONN-1d-A/B/C **CLOSED/PUSHED** @ `636725c` / `0f3e1d2` / `5c1c76b` (PARTIAL offline). CONN-1d-D **docs-only PARTIAL, pending Git closure** (13 offline PASS · V8/V11 PARTIAL; **CONN-1 exit UNMET**). CONN-MP-0 **CLOSED/PUSHED** @ `1e18029` (D13/D14 deferred).
 > **Latest UI / AI:** UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d **PLANNED** (merchant-first simplification + premium polish). AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6`; AI-INV-2…6 + AI-MKT-0…4 **PLANNED**.
 > **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify OAuth/SyncRun, live model/search, paid credits, hosted vault apply, or paying launch.
 > **Prior § 2026-11-20 post-closure (HEAD `38f63d6`):** Historical — superseded for *current* HEAD/CONN pins by § 2026-11-22.
@@ -12,8 +12,67 @@
 > **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main remains **COMPLETE** (≠ hosted unlock).
 > **Latest strategy/addendum (2026-11-10):** Historical product strategy; prefer § 2026-11-22 for connector/UX/Git/AI truth when they differ.
 
+## 2026-11-23 — CONN-1d-D security acceptance documentation
+
+> **Authority:** Documentation-only CONN-1d-D evidence review. No application source/test/SQL/migration edits, test execution, Supabase writes, KEK wiring, JWT, workers/cron, OAuth, Shopify HTTP, SyncRun, hosted vault apply, or Git stage/commit/push in this docs pass.
+> **Historical rule:** § DOC-TRACK-2 and all older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only. The CONN-1 vault contract (including §11) is unchanged.
+
+### Git evidence (verified 2026-11-23)
+
+| Field | Value |
+|---|---|
+| Branch | `main` |
+| HEAD | `b3ac033` — `docs(storeagent): reconcile CONN-1d-A/B/C security milestones` |
+| Full SHA | `b3ac0338a6a17aa9a1eb8f20552dc903bb7a5724` |
+| vs `origin/main` | **Aligned** (same SHA; no CI claim) |
+| Staging | Empty |
+| Migration inventory | **56** files = **56** manifest entries (latest `20261122140000`); integrity check PASS |
+
+**Sequence (pushed):** … → `636725c` (1d-A) → `0f3e1d2` (1d-B) → `5c1c76b` (1d-C) → `b3ac033` (DOC-TRACK-2 docs) = **HEAD**. CONN-1d-D docs are on the working tree only.
+
+### CONN-1d-D outcome
+
+Report: `docs/SHOPIFY_CONN_1D_SECURITY_ACCEPTANCE_REPORT.md`. Evidence is the dated 2026-11-22 offline/disposable suites and slice reports; **no fresh execution** and no complete end-to-end verification is claimed.
+
+| ID | Status | Note |
+|---|---|---|
+| V1–V7, V9 | Offline **PASS** | Crypto, AAD, key version, atomic pair, two-session single-flight, grants, RPC-only, cross-org FK |
+| V8 | **PARTIAL** | Offline SQL role + claim-stub **PASS** (`0f3e1d2`); hosted JWT/PostgREST **NOT VERIFIED** |
+| V10 | Offline **PASS** (schema level) | End-to-end bind and cross-org reclaim **DEFERRED** to CONN-2 / D13 |
+| V11 | **PARTIAL** | Application-layer CSV-writer guards only; DB-level bypass, Map/Date, stringified and encoded payloads, non-Shopify token shapes remain |
+| V12 | Offline **PASS** (with limitations) | Not universal redaction: stringified JSON values, non-Shopify token shapes, logger-routed output only |
+| V13 | Offline **PASS** (unit) | No API envelope exists to test |
+| V14 | Offline **PASS** | Live cert flags `false`; no Shopify network I/O |
+| V15 | Offline **PASS** | 1d-C rollback deliberately keeps the α terminal fence |
+
+**Tally:** 13 offline PASS · 2 PARTIAL (V8, V11). **Vault contract §11 exit ("V1–V15 PASS on disposable evidence") is UNMET** because V11 is PARTIAL. CONN-1 is **not** CLOSED and **not** CERTIFIED.
+
+### Status deltas (vs DOC-TRACK-2)
+
+| Item | DOC-TRACK-2 pin | 2026-11-23 CONN-1d-D |
+|---|---|---|
+| HEAD | `5c1c76b` | **`b3ac033`** |
+| DOC-TRACK-2 | Pending owner review | **CLOSED/PUSHED** @ `b3ac033` |
+| CONN-1d-D | PLANNED, not started | **Docs-only PARTIAL**, pending its own Git closure |
+| CONN-1 exit | Not recorded | **UNMET** (V11 PARTIAL) |
+| CONN-1d-E | — | **Proposed** read-only V11 hardening preflight (not authorized) |
+| Binding · D13/D14 · hosted CONN migrations | `NOT_YET_VERIFIED` · DEFERRED · not applied | **Unchanged** |
+| UX-INV-1d / AI-INV-2…6 / AI-MKT-0…4 / multi-provider | As recorded | **Unchanged** |
+| JWT / workers / OAuth / Shopify HTTP / SyncRun / M6 prod / M7 / launch | BLOCKED / NO-GO | **Unchanged** |
+
+### Next-gate sequence (not authorized by this addendum)
+
+1. Owner review and separate three-path docs Git closure of CONN-1d-D (this ledger, the canonical handoff, the new acceptance report).
+2. **CONN-1d-E** — read-only V11 hardening preflight (DB-level ban feasibility, non-plain objects, stringified/encoded payloads, provider-neutral token shapes coordinated with CONN-MP-CRED); any implementation is a further separate gate.
+3. Owner decision on whether V11 must reach PASS (CONN-1 exit) before hosted vault apply.
+4. Production binding + KEK (D14) / hosted vault apply / hosted V8 JWT verification (separate gates) → then CONN-2 OAuth (carries V10 end-to-end bind/reclaim with D13) → SyncRun.
+5. UX-INV-1d (parallelizable UI slice); AI-INV-2…6 / AI-MKT-0…4 under separate authorizations.
+
+---
+
 ## 2026-11-22 — DOC-TRACK-2 security milestone reconciliation
 
+> **SUPERSEDED for current-status pins** by § **2026-11-23 — CONN-1d-D** above. Retained as historical evidence (HEAD pin `5c1c76b`).
 > **Authority:** Documentation-only reconciliation of the CONN-1d-A/B/C closures (**DOC-TRACK-2**). No application source/test/schema/migration edits, Supabase writes, JWT, workers/cron, OAuth, live Shopify, M6/M7 activation, live AI/search, billing, hosted vault apply, or Git stage/commit/push in this docs pass.
 > **Historical rule:** § DOC-TRACK-1 below and all older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only. The CONN-1 vault contract is unchanged.
 
