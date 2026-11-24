@@ -1,13 +1,23 @@
 /**
- * CONN-1d-A — fail-closed secret ingestion guard for non-vault JSON payloads.
+ * CONN-1d-A / CONN-1d-E — fail-closed secret ingestion guard for non-vault
+ * JSON payloads.
  *
- * Rejects known secret field names and Shopify-like opaque credential values
+ * Rejects credential-like keys and Shopify/Bearer/JWT/Basic-like values
  * before they can be written to integrations.configuration, provider binding
  * source_metadata, or SyncRun error/reconciliation JSON.
  *
+ * Defense in depth only: the authoritative control is the CONN-1d-E trigger
+ * public.conn_1d_e_reject_secret_json. This guard is stricter than the
+ * trigger so every payload it accepts is also accepted by the database.
+ *
+ * Only plain data is accepted (no proxies, accessors, class instances or
+ * serialization hooks). The payload is serialized once and the parsed copy
+ * is validated and returned, so callers persist exactly what was validated.
+ *
  * Does not log or echo rejected payload contents.
- * Does not replace DB-level enforcement (none exists for JSON key bans).
  */
+
+import { types } from "node:util";
 
 export const SECRET_INGESTION_REJECTED = "secret_ingestion_rejected" as const;
 
@@ -44,157 +54,243 @@ export function isSecretIngestionError(
 
 const MAX_DEPTH = 8;
 
-/** Keys that may appear as non-secret diagnostics / config. */
-const ALLOWED_KEYS = new Set([
-  "token_kind",
-  "key_version",
+/** Compact UTF-8 bytes; jsonb::text expands at most 1.5x, under the DB 8192 cap. */
+const MAX_UTF8_BYTES = 4096;
+
+const KEY_SHAPE = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
+
+/** Folded = lowercase with `_` and `-` removed. */
+const EXEMPT_FOLDED_KEYS = new Set([
+  "tokenkind",
+  "keyversion",
 ]);
+
+const FORBIDDEN_FOLDED_KEYS = new Set([
+  "session",
+  "accessnonce",
+  "refreshnonce",
+]);
+
+const FORBIDDEN_KEY_FRAGMENT =
+  /token|secret|password|passwd|credential|ciphertext|authorization|cookie|bearer|apikey|privatekey|authtag|dekwrap|servicerole/;
+
+const SECRET_VALUE_PATTERNS: readonly RegExp[] = [
+  /shp(?:at|ca|pa|ss|rt)_[a-z0-9_]/i,
+  /bearer\s+[a-z0-9._~+/=-]/i,
+  /eyj[a-z0-9_-]+\.[a-z0-9_-]+\./i,
+  /Basic\s+[A-Za-z0-9+/]{8,}/,
+  /"(?:access|refresh|id)_?token"\s*:/i,
+  /"client_?secret"\s*:/i,
+];
+
+const ARRAY_INDEX = /^(?:0|[1-9][0-9]*)$/;
+
+function reject(boundary: SecretIngestionBoundary): never {
+  throw new SecretIngestionError(boundary);
+}
+
+/** NUL and lone surrogates are not storable as jsonb. */
+function isStorableString(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code === 0) {
+      return false;
+    }
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) {
+        return false;
+      }
+      index += 1;
+    } else if (code >= 0xdc00 && code <= 0xdfff) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function hasSerializationHook(): boolean {
+  return (
+    Object.getOwnPropertyDescriptor(Object.prototype, "toJSON") !== undefined
+    || Object.getOwnPropertyDescriptor(Array.prototype, "toJSON") !== undefined
+  );
+}
 
 /**
- * Exact forbidden keys after camelCase → snake_case normalization.
- * Intentionally narrower than observability redaction (avoids rejecting
- * safe `token_kind` diagnostics while still blocking credential fields).
+ * Structural pre-walk of the caller's value. Reads own property descriptors
+ * only, so getters, proxies and toJSON hooks are never invoked.
  */
-const FORBIDDEN_KEYS = new Set([
-  "authorization",
-  "cookie",
-  "password",
-  "passwd",
-  "secret",
-  "client_secret",
-  "api_key",
-  "apikey",
-  "service_role",
-  "session",
-  "credential",
-  "credentials",
-  "access_token",
-  "refresh_token",
-  "id_token",
-  "private_key",
-  "access_ciphertext",
-  "refresh_ciphertext",
-  "dek_wrapped",
-  "dek_wrap_nonce",
-  "dek_wrap_auth_tag",
-  "access_nonce",
-  "refresh_nonce",
-  "access_auth_tag",
-  "refresh_auth_tag",
-  "refresh_lock_token",
-  "ciphertext",
-  "auth_tag",
-]);
-
-/** Shopify-like opaque token forms (synthetic fixtures + platform prefixes). */
-const SHOPIFY_OPAQUE_TOKEN =
-  /\bshp(?:at|ca|pa|ss|rt)_[A-Za-z0-9_]+\b/i;
-
-const BEARER_VALUE =
-  /\bBearer\s+[A-Za-z0-9._~+/=-]+/i;
-
-function normalizeKey(key: string): string {
-  return key
-    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
-    .replace(/-/g, "_")
-    .toLowerCase();
-}
-
-function isForbiddenKey(key: string): boolean {
-  const normalized = normalizeKey(key);
-  if (ALLOWED_KEYS.has(normalized)) {
-    return false;
-  }
-  if (FORBIDDEN_KEYS.has(normalized)) {
-    return true;
-  }
-  // Catch compound secret-style names (e.g. shopify_access_token).
-  if (
-    normalized.endsWith("_secret")
-    || normalized.endsWith("_password")
-    || normalized.endsWith("_credential")
-    || normalized.endsWith("_credentials")
-    || normalized.endsWith("_ciphertext")
-    || normalized.endsWith("_auth_tag")
-  ) {
-    return true;
-  }
-  if (
-    normalized.endsWith("_token")
-    && normalized !== "token_kind"
-  ) {
-    return true;
-  }
-  return false;
-}
-
-function stringContainsSecretMaterial(value: string): boolean {
-  return SHOPIFY_OPAQUE_TOKEN.test(value) || BEARER_VALUE.test(value);
-}
-
-function walk(
+function inspectPlainData(
   value: unknown,
   depth: number,
   seen: WeakSet<object>,
   boundary: SecretIngestionBoundary,
 ): void {
   if (depth > MAX_DEPTH) {
-    throw new SecretIngestionError(boundary);
+    reject(boundary);
   }
 
   if (value === null || value === undefined) {
     return;
   }
 
+  switch (typeof value) {
+    case "string":
+      if (!isStorableString(value)) {
+        reject(boundary);
+      }
+      return;
+    case "number":
+      // Exponent forms expand when re-rendered as jsonb numeric text.
+      if (!Number.isFinite(value) || /e/i.test(String(value))) {
+        reject(boundary);
+      }
+      return;
+    case "boolean":
+      return;
+    case "object":
+      break;
+    default:
+      reject(boundary);
+  }
+
+  const object = value as object;
+
+  if (types.isProxy(object) || seen.has(object)) {
+    reject(boundary);
+  }
+  seen.add(object);
+
+  const isArray = Array.isArray(object);
+  const prototype = Object.getPrototypeOf(object);
+
+  if (
+    isArray
+      ? prototype !== Array.prototype
+      : prototype !== Object.prototype && prototype !== null
+  ) {
+    reject(boundary);
+  }
+
+  let ownIndexCount = 0;
+
+  for (const key of Reflect.ownKeys(object)) {
+    if (typeof key !== "string") {
+      reject(boundary);
+    }
+    if (isArray && key === "length") {
+      continue;
+    }
+    if (isArray && !ARRAY_INDEX.test(key)) {
+      reject(boundary);
+    }
+    if (isArray) {
+      ownIndexCount += 1;
+    }
+    if (!isArray && !isStorableString(key)) {
+      reject(boundary);
+    }
+
+    const descriptor = Object.getOwnPropertyDescriptor(object, key);
+    if (!descriptor || !("value" in descriptor)) {
+      reject(boundary);
+    }
+    inspectPlainData(descriptor.value, depth + 1, seen, boundary);
+  }
+
+  // A hole would be read through Array.prototype during serialization.
+  if (
+    isArray
+    && ownIndexCount !== Object.getOwnPropertyDescriptor(object, "length")?.value
+  ) {
+    reject(boundary);
+  }
+}
+
+function containsSecretValue(value: string): boolean {
+  return SECRET_VALUE_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+function isForbiddenKey(key: string): boolean {
+  if (!KEY_SHAPE.test(key) || containsSecretValue(key)) {
+    return true;
+  }
+  const folded = key.replace(/[_-]/g, "").toLowerCase();
+  if (EXEMPT_FOLDED_KEYS.has(folded)) {
+    return false;
+  }
+  return (
+    FORBIDDEN_FOLDED_KEYS.has(folded)
+    || FORBIDDEN_KEY_FRAGMENT.test(folded)
+  );
+}
+
+/** Policy walk over the parsed canonical copy (plain JSON only). */
+function validateCanonical(
+  value: unknown,
+  depth: number,
+  boundary: SecretIngestionBoundary,
+): void {
+  if (depth > MAX_DEPTH) {
+    reject(boundary);
+  }
+
   if (typeof value === "string") {
-    if (stringContainsSecretMaterial(value)) {
-      throw new SecretIngestionError(boundary);
+    if (containsSecretValue(value)) {
+      reject(boundary);
     }
     return;
   }
 
-  if (
-    typeof value === "number"
-    || typeof value === "boolean"
-  ) {
+  if (value === null || typeof value !== "object") {
     return;
   }
-
-  if (typeof value !== "object") {
-    // Reject unexpected types (bigint, function, symbol) at persist boundaries.
-    throw new SecretIngestionError(boundary);
-  }
-
-  if (seen.has(value)) {
-    throw new SecretIngestionError(boundary);
-  }
-  seen.add(value);
 
   if (Array.isArray(value)) {
     for (const item of value) {
-      walk(item, depth + 1, seen, boundary);
+      validateCanonical(item, depth + 1, boundary);
     }
     return;
   }
 
-  for (const [key, child] of Object.entries(value)) {
+  for (const key of Object.keys(value)) {
     if (isForbiddenKey(key)) {
-      throw new SecretIngestionError(boundary);
+      reject(boundary);
     }
-    walk(child, depth + 1, seen, boundary);
+    validateCanonical(
+      (value as Record<string, unknown>)[key],
+      depth + 1,
+      boundary,
+    );
   }
 }
 
 /**
- * Fail closed if `value` contains secret field names or Shopify-like
- * credential strings. Returns the same reference when safe.
+ * Fail closed if `value` is not plain JSON data or contains secret material.
+ * Returns the validated canonical copy, which callers must persist.
  */
 export function assertNonSecretIngestionPayload<T>(
   value: T,
   boundary: SecretIngestionBoundary,
 ): T {
-  walk(value, 0, new WeakSet<object>(), boundary);
-  return value;
+  if (hasSerializationHook()) {
+    reject(boundary);
+  }
+
+  inspectPlainData(value, 0, new WeakSet<object>(), boundary);
+
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) {
+    return value;
+  }
+
+  if (Buffer.byteLength(serialized, "utf8") > MAX_UTF8_BYTES) {
+    reject(boundary);
+  }
+
+  const canonical: unknown = JSON.parse(serialized);
+  validateCanonical(canonical, 0, boundary);
+  return canonical as T;
 }
 
 /**
