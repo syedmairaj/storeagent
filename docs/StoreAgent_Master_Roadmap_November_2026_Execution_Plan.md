@@ -1,20 +1,48 @@
 # StoreAgent.si — November 2026 Execution Plan
 
 **Mode:** Documentation / planning reconciliation only
-**As-of current truth:** 2026-11-22 — **DOC-TRACK-2 security milestone reconciliation**
-**Git HEAD verified (2026-11-22):** `5c1c76b` — `security(shopify): close CONN-1d-C offline disconnect fencing`
+**As-of current truth:** 2026-11-24 — **DOC-TRACK-3 canonical security reconciliation**
+**Git HEAD verified (2026-11-24):** `5de98cf` — `security(shopify): close CONN-1d-E offline JSON secret guards`
 **Remote:** `main` **≡ `origin/main`** (same SHA; **no CI claim**)
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
 **AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`
-**Authoritative status table:** living ledger § **2026-11-22 — DOC-TRACK-2 security milestone reconciliation**
+**Authoritative status table:** living ledger § **2026-11-24 — DOC-TRACK-3 canonical security reconciliation**
 **Authority:** Augments the canonical master roadmap DOCX (`docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx`). Does **not** destructively rewrite frozen architecture, PE1.b gates, M5–M7 contracts, or historical ledger evidence.
-**DOCX synchronization:** **PENDING** — propose non-destructive **Section 36+** addendum pointing here + AI-INV doc + ledger § 2026-11-22 + master handoff. Do not rewrite/delete DOCX body in docs-only passes.
+**DOCX synchronization:** **PENDING** — propose non-destructive **Section 36+** addendum pointing here + AI-INV doc + ledger § 2026-11-24 + master handoff. Do not rewrite/delete DOCX body in docs-only passes.
+
+---
+
+## 0E. 2026-11-24 DOC-TRACK-3 reconciliation (CONN-1d-D/E closures + CONN-1d-F decisions)
+
+> **Authority for current-status pins.** §0D / §0C / §0B / §0A and older Part A / Part E snapshots remain **historical evidence** — not rewritten. Prefer this §0E + living ledger § 2026-11-24 DOC-TRACK-3 + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` + `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`.
+
+| Topic | Current state |
+|---|---|
+| HEAD | `5de98cf` — CONN-1d-E; `main` ≡ `origin/main`; 57 migrations |
+| DOC-TRACK-2 · CONN-1d-D | **CLOSED/PUSHED** @ `b3ac033` · `40d5888` (docs-only) |
+| CONN-1d-E | **CLOSED/PUSHED** @ `5de98cf` — DB + app JSON secret guards, `service_role` TRIGGER revoke; disposable only; migration `20261124120000` not hosted-applied |
+| V1–V15 / CONN-1 exit | 14 offline PASS · V11 **PARTIAL**; V8 offline PASS under §11, hosted **NOT VERIFIED**; vault contract §11 unchanged; **CONN-1 exit UNMET** |
+| Binding / D13 / D14 | Binding **NOT_YET_VERIFIED**; D13/D14 **not resolved** |
+| Hosted CONN migrations | Five **not applied / not authorized**: `20261121120000` → `20261122120000` → `20261122130000` → `20261122140000` → `20261124120000` |
+| UX-INV-1d / AI-INV-2…6 / AI-MKT-0…4 / multi-provider | **Unchanged** (PLANNED; sequence preserved) |
+| PE1.b.6b / workers / M6 prod / M7 create / purchasing / live Shopify / live model / launch | **Unchanged BLOCKED / NO-GO** |
+
+### Proposed next sequence (dependency-aware; each step separately authorized)
+
+0. Owner review and docs Git closure of DOC-TRACK-3 — **this pass**
+1. **CONN-HR-0** — hosted readiness package (no hosted execution)
+2. Hosted apply of the five CONN migrations + post-apply catalog checks + hosted V8 empty-vault JWT probe
+3. Production binding slice (parallelizable offline with 1–2); D14 → KEK wiring; D13 decision → CONN-2 OAuth → operational slice (`lease_held` retry, SyncRun finalization) → SyncRun
+4. **UX-INV-1d** (parallelizable UI slice)
+5. AI-INV-2…6 / AI-MKT-0…4 only under separate authorizations
+6. Data Health / onboarding / reliability → forecast validation + M6 gates → M7 inbox/create → cash/supplier, pilot/billing/launch; Woo/Amazon/Noon by demand
 
 ---
 
 ## 0D. 2026-11-22 DOC-TRACK-2 reconciliation (CONN-1d-A/B/C closures)
 
-> **Authority for current-status pins.** §0C / §0B / §0A and older Part A / Part E snapshots remain **historical evidence** — not rewritten. Prefer this §0D + living ledger § 2026-11-22 DOC-TRACK-2 + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`.
+> **SUPERSEDED for current-status pins** by §0E above. Retained as historical evidence (HEAD `5c1c76b`; CONN-1d-D then not started).
+> **Authority for current-status pins (historical).** §0C / §0B / §0A and older Part A / Part E snapshots remain **historical evidence** — not rewritten. Prefer this §0D + living ledger § 2026-11-22 DOC-TRACK-2 + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`.
 
 | Topic | Current state |
 |---|---|
