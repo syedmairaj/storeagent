@@ -2,18 +2,89 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-24 DOC-TRACK-3):** See **§ 2026-11-24 — DOC-TRACK-3 canonical security reconciliation** below. Current V1–V15 status and decisions: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (verified):** `5de98cf` — CONN-1d-E offline JSON secret guards; `main` **≡ `origin/main`** (same SHA; **no CI claim**); **57** migrations. Binding **`NOT_YET_VERIFIED`**. Five CONN migrations **not hosted-applied / not authorized**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
-> **Latest connector slice:** CONN-1d-E **CLOSED/PUSHED** @ `5de98cf` (PARTIAL offline). V1–V15: 14 offline PASS · V11 **PARTIAL**; V8 offline PASS under §11, hosted **NOT VERIFIED**; §11 unchanged; **CONN-1 exit UNMET**. CONN-1d-D **CLOSED/PUSHED** @ `40d5888` (docs). CONN-MP-0 **CLOSED/PUSHED** @ `1e18029` (D13/D14 deferred). Next: **CONN-HR-0**.
+> **Authoritative current state (2026-11-25 DOC-TRACK-4):** See **§ 2026-11-25 — DOC-TRACK-4 CONN-HR-0/HR-1 reconciliation** below. Current V1–V15 status and decisions: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Offline readiness: `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (verified):** `454f7ec` — CONN-HR-1 offline hosted-readiness package; `main` **≡ `origin/main`** (same SHA; **no CI claim**); **57** migrations. Binding **`NOT_YET_VERIFIED`**. Five CONN migrations **not hosted-applied / not authorized**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
+> **Latest connector / readiness:** DOC-TRACK-3 **CLOSED/PUSHED** @ `7bd2e8b`. CONN-HR-0 **CLOSED** (LOCAL-ONLY preflight). CONN-HR-1 **CLOSED/PUSHED** @ `454f7ec` (PARTIAL offline). CLI `db push` of #5 **BLOCKED** (`25P01`); Option B `psql` disposable **PASS**. Hosted apply **NO-GO**. V1–V15: 14 offline PASS · V11 **PARTIAL**; V8 offline PASS under §11, hosted **NOT VERIFIED**; §11 unchanged; **CONN-1 exit UNMET**. Next: **CONN-HR-2**.
 > **Latest UI / AI:** UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d **PLANNED** (merchant-first simplification + premium polish). AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6`; AI-INV-2…6 + AI-MKT-0…4 **PLANNED**.
 > **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify OAuth/SyncRun, live model/search, paid credits, hosted vault apply, or paying launch.
+> **Prior § 2026-11-24 DOC-TRACK-3 (HEAD `5de98cf`):** Historical for *current* HEAD/CONN-HR pins — superseded by § 2026-11-25; retained as V1–V15 / CONN-1d-E evidence.
 > **Prior § 2026-11-20 post-closure (HEAD `38f63d6`):** Historical — superseded for *current* HEAD/CONN pins by § 2026-11-22.
 > **Prior DOC-2026-11 / 2026-11-19 pins:** Historical — do not treat as fresher than § 2026-11-22.
 > **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main remains **COMPLETE** (≠ hosted unlock).
-> **Latest strategy/addendum (2026-11-10):** Historical product strategy; prefer § 2026-11-22 for connector/UX/Git/AI truth when they differ.
+> **Latest strategy/addendum (2026-11-10):** Historical product strategy; prefer § 2026-11-25 for connector/readiness/Git truth when they differ.
+
+## 2026-11-25 — DOC-TRACK-4 CONN-HR-0/HR-1 reconciliation
+
+> **Authority:** Documentation-only reconciliation of DOC-TRACK-3 Git closure, CONN-HR-0 read-only preflight, and CONN-HR-1 offline readiness package (**DOC-TRACK-4**). No application source/test/SQL/migration/config edits, test execution, Supabase writes, KEK wiring, JWT, workers/cron, OAuth, Shopify HTTP, SyncRun, hosted apply, or Git stage/commit/push in this docs pass.
+> **Historical rule:** § 2026-11-24 DOC-TRACK-3 and all older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only. The CONN-1 vault contract (including §11), V1–V15 tally, and slice implementation reports are unchanged. Protected `docs/SERVICE_ROLE_BOUNDARY.md` / `docs/BACKGROUND_JOBS.md` / `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md` are not edited by this docs pass (runbook retained as committed evidence; any stale “STOP for review” header is historical).
+
+### Git evidence (verified 2026-11-25)
+
+| Field | Value |
+|---|---|
+| Branch | `main` |
+| HEAD | `454f7ec` — `test(storeagent): add CONN-HR-1 offline hosted-readiness package` |
+| Full SHA | `454f7ece8898a3dc6e7277028119a5d4b82a6771` |
+| vs `origin/main` | **Aligned** (same SHA; no CI claim) |
+| Staging | Empty |
+| Migration inventory | **57** files = **57** manifest entries (latest `20261124120000`); integrity check PASS |
+
+**Sequence (pushed):** … → `5de98cf` (CONN-1d-E) → `7bd2e8b` (DOC-TRACK-3 docs) → `454f7ec` (CONN-HR-1) = **HEAD**. DOC-TRACK-4 docs are on the working tree only.
+
+### Closures recorded
+
+| Milestone | State | Evidence |
+|---|---|---|
+| DOC-TRACK-3 | **CLOSED/PUSHED** @ `7bd2e8b` | Canonical docs + CONN-1d-F decisions |
+| CONN-HR-0 | **CLOSED** (LOCAL-ONLY) | Chat `CONN_HR_0_HOSTED_READINESS_PREFLIGHT_REPORT`; no hosted SQL; no separate committed report file |
+| CONN-HR-1 | **CLOSED/PUSHED** @ `454f7ec` (PARTIAL offline) | `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`; `scripts/conn-hr-1/*`; readonly probes 01–10; disposable replay/parity/failure tooling |
+
+### Apply-method decision (offline proven; hosted NO-GO)
+
+| Method | Offline result | Hosted |
+|---|---|---|
+| CLI `supabase db push` of migration #5 (`20261124120000`) | **BLOCKED** — `LOCK TABLE` → SQLSTATE **25P01** (cannot run inside multi-statement transaction) | **Do not use** for #5 as written |
+| Option B single-transaction `psql` | **PASS** on disposable PG 17.11 (history 52→57; post-apply catalog 23/23; abort restores 52) | Recommended path; **hosted artifact not authorized**; apply remains separate gate |
+
+### Unchanged security / production pins (from DOC-TRACK-3 / CONN-1d-F)
+
+| Pin | State |
+|---|---|
+| V1–V15 | 14 offline PASS · V11 **PARTIAL**; V8 offline PASS under §11, hosted JWT **NOT VERIFIED** |
+| Vault contract §11 | **Unchanged** |
+| CONN-1 exit | **UNMET** (not CLOSED, not CERTIFIED) |
+| Binding | **`NOT_YET_VERIFIED`** |
+| D13 / D14 | **Not resolved (DEFERRED)** |
+| Five CONN migrations | **Not hosted-applied / not authorized** |
+| PE1.b.6b / workers / OAuth / SyncRun / M6 prod / M7 / launch | **BLOCKED / NO-GO** |
+
+### Status deltas (vs § 2026-11-24 DOC-TRACK-3)
+
+| Item | 2026-11-24 pin | 2026-11-25 DOC-TRACK-4 |
+|---|---|---|
+| HEAD | `5de98cf` | **`454f7ec`** |
+| DOC-TRACK-3 | Pending Git closure | **CLOSED/PUSHED** @ `7bd2e8b` |
+| CONN-HR-0 | Next (not started) | **CLOSED** LOCAL-ONLY preflight |
+| CONN-HR-1 | — | **CLOSED/PUSHED** @ `454f7ec` (offline PARTIAL) |
+| Apply method | Unverified | CLI #5 **25P01 BLOCKED**; Option B disposable **PASS** |
+| Hosted apply | Not authorized | Still **NO-GO** (P1–P9 not run) |
+| V1–V15 · CONN-1 exit · binding · D13/D14 | As recorded | **Unchanged** |
+| Next eng | CONN-HR-0 | **CONN-HR-2** (after DOC-TRACK-4 closure) |
+
+### Next-gate sequence (not authorized by this addendum)
+
+1. Owner review and docs Git closure of DOC-TRACK-4.
+2. **CONN-HR-2** — owner-authorized hosted P1–P9 prechecks + reviewed Option B hosted apply specification/artifact (still no apply until gate 3).
+3. Hosted apply of the five migrations via **Option B only** (separate owner authorization) + post-apply catalog checks + hosted V8 empty-vault probe.
+4. Production binding slice (parallelizable offline); D14 → KEK wiring; D13 decision.
+5. CONN-2 OAuth (V10 end-to-end bind/reclaim) → operational slice → CONN-5 SyncRun.
+6. UX-INV-1d (parallelizable UI slice); AI-INV-2…6 / AI-MKT-0…4 under separate authorizations.
+
+---
 
 ## 2026-11-24 — DOC-TRACK-3 canonical security reconciliation
 
+> **SUPERSEDED for current-status pins** by § **2026-11-25 — DOC-TRACK-4** above. Retained as historical evidence (HEAD pin `5de98cf`; CONN-HR then not started).
 > **Authority:** Documentation-only reconciliation of the CONN-1d-E closure and the CONN-1d-F read-only security exit / readiness audit (**DOC-TRACK-3**). No application source/test/SQL/migration/config edits, test execution, Supabase writes, KEK wiring, JWT, workers/cron, OAuth, Shopify HTTP, SyncRun, hosted apply, or Git stage/commit/push in this docs pass.
 > **Historical rule:** § 2026-11-23 CONN-1d-D and all older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only. The CONN-1 vault contract (including §11) and the slice implementation reports are unchanged. Protected `docs/SERVICE_ROLE_BOUNDARY.md` is not edited.
 

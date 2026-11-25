@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Document ID | DOC-TRACK-1 (created) · DOC-TRACK-2 (CONN-1d-A/B/C reconciliation) · CONN-1d-D (security acceptance docs) · DOC-TRACK-3 (CONN-1d-E closure + CONN-1d-F decisions) |
+| Document ID | DOC-TRACK-1 (created) · DOC-TRACK-2 (CONN-1d-A/B/C reconciliation) · CONN-1d-D (security acceptance docs) · DOC-TRACK-3 (CONN-1d-E closure + CONN-1d-F decisions) · DOC-TRACK-4 (CONN-HR-0/HR-1 reconciliation) |
 | Canonical path | `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` |
-| As-of | 2026-11-24 (Asia/Dubai) — DOC-TRACK-3 |
+| As-of | 2026-11-25 (Asia/Dubai) — DOC-TRACK-4 |
 | Mode | Living compact handoff — **not** a substitute for frozen contracts, audit reports, or original decision docs |
 | Update policy | After each owner-accepted milestone closure, append §11 dated log + refresh §§2–4/7. Never silently rewrite historical approvals or promote offline work to production-ready |
 
@@ -36,17 +36,17 @@
 |---|---|
 | Repository | `/Users/syedmairaj/Documents/storeagent` · `syedmairaj/storeagent` |
 | Branch | `main` |
-| HEAD | `5de98cf` — `security(shopify): close CONN-1d-E offline JSON secret guards` |
-| Full SHA | `5de98cff025162e296f9c14524e0fa69d5691794` |
+| HEAD | `454f7ec` — `test(storeagent): add CONN-HR-1 offline hosted-readiness package` |
+| Full SHA | `454f7ece8898a3dc6e7277028119a5d4b82a6771` |
 | `origin/main` | **Aligned** (same SHA; no CI claim) |
-| Last Git closure | **CONN-1d-E** CLOSED/PUSHED @ `5de98cf` (offline / disposable only; V11 still PARTIAL) |
-| Last engineering closure | **CONN-1d-E** CLOSED/PUSHED @ `5de98cf` (migration `20261124120000`) |
-| Prior closures this cycle | DOC-TRACK-1 `0e2fc33` → CONN-1d-A `636725c` → CONN-1d-B `0f3e1d2` → CONN-1d-C `5c1c76b` → DOC-TRACK-2 `b3ac033` → CONN-1d-D `40d5888` (docs) → CONN-1d-E `5de98cf` |
+| Last Git closure | **CONN-HR-1** CLOSED/PUSHED @ `454f7ec` (offline readiness package; hosted apply still **NO-GO**) |
+| Last engineering closure | **CONN-HR-1** CLOSED/PUSHED @ `454f7ec` (readonly SQL + disposable tooling + runbook) |
+| Prior closures this cycle | DOC-TRACK-1 `0e2fc33` → CONN-1d-A `636725c` → CONN-1d-B `0f3e1d2` → CONN-1d-C `5c1c76b` → DOC-TRACK-2 `b3ac033` → CONN-1d-D `40d5888` (docs) → CONN-1d-E `5de98cf` → DOC-TRACK-3 `7bd2e8b` (docs) → CONN-HR-1 `454f7ec` |
 | Migration inventory | **57** files = **57** manifest entries (latest `20261124120000`, sha256 `cf4ac08f…81b0`); `check-migration-integrity` PASS |
-| Staging | **Empty** (DOC-TRACK-3 docs pass does not stage) |
+| Staging | **Empty** (DOC-TRACK-4 docs pass does not stage) |
 | Dirty tree (preserve) | Modified `docs/BACKGROUND_JOBS.md`, `docs/SERVICE_ROLE_BOUNDARY.md`; deleted tracked `docs/StoreAgent_Roadmap_2026.docx`; untracked `.tmp/`, `.vitest/`, `AGENTS.md`, SQL snippets, DOCX/archives, `supabase/snippets/`, dated handoff draft, etc. **Never** auto stage/clean/reset/stash |
 
-**Current milestone:** **DOC-TRACK-3** — docs-only reconciliation of the CONN-1d-E closure and the CONN-1d-F security exit / readiness decisions (`docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`): 14 offline PASS · 1 PARTIAL (V11); V8 offline PASS under §11, hosted **NOT VERIFIED**; vault contract §11 unchanged; **CONN-1 exit UNMET**. Written on the working tree, **pending its own Git closure**. **Next:** **CONN-HR-0** hosted readiness package (no hosted execution; scope subject to owner authorization). Parallel PLANNED: **UX-INV-1d** (separate UI slice).
+**Current milestone:** **DOC-TRACK-4** — docs-only reconciliation of DOC-TRACK-3 Git closure (`7bd2e8b`), CONN-HR-0 read-only preflight (chat evidence), and CONN-HR-1 offline package CLOSED/PUSHED @ `454f7ec`. Offline: CLI `db push` of migration #5 **BLOCKED** (`25P01`); single-transaction `psql` candidate **PASS** on disposable PG 17.11. Hosted apply **NO-GO**. V11 **PARTIAL**; V8 offline PASS under §11, hosted JWT **NOT VERIFIED**; vault contract §11 unchanged; **CONN-1 exit UNMET**; binding **`NOT_YET_VERIFIED`**; D13/D14 unresolved. Written on the working tree, **pending its own Git closure**. **Next:** **CONN-HR-2** (owner-authorized hosted precheck execution + reviewed Option B apply artifact; no apply without separate authorization). Parallel PLANNED: **UX-INV-1d**.
 
 ---
 
@@ -77,9 +77,12 @@
 | DOC-TRACK-2 | CLOSED/PUSHED (docs) | `b3ac033` | CONN-1d-A/B/C reconciliation | — | CONN-1d-D |
 | CONN-1d-D | CLOSED/PUSHED (docs) · PARTIAL | `40d5888` · `docs/SHOPIFY_CONN_1D_SECURITY_ACCEPTANCE_REPORT.md` | V1–V15 re-matrix: 13 offline PASS · V8/V11 PARTIAL (historical tally; V8 reconciled by DOC-TRACK-3) | **CONN-1 exit UNMET** (vault contract §11; V11 PARTIAL) | CONN-1d-E |
 | CONN-1d-E | CLOSED/PUSHED · PARTIAL | `5de98cf` / `20261124120000` · `docs/SHOPIFY_CONN_1D_E_V11_IMPLEMENTATION_REPORT.md` | DB trigger guard on 4 JSON columns; `service_role` TRIGGER revoke; stricter app guard; app⇒DB parity corpus; static future-migration model; disposable only | V11 **PARTIAL** (opaque/encoded secrets undetectable; owner/superuser bypass; hosted unverified); migration **not hosted-applied** | DOC-TRACK-3 |
-| CONN-1d-F | Read-only audit · decisions recorded | `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` (uncommitted) | Security exit / readiness audit; owner decisions 1–9 | CONN-1 exit **UNMET**; D13/D14 not resolved; binding **NOT_YET_VERIFIED** | DOC-TRACK-3 |
-| DOC-TRACK-3 | PARTIAL (docs only) · pending Git closure | Working tree | Canonical HEAD/status reconciliation + CONN-1d-F record | Owner review + Git closure | CONN-HR-0 |
-| CONN-HR-0 | NEXT (not started) | — | — | Hosted readiness package for five migrations; no hosted execution; scope subject to owner authorization | Hosted apply (separate authorization) |
+| CONN-1d-F | Read-only audit · decisions recorded | `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` (closed with DOC-TRACK-3 @ `7bd2e8b`) | Security exit / readiness audit; owner decisions 1–9 | CONN-1 exit **UNMET**; D13/D14 not resolved; binding **NOT_YET_VERIFIED** | DOC-TRACK-3 |
+| DOC-TRACK-3 | CLOSED/PUSHED (docs) | `7bd2e8b` | Canonical HEAD/status reconciliation + CONN-1d-F record | — | CONN-HR-0 |
+| CONN-HR-0 | CLOSED (read-only preflight) · LOCAL-ONLY | Chat evidence `CONN_HR_0_HOSTED_READINESS_PREFLIGHT_REPORT` (no separate committed report file) | Migration inventory; CLI transaction analysis; hosted SELECT-only check design; disposable plan; V8 post-apply plan; failure/recovery; GO/NO-GO | No hosted SQL executed | CONN-HR-1 |
+| CONN-HR-1 | CLOSED/PUSHED · PARTIAL (offline only) | `454f7ec` · `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md` | Readonly SQL 01–10; disposable replay/parity/failure tooling; single-txn `psql` candidate; static safety tests; CLI **25P01** proven on #5; Option B disposable **PASS** | Hosted P1–P9 **not run**; hosted apply **NO-GO** | CONN-HR-2 |
+| DOC-TRACK-4 | PARTIAL (docs only) · pending Git closure | Working tree | Reconcile DOC-TRACK-3 + CONN-HR-0/HR-1 + apply-method decision | Owner review + Git closure | CONN-HR-2 |
+| CONN-HR-2 | NEXT (not started) | — | — | Owner-authorized hosted P1–P9 prechecks + reviewed Option B hosted apply artifact (specification only until authorized); **no** hosted apply from this pin alone | Hosted apply (separate authorization) |
 | CONN-2…6 | PLANNED / BLOCKED | CONN-0 sequence | — | OAuth, webhooks, live cert, SyncRun, health UX; V10 end-to-end bind/reclaim (with D13) | After hosted apply + binding + D13/D14 |
 | CONN-MP-0 | CLOSED/PUSHED (docs) | `1e18029` | Multi-provider architecture freeze | D13/D14 **DEFERRED**; impl gated | CONN-MP-1 / CRED |
 | Woo / Amazon / Noon | PLANNED | CONN-MP-0 | Design only | Amazon/Noon enum **CONTRACT_CHANGE**; partner approvals | After Shopify-first path |
@@ -143,9 +146,11 @@ Foundations + PB1 fencing + synthetic Actions E3.3-R2 **PARTIAL**. Production cr
 | CONN-1d-C | CLOSED/PUSHED · PARTIAL | `5c1c76b` / `20261122140000` | α create/CAS fenced on terminal status; disconnect/revoke with `lease_held` pending cleanup; ownership released only on `completed`; two-session races PASS; β fixture passes on α+β and α+β+1d-C; rollback keeps fence; not hosted-applied |
 | CONN-1d-D | CLOSED/PUSHED (docs) · PARTIAL | `40d5888` · `docs/SHOPIFY_CONN_1D_SECURITY_ACCEPTANCE_REPORT.md` | Historical V1–V15 re-matrix (13 offline PASS · V8/V11 PARTIAL). **CONN-1 exit UNMET**; contract §11 unchanged |
 | CONN-1d-E | CLOSED/PUSHED · PARTIAL | `5de98cf` / `20261124120000` | `zz_conn_1d_e_secret_json_guard` BEFORE INSERT/UPDATE triggers on `integrations.configuration`, `provider_bindings.source_metadata`, `sync_runs.error_summary` / `reconciliation_metadata`; TRIGGER revoked from `public`/`anon`/`authenticated`/`service_role`; app guard rewritten (same exports). V11 stays **PARTIAL**: opaque/encoded secrets undetectable, owner/superuser bypass residual, hosted unverified. Not hosted-applied |
-| CONN-1d-F | Read-only audit · decisions recorded by DOC-TRACK-3 | `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` | 14 offline PASS · 1 PARTIAL (V11); V8 offline PASS under §11 (hosted NOT VERIFIED); binding gaps (§4.1), hosted readiness items (§4.3), D13/D14 questions (§4.4), operational risks (§4.5) |
+| CONN-1d-F | Read-only audit · decisions recorded by DOC-TRACK-3 @ `7bd2e8b` | `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` | 14 offline PASS · 1 PARTIAL (V11); V8 offline PASS under §11 (hosted NOT VERIFIED); binding gaps (§4.1), hosted readiness items (§4.3), D13/D14 questions (§4.4), operational risks (§4.5) |
+| CONN-HR-0 | CLOSED (read-only preflight) · LOCAL-ONLY | Chat `CONN_HR_0_HOSTED_READINESS_PREFLIGHT_REPORT` | Preflight design for five CONN migrations; CLI per-file semantics analyzed; no hosted SQL | Unverified hosted ACLs / logs / collation | CONN-HR-1 |
+| CONN-HR-1 | CLOSED/PUSHED · PARTIAL | `454f7ec` · `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md` | Offline package: readonly probes, disposable replay, Option B `psql` candidate; CLI #5 **25P01 BLOCKED**; Option B disposable **PASS** (52→57; post-apply 23/23; abort→52) | Hosted P1–P9 not run; no hosted apply artifact executable in-repo | CONN-HR-2 |
 
-Reports: `docs/SHOPIFY_CONN_1{A,B}_*_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1C_{ALPHA,BETA}_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_B_V8_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_C_DISCONNECT_REVOKE_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_E_V11_IMPLEMENTATION_REPORT.md`, the cross-slice **`docs/SHOPIFY_CONN_1D_SECURITY_ACCEPTANCE_REPORT.md`** (historical V1–V15 re-matrix) and **`docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`** (current V1–V15 status and decisions). Implementation reports are historical evidence; their "STOP for owner review" / "pending Git closure" headers predate their closures and are not rewritten. CONN-1d-A has no standalone implementation report; evidence is commit `636725c` (`lib/security/secret-ingestion.ts`, `tests/unit/shopify-conn-1d-a-secret-ingestion-boundaries.test.ts`), and its residual V11/V12 limitations are recorded in §§3–4 of the acceptance report.
+Reports: `docs/SHOPIFY_CONN_1{A,B}_*_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1C_{ALPHA,BETA}_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_B_V8_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_C_DISCONNECT_REVOKE_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_E_V11_IMPLEMENTATION_REPORT.md`, the cross-slice **`docs/SHOPIFY_CONN_1D_SECURITY_ACCEPTANCE_REPORT.md`** (historical V1–V15 re-matrix), **`docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`** (V1–V15 status and decisions), and **`docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`** (offline readiness / Option B). Implementation reports are historical evidence; their "STOP for owner review" / "pending Git closure" headers predate their closures and are not rewritten. CONN-1d-A has no standalone implementation report; evidence is commit `636725c` (`lib/security/secret-ingestion.ts`, `tests/unit/shopify-conn-1d-a-secret-ingestion-boundaries.test.ts`), and its residual V11/V12 limitations are recorded in §§3–4 of the acceptance report.
 
 ### 4.7 CONN-MP-0 and future Woo / Amazon / Noon
 
@@ -195,7 +200,9 @@ Supplier Intelligence V1 **PLANNED AFTER CORE** — compare merchant-provided qu
 | Gate | State |
 |---|---|
 | Hosted schema 38→52 | CLOSED 52/52 ≠ ops unlock |
-| CONN migrations hosted apply | **NOT authorized / not applied** — five, in order: `20261121120000` (1a) → `20261122120000` (1c-α) → `20261122130000` (1c-β) → `20261122140000` (1d-C) → `20261124120000` (1d-E). Readiness items: CONN-1d-F report §4.3 |
+| CONN migrations hosted apply | **NOT authorized / not applied** — five, in order: `20261121120000` (1a) → `20261122120000` (1c-α) → `20261122130000` (1c-β) → `20261122140000` (1d-C) → `20261124120000` (1d-E) |
+| Apply method (offline proven) | CLI `supabase db push` of #5 **BLOCKED** (`LOCK TABLE` → SQLSTATE **25P01**). Recommended: single-transaction **`psql` Option B** (disposable PASS @ CONN-HR-1). Hosted Option B artifact **not** authorized |
+| CONN-HR-0 / HR-1 | HR-0 read-only preflight **CLOSED** (LOCAL-ONLY). HR-1 offline package **CLOSED/PUSHED** @ `454f7ec`. Hosted P1–P9 **not run** |
 | CONN-1 exit (vault contract §11) | **UNMET** — V11 PARTIAL; §11 unchanged; not CLOSED, not CERTIFIED |
 | V8 | Offline **PASS** under §11 (SQL role + claim stub); hosted JWT/PostgREST **NOT VERIFIED** |
 | V10 end-to-end bind / cross-org reclaim | **DEFERRED** to CONN-2 / D13 (schema-level uniqueness offline PASS only) |
@@ -229,19 +236,20 @@ Supplier Intelligence V1 **PLANNED AFTER CORE** — compare merchant-provided qu
 
 ### Owner decisions open
 
-**Recorded 2026-11-24 (DOC-TRACK-3):** CONN-1d-E CLOSED/PUSHED @ `5de98cf`; V11 PARTIAL and §11 unchanged; CONN-1 exit UNMET; V8 offline PASS under §11, hosted NOT VERIFIED; binding `NOT_YET_VERIFIED`; D13/D14 not resolved; five migrations await hosted authorization; CONN-HR-0 next; **no hosted application authorized**. (Earlier closures: DOC-TRACK-1 `0e2fc33`; CONN-1d-A/B/C `636725c` / `0f3e1d2` / `5c1c76b`; DOC-TRACK-2 `b3ac033`; CONN-1d-D `40d5888`.)
+**Recorded 2026-11-25 (DOC-TRACK-4):** DOC-TRACK-3 CLOSED/PUSHED @ `7bd2e8b`; CONN-HR-0 read-only preflight CLOSED (LOCAL-ONLY); CONN-HR-1 CLOSED/PUSHED @ `454f7ec`. CLI `db push` of migration #5 **BLOCKED** (`25P01`); Option B single-transaction `psql` **recommended** (disposable PASS). Hosted apply **NO-GO**. V11 PARTIAL; §11 unchanged; CONN-1 exit UNMET; V8 hosted NOT VERIFIED; binding `NOT_YET_VERIFIED`; D13/D14 not resolved; **CONN-HR-2** next. (Earlier: DOC-TRACK-1 `0e2fc33`; CONN-1d-A/B/C `636725c` / `0f3e1d2` / `5c1c76b`; DOC-TRACK-2 `b3ac033`; CONN-1d-D `40d5888`; CONN-1d-E `5de98cf`.)
 
-1. Review **DOC-TRACK-3** (this handoff, living ledger, pointer docs, CONN-1d-F report) and authorize its docs Git closure.
-2. Authorize and scope **CONN-HR-0** hosted readiness package (no hosted execution).
+1. Review **DOC-TRACK-4** (this handoff, living ledger, pointer docs) and authorize its docs Git closure.
+2. Authorize and scope **CONN-HR-2** (hosted P1–P9 precheck execution + reviewed Option B hosted apply artifact; still no apply without a further gate).
 3. Decide whether CONN-1 exit (or a formal §11 V11 amendment) is required before hosted schema apply.
-4. Authorize hosted apply of the five CONN migrations (separate from Git close and from CONN-HR-0).
+4. Authorize hosted apply of the five CONN migrations via **Option B** only (separate from DOC-TRACK-4 and from CONN-HR-2 package build).
 5. Choose the hosted V8 JWT/PostgREST verification venue (post-apply empty-vault probe or PE1.b.6b J-matrix).
 6. Authorize the production binding slice (`IntegrationOwnershipLookup` + membership-verified tenant context) and re-verify end-to-end.
 7. Resolve **D14** KEK custody (before any hosted vault write) and **D13** revoke/retention (before CONN-2 bind design).
-8. Decide how protected `docs/SERVICE_ROLE_BOUNDARY.md` is reconciled with the 1d-E TRIGGER revoke (not edited by DOC-TRACK-3).
+8. Decide how protected `docs/SERVICE_ROLE_BOUNDARY.md` is reconciled with the 1d-E TRIGGER revoke (not edited by DOC-TRACK-3/4).
 9. Authorize **UX-INV-1d** implementation slice (presentation only).
 10. Non-destructive DOCX Section 36+ sync (**PENDING**).
 11. Keep PE1.b.6b / workers / M6 prod / M7 create / OAuth / SyncRun / live model / AI-MKT spend / launch **BLOCKED** (recommended YES).
+12. Do **not** use CLI `db push` for migration #5 as written; do **not** rewrite #5 SHA without separate approval; do **not** run `migration repair` without separate approval.
 
 ### Hard STOP gates (do not unlock from docs alone)
 
@@ -251,22 +259,28 @@ Supplier Intelligence V1 **PLANNED AFTER CORE** — compare merchant-provided qu
 - Paid AI market research / credits / billing
 - Amazon/Noon partner paths and provider-enum expansion without contract change
 - Drain E.4 canary grain; promote synthetic snapstore data to production seeds
+- CLI `db push` of CONN migration #5 (`20261124120000`) as currently written
 
 ---
 
 ## 7. Next milestones (dependency order)
 
-Source: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` §5. Each step needs its own owner authorization.
+Source: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` §5 + CONN-HR-1 runbook. Each step needs its own owner authorization.
+
+**Completed offline (not hosted apply)**
+1. **DOC-TRACK-3** CLOSED/PUSHED @ `7bd2e8b`.
+2. **CONN-HR-0** read-only preflight CLOSED (LOCAL-ONLY).
+3. **CONN-HR-1** offline package CLOSED/PUSHED @ `454f7ec` — CLI #5 **25P01 BLOCKED**; Option B disposable **PASS**.
 
 **Mandatory before hosted apply**
-1. **DOC-TRACK-3 Git closure** (docs only) after owner review.
-2. **CONN-HR-0** — hosted readiness package: owner-run read-only precheck plan (owners, effective TRIGGER holders, default privileges, `service_role` attributes, PostgreSQL version/collation, log settings, existing-row scan, locks, apply mechanism, rollback/forward-fix), plus fresh disposable re-execution of CONN/CSV/1d-E suites at exact HEAD. No hosted execution.
+4. **DOC-TRACK-4 Git closure** (docs only) after owner review.
+5. **CONN-HR-2** — owner-authorized hosted P1–P9 prechecks (`scripts/conn-hr-1/readonly/*` under read-only txn) + reviewed Option B hosted apply **specification/artifact** (still no apply until gate 6).
 
 **Mandatory before OAuth / runtime credential ops**
-3. **Hosted apply of the five migrations** (owner-operated) + post-apply catalog checks + hosted V8 empty-vault JWT probe.
-4. **Production binding slice** — may proceed offline in parallel with 2–3; binding stays `NOT_YET_VERIFIED` until evidence.
-5. **D14 decision → KEK boot wiring** (before any hosted vault write) · **D13 decision** (before CONN-2 bind RPC design).
-6. **CONN-2 OAuth** — carries V10 end-to-end bind/reclaim and a by-construction proof that token code paths cannot reach the four JSON writers.
+6. **Hosted apply of the five migrations** (owner-operated, **Option B only**) + post-apply catalog checks + hosted V8 empty-vault JWT probe.
+7. **Production binding slice** — may proceed offline in parallel with 4–5; binding stays `NOT_YET_VERIFIED` until evidence.
+8. **D14 decision → KEK boot wiring** (before any hosted vault write) · **D13 decision** (before CONN-2 bind RPC design).
+9. **CONN-2 OAuth** — carries V10 end-to-end bind/reclaim and a by-construction proof that token code paths cannot reach the four JSON writers.
 
 **Mandatory before SyncRun:** operational slice — `lease_held` retry path (before CONN-3), SyncRun fail-finalization / stale-run handling, real-clock lease test.
 
@@ -282,11 +296,11 @@ Source: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` §5. Each ste
 
 ```text
 Continue StoreAgent.si as engineering reviewer/planner, not an autonomous production operator.
-1) Verify: git branch=main, HEAD=5de98cf (or newer after verified closure), origin aligned, staging empty; preserve unrelated dirty files.
-2) Read first: docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md (this file), docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md, then the frozen contract for the authorized slice.
-3) Frozen truth: CONN-1d-A @ 636725c, CONN-1d-B @ 0f3e1d2, CONN-1d-C @ 5c1c76b, CONN-1d-D @ 40d5888 (docs), CONN-1d-E @ 5de98cf (DB + app JSON secret guards; disposable only) all CLOSED/PUSHED. V1–V15: 14 offline PASS · V11 PARTIAL; V8 offline PASS under §11, hosted JWT NOT VERIFIED; vault contract §11 unchanged; CONN-1 exit UNMET. 57 migrations; five CONN migrations (20261121120000 → 20261122120000 → 20261122130000 → 20261122140000 → 20261124120000) NOT hosted-applied and NOT authorized; binding NOT_YET_VERIFIED; D13/D14 not resolved; CONN-MP-0 CLOSED/PUSHED @ 1e18029; AI-INV-1/1.1 CLOSED/PUSHED @ 38f63d6 soft-enable OFF; AI-INV-2–6 and AI-MKT-0–4 PLANNED; UX-INV-1d PLANNED.
-4) Next: DOC-TRACK-3 Git closure, then CONN-HR-0 hosted readiness package (no hosted execution) — each only after explicit owner authorization; do not begin from this bootstrap alone.
-5) Bans: no OAuth/SyncRun/workers/JWT/M6-prod/M7-create/purchasing/live AI research/hosted vault apply; no fake ROI or autonomous buying claims; no drive-by Git on protected dirty files.
+1) Verify: git branch=main, HEAD=454f7ec (or newer after verified closure), origin aligned, staging empty; preserve unrelated dirty files.
+2) Read first: docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md (this file), docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md, docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md, then the frozen contract for the authorized slice.
+3) Frozen truth: DOC-TRACK-3 @ 7bd2e8b, CONN-HR-1 @ 454f7ec CLOSED/PUSHED. CONN-1d-A…E CLOSED/PUSHED through 5de98cf. V1–V15: 14 offline PASS · V11 PARTIAL; V8 offline PASS under §11, hosted JWT NOT VERIFIED; vault contract §11 unchanged; CONN-1 exit UNMET. 57 migrations; five CONN migrations NOT hosted-applied; CLI db push of #5 BLOCKED (25P01); Option B psql disposable PASS; binding NOT_YET_VERIFIED; D13/D14 not resolved; CONN-MP-0 @ 1e18029; AI-INV-1/1.1 @ 38f63d6 soft-enable OFF; UX-INV-1d PLANNED.
+4) Next: DOC-TRACK-4 Git closure, then CONN-HR-2 (hosted P1–P9 + reviewed Option B artifact) — each only after explicit owner authorization; do not begin hosted apply from this bootstrap alone.
+5) Bans: no OAuth/SyncRun/workers/JWT/M6-prod/M7-create/purchasing/live AI research/hosted vault apply; no CLI push of #5 as written; no fake ROI or autonomous buying claims; no drive-by Git on protected dirty files.
 6) After each accepted closure: update this handoff + append living-ledger reconciliation; stage only an approved manifest.
 ```
 
@@ -324,6 +338,7 @@ Continue StoreAgent.si as engineering reviewer/planner, not an autonomous produc
 | `docs/SHOPIFY_CONN_1D_SECURITY_ACCEPTANCE_REPORT.md` | CONN-1d-D V1–V15 re-matrix (historical tally) |
 | `docs/SHOPIFY_CONN_1D_E_V11_IMPLEMENTATION_REPORT.md` | 1d-E V11 JSON secret guard evidence |
 | `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` | Current V1–V15 status; CONN-1 exit; hosted/production blockers; owner decisions |
+| `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md` | CONN-HR-1 offline readiness package / Option B; hosted P1–P9 not executed |
 | `docs/CONN_MP_0_MULTI_PROVIDER_ARCHITECTURE_PROPOSAL.md` | Multi-provider freeze |
 | `docs/M5_6_HANDOFF.md` / `docs/M6_PE1_B6B_SESSION_HANDOVER.md` | Workers / JWT continuity |
 | `docs/HOSTED_38to52_MIGRATION_RUNBOOK.md` | Hosted schema closeout |
@@ -338,3 +353,4 @@ Continue StoreAgent.si as engineering reviewer/planner, not an autonomous produc
 - **2026-11-22 (DOC-TRACK-2):** Verified `main` @ `5c1c76b` ≡ `origin/main`; staging empty. DOC-TRACK-1 closed @ `0e2fc33`. **CONN-1d-A CLOSED/PUSHED** @ `636725c` — V12 offline PASS; V11 PARTIAL (DB-level bypass, unsupported object types, stringified/encoded payload gaps). **CONN-1d-B CLOSED/PUSHED** @ `0f3e1d2` — V8 offline SQL role + claim-stub PASS; hosted JWT/PostgREST NOT VERIFIED. **CONN-1d-C CLOSED/PUSHED** @ `5c1c76b` — α terminal create/CAS fence, lease-aware disconnect/revoke (`lease_held` = pending cleanup, never "credentials destroyed"), Phase A ownership release only on `completed`, two-session races PASS, β fixture compatible with α+β and α+β+1d-C, rollback keeps the fence; offline PARTIAL. Migration inventory **56**. Binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; hosted CONN vault migrations (incl. `20261122140000`) **not applied**. **CONN-1d-D PLANNED**, not started. UX-INV-1d, AI-INV-2–6, AI-MKT-0–4 and multi-provider roadmap unchanged. DOC-TRACK-2 = docs-only; STOP for owner review.
 - **2026-11-23 (CONN-1d-D):** Verified `main` @ `b3ac033` ≡ `origin/main`; staging empty. **DOC-TRACK-2 CLOSED/PUSHED** @ `b3ac033`. CONN-1d-A/B/C closure SHAs unchanged (`636725c` / `0f3e1d2` / `5c1c76b`). New `docs/SHOPIFY_CONN_1D_SECURITY_ACCEPTANCE_REPORT.md`: V1–V15 re-matrix from dated 2026-11-22 offline evidence (no fresh execution) — **13 offline PASS** (V1–V7, V9, V10 schema level, V12, V13, V14, V15) and **2 PARTIAL**: V8 (offline SQL role + claim-stub PASS; hosted JWT NOT VERIFIED) and V11 (application-layer guards only). V12 offline PASS with recorded limitations (not universal redaction). V10 end-to-end bind/reclaim deferred to CONN-2 / D13. Vault contract §11 **unchanged**; **CONN-1 exit UNMET** (V11 PARTIAL); CONN-1 not CLOSED or CERTIFIED. Binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; four CONN vault migrations **not hosted-applied**; OAuth, Shopify HTTP, SyncRun, workers **BLOCKED**. §6 owner-decision numbering corrected (duplicate "8." → 1–10). **CONN-1d-D = docs-only PARTIAL, pending its own Git closure.** Proposed next: **CONN-1d-E** read-only V11 hardening preflight (not authorized). UX-INV-1d, AI-INV-2–6, AI-MKT-0–4 unchanged. STOP for owner review.
 - **2026-11-24 (DOC-TRACK-3):** Verified `main` @ `5de98cf` ≡ `origin/main`; staging empty; **57** migrations = 57 manifest entries (latest `20261124120000`); integrity check PASS. **CONN-1d-D CLOSED/PUSHED** @ `40d5888` (docs). **CONN-1d-E CLOSED/PUSHED** @ `5de98cf` — DB trigger guard on the four non-vault JSON columns, `service_role` TRIGGER revoke, stricter app guard, parity corpus and static future-migration model; disposable PostgreSQL 17.11 only; not hosted-applied. CONN-1d-F read-only audit recorded in `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Owner decisions: V11 **PARTIAL**, §11 **unchanged**, **CONN-1 exit UNMET**; V8 offline **PASS** under §11, hosted JWT/PostgREST **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 not resolved; five migrations (`20261121120000` → `20261122120000` → `20261122130000` → `20261122140000` → `20261124120000`) await hosted authorization; **no hosted application authorized**; **CONN-HR-0** next. Vault contract and historical implementation reports unchanged; protected `docs/SERVICE_ROLE_BOUNDARY.md` not edited. DOC-TRACK-3 = docs-only, pending its own Git closure. STOP for owner review.
+- **2026-11-25 (DOC-TRACK-4):** Verified `main` @ `454f7ec` ≡ `origin/main`; staging empty; **57** migrations = 57 manifest entries; integrity check PASS. **DOC-TRACK-3 CLOSED/PUSHED** @ `7bd2e8b` (docs). **CONN-HR-0** read-only preflight **CLOSED** (LOCAL-ONLY chat evidence `CONN_HR_0_HOSTED_READINESS_PREFLIGHT_REPORT`; no hosted SQL). **CONN-HR-1 CLOSED/PUSHED** @ `454f7ec` — offline package: `scripts/conn-hr-1/readonly/*`, disposable tooling, Option B single-transaction `psql` candidate, `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Offline apply-method evidence: CLI `supabase db push` of migration #5 (`20261124120000`) **BLOCKED** (SQLSTATE **25P01** — `LOCK TABLE` cannot run inside a multi-statement transaction); Option B disposable **PASS** (history 52→57; post-apply catalog 23/23; abort restores 52). Hosted P1–P9 **not run**; hosted apply **NO-GO**. V11 **PARTIAL**; §11 unchanged; **CONN-1 exit UNMET**; V8 hosted JWT **NOT VERIFIED**; binding **`NOT_YET_VERIFIED`**; D13/D14 unresolved; five CONN migrations still **not hosted-applied**. **Next: CONN-HR-2** (hosted P1–P9 + reviewed Option B artifact; apply remains separately gated). DOC-TRACK-4 = docs-only, pending its own Git closure. STOP for owner review.
