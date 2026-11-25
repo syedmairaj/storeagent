@@ -1,0 +1,204 @@
+-- CONN-HR-1 single-transaction apply CANDIDATE — DISPOSABLE ONLY.
+--
+-- Not a hosted apply script and not authorized for hosted use. It refuses to
+-- run unless the server is the CONN-HR-1 disposable cluster on loopback.
+-- Hosted apply requires a separate owner authorization and a separately
+-- reviewed artifact (docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md §6).
+--
+-- Required psql variables (set by scripts/conn-hr-1/disposable/replay.sh after
+-- SHA-256 verification of each file against supabase/migrations.sha256):
+--   mig1 .. mig5   absolute paths of the five CONN migrations, in order
+--
+-- Behaviour: one transaction for all five files + five history rows.
+-- Fail-closed prechecks before the first file and postchecks before COMMIT;
+-- any error leaves the database exactly as it was (52 history rows).
+
+\set ON_ERROR_STOP on
+
+select
+  pg_catalog.current_setting('cluster_name') = 'storeagent-conn-hr-1-disposable'
+  and coalesce(pg_catalog.host(pg_catalog.inet_server_addr()), '127.0.0.1') in ('127.0.0.1', '::1')
+  as conn_hr_1_disposable_ok
+\gset
+
+-- Fail closed with a server-side exception so ON_ERROR_STOP yields non-zero.
+\if :conn_hr_1_disposable_ok
+\else
+  \echo 'CONN-HR-1 candidate REFUSED: not the disposable cluster'
+  select 1 / 0;
+\endif
+
+\if :{?mig5}
+\else
+  \echo 'CONN-HR-1 candidate REFUSED: mig1..mig5 not set'
+  select 1 / 0;
+\endif
+
+begin;
+
+set local lock_timeout = '5s';
+
+do $pre$
+declare
+  v_n bigint;
+  v_md5 text;
+begin
+  select count(*), pg_catalog.md5(pg_catalog.string_agg(version, ',' order by version))
+  into v_n, v_md5
+  from supabase_migrations.schema_migrations;
+
+  if v_n <> 52 or v_md5 <> 'd3a7a37c1b0175595e65aa85e07f81cf' then
+    raise exception 'CONN_HR_PRECHECK_FAIL: history % / % (expected 52 / d3a7a37c…)', v_n, v_md5;
+  end if;
+
+  if pg_catalog.to_regclass('public.integrations') is null
+    or pg_catalog.to_regclass('public.provider_bindings') is null
+    or pg_catalog.to_regclass('public.sync_runs') is null
+    or pg_catalog.to_regprocedure('public.set_updated_at()') is null
+  then
+    raise exception 'CONN_HR_PRECHECK_FAIL: prerequisite object missing';
+  end if;
+
+  if pg_catalog.to_regclass('public.integration_credentials') is not null
+    or pg_catalog.to_regclass('public.integration_external_accounts') is not null
+    or pg_catalog.to_regprocedure('public.conn_1d_e_reject_secret_json()') is not null
+  then
+    raise exception 'CONN_HR_PRECHECK_FAIL: CONN object already present';
+  end if;
+
+  if (select pg_catalog.pg_get_userbyid(c.relowner) from pg_catalog.pg_class c
+      where c.oid = 'public.integrations'::regclass) <> 'postgres'
+  then
+    raise exception 'CONN_HR_PRECHECK_FAIL: integrations owner is not postgres';
+  end if;
+
+  if current_user <> 'postgres' then
+    raise exception 'CONN_HR_PRECHECK_FAIL: must run as postgres (got %)', current_user;
+  end if;
+end;
+$pre$;
+
+\i :mig1
+\i :mig2
+\i :mig3
+\i :mig4
+\i :mig5
+
+insert into supabase_migrations.schema_migrations (version, name)
+values
+  ('20261121120000', 'shopify_conn_1a_integration_credential_vault'),
+  ('20261122120000', 'shopify_conn_1c_alpha_credential_persistence'),
+  ('20261122130000', 'shopify_conn_1c_beta_refresh_lease'),
+  ('20261122140000', 'shopify_conn_1d_c_disconnect_revoke'),
+  ('20261124120000', 'shopify_conn_1d_e_json_secret_guard');
+
+do $post$
+declare
+  v_n bigint;
+  v_md5 text;
+  v_bad text;
+begin
+  select count(*), pg_catalog.md5(pg_catalog.string_agg(version, ',' order by version))
+  into v_n, v_md5
+  from supabase_migrations.schema_migrations;
+  if v_n <> 57 or v_md5 <> '900da6949dfd6f7818a454b7f28ddf33' then
+    raise exception 'CONN_HR_POSTCHECK_FAIL: history % / %', v_n, v_md5;
+  end if;
+
+  if exists (select 1 from public.integration_credentials)
+    or exists (select 1 from public.integration_external_accounts)
+  then
+    raise exception 'CONN_HR_POSTCHECK_FAIL: vault tables not empty';
+  end if;
+
+  select pg_catalog.string_agg(c.relname || ':' || r.rolname, ',')
+  into v_bad
+  from pg_catalog.pg_class c
+  cross join pg_catalog.pg_roles r
+  where c.oid in ('public.integration_credentials'::regclass,
+                  'public.integration_external_accounts'::regclass)
+    and r.rolname in ('anon', 'authenticated', 'service_role', 'authenticator')
+    and pg_catalog.has_table_privilege(r.oid, c.oid,
+          'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER');
+  if v_bad is not null then
+    raise exception 'CONN_HR_POSTCHECK_FAIL: vault table privilege %', v_bad;
+  end if;
+
+  select pg_catalog.string_agg(c.relname || ':' || r.rolname, ',')
+  into v_bad
+  from pg_catalog.pg_class c
+  cross join pg_catalog.pg_roles r
+  where c.oid in ('public.integrations'::regclass, 'public.provider_bindings'::regclass,
+                  'public.sync_runs'::regclass)
+    and not r.rolsuper
+    and r.oid <> c.relowner
+    and not pg_catalog.pg_has_role(r.oid, c.relowner, 'USAGE')
+    and pg_catalog.has_table_privilege(r.oid, c.oid, 'TRIGGER');
+  if v_bad is not null then
+    raise exception 'CONN_HR_POSTCHECK_FAIL: non-owner TRIGGER holder %', v_bad;
+  end if;
+
+  select pg_catalog.string_agg(p.proname || ':' || r.rolname, ',')
+  into v_bad
+  from pg_catalog.pg_proc p
+  join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+  cross join pg_catalog.pg_roles r
+  where n.nspname = 'public'
+    and p.proname in (
+      'load_integration_credential_envelope', 'replace_integration_credential_set',
+      'clear_integration_credentials', 'acquire_integration_credential_refresh_lock',
+      'rotate_integration_credential_set', 'release_integration_credential_refresh_lock',
+      'disconnect_or_revoke_integration_credentials',
+      'prevent_integration_credential_identity_reassignment',
+      'prevent_integration_external_account_identity_reassignment',
+      'conn_1d_e_reject_secret_json')
+    and r.rolname in ('anon', 'authenticated', 'authenticator')
+    and pg_catalog.has_function_privilege(r.oid, p.oid, 'EXECUTE');
+  if v_bad is not null then
+    raise exception 'CONN_HR_POSTCHECK_FAIL: browser EXECUTE %', v_bad;
+  end if;
+
+  if (select count(*) from pg_catalog.pg_trigger t
+      where t.tgname = 'zz_conn_1d_e_secret_json_guard'
+        and t.tgenabled = 'O'
+        and t.tgrelid in ('public.integrations'::regclass,
+                          'public.provider_bindings'::regclass,
+                          'public.sync_runs'::regclass)) <> 3
+  then
+    raise exception 'CONN_HR_POSTCHECK_FAIL: guard triggers missing or not enabled';
+  end if;
+
+  if exists (
+    select 1
+    from pg_catalog.pg_class c
+    where c.oid in ('public.integrations'::regclass, 'public.provider_bindings'::regclass,
+                    'public.sync_runs'::regclass)
+      and (
+        select t.tgname
+        from pg_catalog.pg_trigger t
+        where t.tgrelid = c.oid
+          and not t.tgisinternal
+          and t.tgenabled <> 'D'
+          and (t.tgtype & 1) <> 0
+          and (t.tgtype & 2) <> 0
+          and (t.tgtype & (4 | 16)) <> 0
+        order by t.tgname collate "C" desc
+        limit 1
+      ) is distinct from 'zz_conn_1d_e_secret_json_guard'
+  ) then
+    raise exception 'CONN_HR_POSTCHECK_FAIL: guard is not the last BEFORE row trigger';
+  end if;
+
+  if exists (
+    select 1 from pg_catalog.pg_publication_tables pt
+    where pt.schemaname = 'public'
+      and pt.tablename in ('integration_credentials', 'integration_external_accounts')
+  ) then
+    raise exception 'CONN_HR_POSTCHECK_FAIL: vault table is published';
+  end if;
+end;
+$post$;
+
+commit;
+
+\echo 'CONN-HR-1 candidate: COMMITTED'
