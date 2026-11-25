@@ -167,6 +167,15 @@ const marketingProject: Project = {
   },
 };
 
+const landingAuthHydrationProject: Project = {
+  name: "landing-auth-hydration",
+  testMatch: /landing-auth-hydration\.spec\.ts/,
+  use: {
+    browserName: "chromium",
+    viewport: { width: 1280, height: 800 },
+  },
+};
+
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: false,
@@ -179,11 +188,14 @@ export default defineConfig({
       "html",
       {
         open: "never",
-        outputFolder: "playwright-report",
+        outputFolder:
+          process.env.PLAYWRIGHT_HTML_REPORT?.trim() ||
+          "playwright-report",
       },
     ],
   ],
-  outputDir: "test-results",
+  outputDir:
+    process.env.PLAYWRIGHT_OUTPUT_DIR?.trim() || "test-results",
   timeout: 60_000,
   expect: {
     timeout: 10_000,
@@ -196,5 +208,9 @@ export default defineConfig({
     video: "off",
     locale: "en-US",
   },
-  projects: [...projects, marketingProject],
+  projects: [
+    ...projects,
+    marketingProject,
+    landingAuthHydrationProject,
+  ],
 });

@@ -74,19 +74,31 @@ export function AuthEntry({
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState(0);
-  const [now, setNow] = useState(() => Date.now());
+  // SSR-safe: remaining seconds stay 0 until a cooldown is armed, then tick
+  // from an interval callback (not a render-time Date.now() initializer).
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (cooldownUntil <= Date.now()) return;
-    const id = window.setInterval(() => setNow(Date.now()), 500);
-    return () => window.clearInterval(id);
-  }, [cooldownUntil]);
+    if (cooldownUntil <= 0) {
+      return;
+    }
 
-  const cooldownSeconds = Math.max(
-    0,
-    Math.ceil((cooldownUntil - now) / 1000),
-  );
+    const tick = () => {
+      const seconds = Math.max(
+        0,
+        Math.ceil((cooldownUntil - Date.now()) / 1000),
+      );
+      setCooldownSeconds(seconds);
+    };
+
+    const timeoutId = window.setTimeout(tick, 0);
+    const intervalId = window.setInterval(tick, 500);
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.clearInterval(intervalId);
+    };
+  }, [cooldownUntil]);
 
   function runGoogle() {
     // Hard gate: never start OAuth when the provider is not configured.
@@ -127,7 +139,11 @@ export function AuthEntry({
       }
 
       setSentTo(normalized);
-      setCooldownUntil(Date.now() + MAGIC_LINK_RESEND_COOLDOWN_MS);
+      const until = Date.now() + MAGIC_LINK_RESEND_COOLDOWN_MS;
+      setCooldownSeconds(
+        Math.max(0, Math.ceil(MAGIC_LINK_RESEND_COOLDOWN_MS / 1000)),
+      );
+      setCooldownUntil(until);
       onMagicLinkSent?.(normalized);
     });
   }

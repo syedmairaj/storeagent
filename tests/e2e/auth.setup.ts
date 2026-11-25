@@ -42,13 +42,15 @@ setup(
       );
     }
 
-    await page.goto("/login?next=/app", {
+    // Password mode is the dedicated email/password surface.
+    // Default /login is magic-link ("Welcome to StoreAgent") and has no #password.
+    await page.goto("/login?mode=password&next=/app", {
       waitUntil: "domcontentloaded",
     });
 
     await expect(
       page.getByRole("heading", {
-        name: /sign in to storeagent/i,
+        name: /sign in with password/i,
       }),
     ).toBeVisible();
 

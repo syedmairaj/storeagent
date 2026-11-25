@@ -67,10 +67,17 @@ describe("passwordless auth architecture", () => {
     expect(modal).toContain("bg-[var(--sa-porcelain)]");
     expect(modal).toContain("max-w-[460px]");
     expect(modal).toContain("backdrop-blur");
+    // Portal mounts after client mount — no render-time document/window branch.
+    expect(modal).toContain("useSyncExternalStore");
+    expect(modal).toContain("useHasClientMounted");
+    expect(modal).toContain("if (!mounted || !open)");
+    expect(modal).not.toMatch(/typeof document\s*===\s*["']undefined["']/);
     expect(entry).toContain("Continue with Google");
     expect(entry).toContain("Send magic link");
     expect(entry).toContain("Google sign-in is not available yet");
     expect(entry).toContain("pointer-events-none");
+    expect(entry).toContain("setCooldownSeconds");
+    expect(entry).not.toMatch(/useState\(\(\)\s*=>\s*Date\.now\(\)\)/);
     expect(client).toContain("signInWithOtp");
     expect(client).toContain("signInWithOAuth");
     expect(client).toContain("shouldCreateUser");
@@ -86,10 +93,23 @@ describe("passwordless auth architecture", () => {
     const login = read("app/(auth)/login/page.tsx");
     const signup = read("app/(auth)/signup/page.tsx");
     expect(login).toContain('mode === "password"');
+    expect(login).toContain("Sign in with password");
     expect(login).toContain("SignInForm");
     expect(login).toContain("CompactAuthPage");
+    expect(login).toContain("Welcome to StoreAgent");
     expect(signup).toContain("AuthEntry");
     expect(signup).toContain("CompactAuthPage");
     expect(signup).toContain("isPublicSignupAllowed");
+  });
+
+  it("aligns Playwright auth setup with password login surface", () => {
+    const setup = read("tests/e2e/auth.setup.ts");
+    const envHelper = read("tests/e2e/helpers/env.ts");
+    expect(setup).toContain("/login?mode=password&next=/app");
+    expect(setup).toContain("/sign in with password/i");
+    expect(setup).not.toContain("/sign in to storeagent/i");
+    expect(setup).toContain("#password");
+    expect(envHelper).toContain("PLAYWRIGHT_AUTH_DIR");
+    expect(envHelper).toContain("PLAYWRIGHT_ARTIFACTS_DIR");
   });
 });

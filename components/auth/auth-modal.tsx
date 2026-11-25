@@ -5,6 +5,7 @@ import {
   useEffect,
   useId,
   useRef,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
@@ -25,6 +26,20 @@ type AuthModalProps = {
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea, input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+const emptySubscribe = () => () => {};
+
+/**
+ * Client mount gate without render-time `typeof document` / window branches
+ * (those trip Next.js hydration diagnostics on the landing Sign In modal).
+ */
+function useHasClientMounted(): boolean {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 export function AuthModal({
   open,
   onOpenChange,
@@ -37,6 +52,7 @@ export function AuthModal({
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  const mounted = useHasClientMounted();
 
   const close = useCallback(() => onOpenChange(false), [onOpenChange]);
 
@@ -105,7 +121,7 @@ export function AuthModal({
     };
   }, [open, close]);
 
-  if (!open || typeof document === "undefined") {
+  if (!mounted || !open) {
     return null;
   }
 

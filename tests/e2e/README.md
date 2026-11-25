@@ -44,6 +44,8 @@ npx playwright install chromium
 npm run dev
 
 # Automated login (requires valid E2E_* for an existing user)
+# Setup uses /login?mode=password (heading: "Sign in with password").
+# Default /login is magic-link only and will fail password setup.
 npm run test:e2e:actions
 
 # Manual headed capture (no DB mutation) — sign in yourself, resume inspector
@@ -55,6 +57,15 @@ PLAYWRIGHT_REUSE_AUTH=1 npm run test:e2e:actions
 
 Auth state: `playwright/.auth/` (gitignored).
 Screenshots: `tests/e2e/artifacts/` (gitignored).
+
+Optional isolation (keep evidence outside the repo / protect existing artifacts):
+
+```bash
+export PLAYWRIGHT_AUTH_DIR="$HOME/Library/Application Support/StoreAgent/fe-accept-1/auth"
+export PLAYWRIGHT_ARTIFACTS_DIR="$HOME/Library/Application Support/StoreAgent/fe-accept-1/artifacts"
+export PLAYWRIGHT_OUTPUT_DIR="$HOME/Library/Application Support/StoreAgent/fe-accept-1/test-results"
+export PLAYWRIGHT_HTML_REPORT="$HOME/Library/Application Support/StoreAgent/fe-accept-1/playwright-report"
+```
 
 ## Mutations that need explicit approval
 

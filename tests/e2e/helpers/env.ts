@@ -95,8 +95,27 @@ export function resolveOptionalOrgId(): string | null {
   return id || null;
 }
 
-export const AUTH_DIR = path.join(
-  process.cwd(),
+/**
+ * Optional isolation roots (absolute or cwd-relative).
+ * Used by FE-ACCEPT recovery to keep auth/screenshots outside protected
+ * in-repo evidence paths (.vitest, existing playwright/.auth, artifacts).
+ */
+function resolveIsolatedDir(
+  envKey: string,
+  fallbackRelative: string,
+): string {
+  loadLocalEnvFiles();
+  const override = process.env[envKey]?.trim();
+  if (override) {
+    return path.isAbsolute(override)
+      ? override
+      : path.join(process.cwd(), override);
+  }
+  return path.join(process.cwd(), fallbackRelative);
+}
+
+export const AUTH_DIR = resolveIsolatedDir(
+  "PLAYWRIGHT_AUTH_DIR",
   "playwright/.auth",
 );
 
@@ -110,7 +129,7 @@ export const AUTH_CONTEXT_PATH = path.join(
   "context.json",
 );
 
-export const ARTIFACTS_DIR = path.join(
-  process.cwd(),
+export const ARTIFACTS_DIR = resolveIsolatedDir(
+  "PLAYWRIGHT_ARTIFACTS_DIR",
   "tests/e2e/artifacts",
 );
