@@ -26,14 +26,31 @@ Independently confirmed:
 ## Credentials (gitignored)
 
 ```bash
-# Preferred — must be an existing local Auth email/password user:
+# Preferred for automated magic-link (no password required):
+# Must already exist in local auth.users with snapstore (or PLAYWRIGHT_ORG_ID) membership.
 E2E_EMAIL=...
-E2E_PASSWORD=...
-# optional:
-# PLAYWRIGHT_ORG_ID=<uuid>
+# optional preferred org (snapstore uuid):
+# PLAYWRIGHT_ORG_ID=349e3ad3-c17b-4658-b3ae-a0ba00f226d0
+
+# Password fallback only:
+# E2E_AUTH_MODE=password
+# E2E_PASSWORD=...
 ```
 
-`M14_TEST_*` is accepted by the harness but currently does **not** match any local Auth user.
+`M14_TEST_*` is accepted as a fallback email/password source but may **not** match any local Auth user — setup fails closed (no user creation).
+
+### Onboarding vs auth failure
+
+Authenticated `/app/onboarding` with heading **Set your organization context** means **AUTH_PASS** with a single incomplete org profile (null country or `XXX` currency), **not** login failure. The harness reports `ORG_MEMBERSHIP_BLOCKED` and will not auto-complete onboarding.
+
+## Mailpit (storeagent local)
+
+| Surface | URL |
+|---|---|
+| Mailpit UI | `http://127.0.0.1:55324` |
+| Auth API | `http://127.0.0.1:55321` |
+
+Do **not** use `:54324` (other local Supabase stack). Magic-link OTPs are **single-use**: the first `GET /auth/v1/verify` consumes the token; a second open returns `otp_expired` / `access_denied` and the app shows `auth_error=callback`.
 
 ## Commands
 
@@ -43,29 +60,47 @@ npx playwright install chromium
 # (do not spread Playwright iPhone device presets — those default to WebKit).
 npm run dev
 
-# Automated login (requires valid E2E_* for an existing user)
-# Setup uses /login?mode=password (heading: "Sign in with password").
-# Default /login is magic-link only and will fail password setup.
+# Automated FE-ACCEPT-1C (magic-link via Mailpit API, isolated outputs)
+# Requires E2E_EMAIL = existing local Auth user with complete org membership.
+npm run test:e2e:fe-accept-1c
+
+# Actions-only (same setup project — magic-link by default)
 npm run test:e2e:actions
 
-# Manual headed capture (no DB mutation) — sign in yourself, resume inspector
+# Manual headed capture — default magic-link /login (no Auth DB mutation)
 MANUAL_AUTH_CAPTURE=1 npx playwright test --project=manual-auth --headed
 
 # Re-run acceptance using captured storage state
 PLAYWRIGHT_REUSE_AUTH=1 npm run test:e2e:actions
 ```
 
-Auth state: `playwright/.auth/` (gitignored).
-Screenshots: `tests/e2e/artifacts/` (gitignored).
+Automated magic-link flow (unattended): UI **Send magic link** → Mailpit `:55324` API retrieves matching new message → Playwright navigates verify URL **once** in the same browser context → GoTrue PKCE/callback → org contract gates → Actions banner before saving storage state.
+
+
+### Manual magic-link capture (same Chromium context)
+
+1. Start capture with isolation env (below) and `MANUAL_AUTH_CAPTURE=1` headed.
+2. On `/login`, request **one** new magic link.
+3. In Mailpit `:55324`, **copy** the verify URL — do **not** click Open/browser.
+4. Paste that URL **once** into the Playwright Chromium address bar (keeps PKCE).
+5. Wait until authenticated `/app` is visible (org picker or workspace).
+6. Resume the inspector. Capture verifies org membership + synthetic Actions banner before writing `user.json`.
+
+Password sign-in via “Use password instead” remains allowed in the same window.
+
+Auth state: `playwright/.auth/` (gitignored) or `PLAYWRIGHT_AUTH_DIR`.
+Screenshots: `tests/e2e/artifacts/` (gitignored) or `PLAYWRIGHT_ARTIFACTS_DIR`.
 
 Optional isolation (keep evidence outside the repo / protect existing artifacts):
 
 ```bash
-export PLAYWRIGHT_AUTH_DIR="$HOME/Library/Application Support/StoreAgent/fe-accept-1/auth"
-export PLAYWRIGHT_ARTIFACTS_DIR="$HOME/Library/Application Support/StoreAgent/fe-accept-1/artifacts"
-export PLAYWRIGHT_OUTPUT_DIR="$HOME/Library/Application Support/StoreAgent/fe-accept-1/test-results"
-export PLAYWRIGHT_HTML_REPORT="$HOME/Library/Application Support/StoreAgent/fe-accept-1/playwright-report"
+export PLAYWRIGHT_AUTH_DIR="$HOME/Library/Application Support/StoreAgent/fe-accept-1-final/auth"
+export PLAYWRIGHT_ARTIFACTS_DIR="$HOME/Library/Application Support/StoreAgent/fe-accept-1-final/artifacts"
+export PLAYWRIGHT_OUTPUT_DIR="$HOME/Library/Application Support/StoreAgent/fe-accept-1-final/test-results"
+export PLAYWRIGHT_HTML_REPORT="$HOME/Library/Application Support/StoreAgent/fe-accept-1-final/playwright-report"
 ```
+
+Isolated auth dirs live under Application Support (not Git). In-repo `playwright/.auth/` stays gitignored.
 
 ## Mutations that need explicit approval
 

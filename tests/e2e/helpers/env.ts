@@ -57,16 +57,26 @@ export function loadLocalEnvFiles(): void {
   }
 }
 
+/**
+ * Owner-authorized local identity for magic-link E2E (no password required).
+ * Prefer E2E_EMAIL; fall back to M14_TEST_EMAIL.
+ */
+export function resolveE2EEmail(): string | null {
+  loadLocalEnvFiles();
+  const email =
+    process.env.E2E_EMAIL?.trim() ||
+    process.env.M14_TEST_EMAIL?.trim() ||
+    "";
+  return email || null;
+}
+
 export function resolveE2ECredentials(): {
   email: string;
   password: string;
 } | null {
   loadLocalEnvFiles();
 
-  const email =
-    process.env.E2E_EMAIL?.trim() ||
-    process.env.M14_TEST_EMAIL?.trim() ||
-    "";
+  const email = resolveE2EEmail() || "";
 
   const password =
     process.env.E2E_PASSWORD ||
@@ -84,6 +94,17 @@ export function resolveE2ECredentials(): {
     email,
     password,
   };
+}
+
+/**
+ * Default: magic-link. Set E2E_AUTH_MODE=password to use password setup.
+ */
+export function resolveE2EAuthMode(): "magic_link" | "password" {
+  loadLocalEnvFiles();
+  const mode =
+    process.env.E2E_AUTH_MODE?.trim().toLowerCase() ||
+    "";
+  return mode === "password" ? "password" : "magic_link";
 }
 
 export function resolveOptionalOrgId(): string | null {

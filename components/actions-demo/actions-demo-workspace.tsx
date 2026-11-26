@@ -950,7 +950,7 @@ function ActionRow({
       }}
       aria-pressed={selected}
       aria-label={`${formatDemoPriorityLabel(action.priority)} priority, ${meta.label}: ${action.productTitle}, ${action.variantTitle}${ariaQty}${ariaWatch}`}
-      className={`group relative w-full min-h-11 min-w-0 max-w-full overflow-hidden rounded-xl border pl-3.5 pr-3 py-3 text-left shadow-sm motion-safe:transition-[border-color,box-shadow,background-color] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 sm:rounded-2xl sm:pl-4 sm:pr-3.5 sm:py-3.5 ${
+      className={`group relative w-full min-h-11 min-w-0 max-w-full overflow-hidden rounded-xl border pl-3.5 pr-3 py-3 text-left shadow-sm motion-safe:transition-[border-color,box-shadow,background-color] motion-safe:duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 sm:rounded-2xl sm:pl-4 sm:pr-3.5 sm:py-3.5 lg:scroll-mt-[4.25rem] ${
         selected
           ? "border-zinc-950 bg-white shadow-md ring-1 ring-zinc-950/10"
           : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50/80"

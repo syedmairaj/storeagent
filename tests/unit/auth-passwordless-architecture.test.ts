@@ -102,14 +102,52 @@ describe("passwordless auth architecture", () => {
     expect(signup).toContain("isPublicSignupAllowed");
   });
 
-  it("aligns Playwright auth setup with password login surface", () => {
+  it("aligns Playwright auth setup with automated magic-link + optional password", () => {
     const setup = read("tests/e2e/auth.setup.ts");
     const envHelper = read("tests/e2e/helpers/env.ts");
+    const magic = read("tests/e2e/helpers/magic-link-auth.ts");
+    const mailpit = read("tests/e2e/helpers/mailpit.ts");
+    const local = read("tests/e2e/helpers/local-stack.ts");
+    const org = read("tests/e2e/helpers/org-contract.ts");
+    expect(setup).toContain("authenticateWithMagicLink");
+    expect(setup).toContain("ORG_MEMBERSHIP_BLOCKED");
     expect(setup).toContain("/login?mode=password&next=/app");
     expect(setup).toContain("/sign in with password/i");
     expect(setup).not.toContain("/sign in to storeagent/i");
-    expect(setup).toContain("#password");
+    expect(magic).toContain('/login?next=/app');
+    expect(magic).toContain("/welcome to storeagent/i");
+    expect(magic).toContain("/^send magic link$/i");
+    expect(magic).toContain("waitForMagicLinkEmail");
+    expect(magic).toContain("assertExistingLocalAuthUser");
+    expect(magic).toContain("page.goto(captured.verifyUrl");
+    expect(mailpit).toContain("extractVerifyHref");
+    expect(mailpit).toContain(":55324");
+    expect(local).toContain("hosted Supabase refused");
+    expect(local).toContain("55321");
+    expect(local).toContain("55324");
+    expect(org).toContain("/set your organization context/i");
+    expect(org).toContain("ORG_MEMBERSHIP_BLOCKED");
     expect(envHelper).toContain("PLAYWRIGHT_AUTH_DIR");
-    expect(envHelper).toContain("PLAYWRIGHT_ARTIFACTS_DIR");
+    expect(envHelper).toContain("resolveE2EEmail");
+    expect(envHelper).toContain("resolveE2EAuthMode");
+  });
+
+  it("keeps manual capture on default magic-link /login without harness /verify", () => {
+    const capture = read("tests/e2e/capture-auth.manual.ts");
+    const config = read("playwright.config.ts");
+    const readme = read("tests/e2e/README.md");
+    expect(capture).toContain('/login?next=/app');
+    expect(capture).toContain("/welcome to storeagent/i");
+    expect(capture).toContain("page.pause()");
+    expect(capture).toContain('[data-actions-synthetic-banner="true"]');
+    expect(capture).toContain("storageState");
+    expect(capture).toContain("ORG_MEMBERSHIP_BLOCKED");
+    expect(capture).not.toMatch(/\/auth\/v1\/verify/);
+    expect(capture).not.toContain("/login?mode=password");
+    expect(readme).toContain("127.0.0.1:55324");
+    expect(readme).toContain("Paste that URL **once**");
+    expect(config).toContain("PLAYWRIGHT_AUTH_DIR");
+    expect(config).toContain("resolveAuthStateFile");
+    expect(config).toContain("merchant-acceptance");
   });
 });

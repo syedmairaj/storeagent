@@ -9,15 +9,24 @@ import {
 
 /**
  * Actions E2E acceptance — Chromium only, six viewport projects.
- * Auth state is produced by setup or manual-auth into a gitignored path.
+ * Auth state is produced by setup or manual-auth into a gitignored path
+ * (or PLAYWRIGHT_AUTH_DIR for isolated capture outside the repo).
  *
  * PLAYWRIGHT_REUSE_AUTH=1 skips password setup and uses existing
- * playwright/.auth/user.json (from a prior login or manual capture).
+ * user.json from that auth directory.
  */
-const AUTH_FILE = path.join(
-  __dirname,
-  "playwright/.auth/user.json",
-);
+function resolveAuthStateFile(): string {
+  const override = process.env.PLAYWRIGHT_AUTH_DIR?.trim();
+  if (override) {
+    const dir = path.isAbsolute(override)
+      ? override
+      : path.join(__dirname, override);
+    return path.join(dir, "user.json");
+  }
+  return path.join(__dirname, "playwright/.auth/user.json");
+}
+
+const AUTH_FILE = resolveAuthStateFile();
 
 const reuseAuth =
   process.env.PLAYWRIGHT_REUSE_AUTH === "1";
@@ -27,7 +36,7 @@ if (
   !fs.existsSync(AUTH_FILE)
 ) {
   throw new Error(
-    "PLAYWRIGHT_REUSE_AUTH=1 but playwright/.auth/user.json is missing. Run manual-auth capture or a successful setup first.",
+    `PLAYWRIGHT_REUSE_AUTH=1 but auth state is missing at ${AUTH_FILE}. Run manual-auth capture or a successful setup first (set PLAYWRIGHT_AUTH_DIR if using isolation).`,
   );
 }
 
@@ -42,7 +51,8 @@ const iphone12 = devices["iPhone 12"];
 const viewportProjects: Project[] = [
   {
     name: "actions-320",
-    testMatch: /actions-acceptance\.spec\.ts/,
+    testMatch:
+      /actions-acceptance\.spec\.ts|merchant-acceptance\.spec\.ts/,
     use: {
       browserName: "chromium",
       viewport: {
@@ -58,7 +68,8 @@ const viewportProjects: Project[] = [
   },
   {
     name: "actions-390",
-    testMatch: /actions-acceptance\.spec\.ts/,
+    testMatch:
+      /actions-acceptance\.spec\.ts|merchant-acceptance\.spec\.ts/,
     use: {
       browserName: "chromium",
       viewport: {
@@ -74,7 +85,8 @@ const viewportProjects: Project[] = [
   },
   {
     name: "actions-768",
-    testMatch: /actions-acceptance\.spec\.ts/,
+    testMatch:
+      /actions-acceptance\.spec\.ts|merchant-acceptance\.spec\.ts/,
     use: {
       browserName: "chromium",
       viewport: {
@@ -88,7 +100,8 @@ const viewportProjects: Project[] = [
   },
   {
     name: "actions-1024",
-    testMatch: /actions-acceptance\.spec\.ts/,
+    testMatch:
+      /actions-acceptance\.spec\.ts|merchant-acceptance\.spec\.ts/,
     use: {
       browserName: "chromium",
       viewport: {
@@ -102,7 +115,8 @@ const viewportProjects: Project[] = [
   },
   {
     name: "actions-1280",
-    testMatch: /actions-acceptance\.spec\.ts/,
+    testMatch:
+      /actions-acceptance\.spec\.ts|merchant-acceptance\.spec\.ts/,
     use: {
       browserName: "chromium",
       viewport: {
@@ -116,7 +130,8 @@ const viewportProjects: Project[] = [
   },
   {
     name: "actions-1440",
-    testMatch: /actions-acceptance\.spec\.ts/,
+    testMatch:
+      /actions-acceptance\.spec\.ts|merchant-acceptance\.spec\.ts/,
     use: {
       browserName: "chromium",
       viewport: {
