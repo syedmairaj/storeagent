@@ -16,8 +16,10 @@
 | `CREDENTIAL_BINDING_AUTHORIZATION_STATUS` | **`NOT_YET_VERIFIED`** |
 | D13 revoke retention · D14 KEK custody | **Not resolved (DEFERRED)** |
 | Hosted apply of five CONN migrations | **NOT AUTHORIZED / not applied** |
-| Next milestone | **CONN-HR-0** (after DOC-TRACK-3) |
+| Next milestone (at record time) | **CONN-HR-0** (after DOC-TRACK-3) — historical |
 | OAuth · Shopify HTTP · webhooks · SyncRun · workers/cron | **BLOCKED** |
+
+> **Continuity (DOC-TRACK-5, 2026-11-26):** This decision record remains historical evidence at HEAD `5de98cf`. Current `main` is `1edc1ff` (FE-ACCEPT-1C). CONN-HR-0/HR-1 are CLOSED; next gated connectivity step is **CONN-HR-2**. Security gates in the table above (V11 PARTIAL, CONN-1 exit UNMET, V8 hosted NOT VERIFIED, binding `NOT_YET_VERIFIED`, D13/D14 DEFERRED, hosted apply NOT AUTHORIZED) are **unchanged**.
 
 This record does **not** amend the vault contract, mark CONN-1 CLOSED or CERTIFIED, authorize hosted apply, or claim hosted, production or OAuth readiness. Historical implementation reports are not modified.
 

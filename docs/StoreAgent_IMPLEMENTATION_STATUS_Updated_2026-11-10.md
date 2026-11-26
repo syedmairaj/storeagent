@@ -2,21 +2,92 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-25 DOC-TRACK-4):** See **§ 2026-11-25 — DOC-TRACK-4 CONN-HR-0/HR-1 reconciliation** below. Current V1–V15 status and decisions: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Offline readiness: `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (verified):** `454f7ec` — CONN-HR-1 offline hosted-readiness package; `main` **≡ `origin/main`** (same SHA; **no CI claim**); **57** migrations. Binding **`NOT_YET_VERIFIED`**. Five CONN migrations **not hosted-applied / not authorized**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
+> **Authoritative current state (2026-11-26 DOC-TRACK-5):** See **§ 2026-11-26 — DOC-TRACK-5 FE-ACCEPT-1C continuity** below. Current V1–V15 status and decisions: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Offline readiness: `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (verified):** `1edc1ff` — FE-ACCEPT-1C local automated merchant/Actions E2E; `main` **≡ `origin/main`** (same SHA; **no CI claim**); **57** migrations (hosted schema still **52**). Binding **`NOT_YET_VERIFIED`**. Five CONN migrations **not hosted-applied / not authorized**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
+> **Latest engineering / UI:** **FE-ACCEPT-1C CLOSED/PUSHED** @ `1edc1ff` — local authenticated browser certification **PASS** (Mailpit magic-link; merchant 6/6; Actions 6/6; Actions-1280 8/8) — **≠ hosted/production certification**. UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d **PLANNED**. AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6`; AI-INV-2…6 + AI-MKT-0…4 **PLANNED**.
 > **Latest connector / readiness:** DOC-TRACK-3 **CLOSED/PUSHED** @ `7bd2e8b`. CONN-HR-0 **CLOSED** (LOCAL-ONLY preflight). CONN-HR-1 **CLOSED/PUSHED** @ `454f7ec` (PARTIAL offline). CLI `db push` of #5 **BLOCKED** (`25P01`); Option B `psql` disposable **PASS**. Hosted apply **NO-GO**. V1–V15: 14 offline PASS · V11 **PARTIAL**; V8 offline PASS under §11, hosted **NOT VERIFIED**; §11 unchanged; **CONN-1 exit UNMET**. Next: **CONN-HR-2**.
-> **Latest UI / AI:** UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d **PLANNED** (merchant-first simplification + premium polish). AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6`; AI-INV-2…6 + AI-MKT-0…4 **PLANNED**.
 > **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify OAuth/SyncRun, live model/search, paid credits, hosted vault apply, or paying launch.
-> **Prior § 2026-11-24 DOC-TRACK-3 (HEAD `5de98cf`):** Historical for *current* HEAD/CONN-HR pins — superseded by § 2026-11-25; retained as V1–V15 / CONN-1d-E evidence.
+> **Prior § 2026-11-25 DOC-TRACK-4 (HEAD `454f7ec`):** Historical for *current* HEAD/FE-ACCEPT pins — superseded by § 2026-11-26; retained as CONN-HR-0/HR-1 / apply-method evidence.
+> **Prior § 2026-11-24 DOC-TRACK-3 (HEAD `5de98cf`):** Historical — superseded for *current* HEAD/CONN-HR pins by § 2026-11-25; retained as V1–V15 / CONN-1d-E evidence.
 > **Prior § 2026-11-20 post-closure (HEAD `38f63d6`):** Historical — superseded for *current* HEAD/CONN pins by § 2026-11-22.
 > **Prior DOC-2026-11 / 2026-11-19 pins:** Historical — do not treat as fresher than § 2026-11-22.
 > **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main remains **COMPLETE** (≠ hosted unlock).
-> **Latest strategy/addendum (2026-11-10):** Historical product strategy; prefer § 2026-11-25 for connector/readiness/Git truth when they differ.
+> **Latest strategy/addendum (2026-11-10):** Historical product strategy; prefer § 2026-11-26 for connector/UI/Git truth when they differ.
+
+## 2026-11-26 — DOC-TRACK-5 FE-ACCEPT-1C continuity
+
+> **Authority:** Documentation-only continuity sync after **FE-ACCEPT-1C** CLOSED/PUSHED @ `1edc1ff` (**DOC-TRACK-5**). No application source/test/SQL/migration/config edits, Supabase writes, KEK wiring, JWT, workers/cron, OAuth, Shopify HTTP, SyncRun, hosted apply, or Git stage/commit/push in this docs pass.
+> **Historical rule:** § 2026-11-25 DOC-TRACK-4 and all older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only. Vault contract §11, V1–V15 tally, CONN-HR-1 runbook body, and CONN-1d-F decision table remain unchanged except for the continuity note that next gated connectivity is **CONN-HR-2**. Protected dirty/untracked files (`docs/BACKGROUND_JOBS.md`, `docs/SERVICE_ROLE_BOUNDARY.md`, `next-env.d.ts`, `AGENTS.md`, `.tmp/`, `.vitest/`, SQL/DOCX/snippets, dated handoff draft) are not edited by this docs pass.
+
+### Git evidence (verified 2026-11-26)
+
+| Field | Value |
+|---|---|
+| Branch | `main` |
+| HEAD | `1edc1ff` — `test(e2e): automate FE-ACCEPT-1C magic-link merchant acceptance` |
+| Full SHA | `1edc1ffd733019524cc7b035ac875285506057c7` |
+| vs `origin/main` | **Aligned** (same SHA; no CI claim) |
+| Staging | Empty |
+| Migration inventory | **57** files = **57** manifest entries (latest `20261124120000`); hosted schema track still **52**; integrity check PASS |
+
+**Sequence (pushed):** … → `7bd2e8b` (DOC-TRACK-3) → `454f7ec` (CONN-HR-1) → `1edc1ff` (FE-ACCEPT-1C) = **HEAD**. DOC-TRACK-5 docs are on the working tree only.
+
+### Closures recorded
+
+| Milestone | State | Evidence |
+|---|---|---|
+| FE-ACCEPT-1C | **CLOSED/PUSHED** @ `1edc1ff` (LOCAL-ONLY) | 16-file commit; Mailpit magic-link auth; merchant E2E 6/6; Actions E2E 6/6; Actions-1280 stress 8/8; `lg:scroll-mt-[4.25rem]` on Actions queue rows |
+| DOC-TRACK-4 | Continuity recorded 2026-11-25 (docs pins @ HEAD then `454f7ec`) | CONN-HR-0/HR-1 + apply-method; Git closure of DOC-TRACK-4 docs not separately verified before FE-ACCEPT-1C |
+| CONN-HR-0 / HR-1 | Unchanged | HR-0 LOCAL-ONLY; HR-1 @ `454f7ec` offline PARTIAL |
+
+### Local browser certification (LOCAL-ONLY)
+
+| Suite | Result |
+|---|---|
+| Automated local magic-link authentication (Mailpit) | **PASS** |
+| Merchant acceptance E2E | **6/6 PASS** |
+| Actions acceptance E2E | **6/6 PASS** |
+| Actions 1280px stress | **8/8 PASS** |
+| Hosted / production browser certification | **NOT claimed** |
+
+### Unchanged security / production pins
+
+| Pin | State |
+|---|---|
+| V1–V15 | 14 offline PASS · V11 **PARTIAL**; V8 offline PASS under §11, hosted JWT **NOT VERIFIED** |
+| Vault contract §11 | **Unchanged** |
+| CONN-1 exit | **UNMET** (not CLOSED, not CERTIFIED) |
+| Binding | **`NOT_YET_VERIFIED`** |
+| D13 / D14 | **DEFERRED** |
+| Five CONN migrations | **Not hosted-applied / not authorized** (disk 57 / hosted 52) |
+| CLI #5 / Option B | CLI **25P01 BLOCKED**; Option B disposable **PASS**; hosted apply **NO-GO** |
+| OAuth / SyncRun / workers / M6 prod / M7 / buying / launch | **BLOCKED / NO-GO** |
+
+### Status deltas (vs § 2026-11-25 DOC-TRACK-4)
+
+| Item | 2026-11-25 pin | 2026-11-26 DOC-TRACK-5 |
+|---|---|---|
+| HEAD | `454f7ec` | **`1edc1ff`** |
+| FE-ACCEPT-1C | — | **CLOSED/PUSHED** LOCAL-ONLY browser cert **PASS** |
+| Local authenticated browser automation | BLOCKED / not claimed | **PASS** (≠ hosted) |
+| CONN-HR-0/HR-1 · apply method · V1–V15 · CONN-1 exit · binding · D13/D14 | As recorded | **Unchanged** |
+| Next eng | CONN-HR-2 (after DOC-TRACK-4 closure) | **CONN-HR-2** (after DOC-TRACK-5 docs Git closure) |
+
+### Next-gate sequence (not authorized by this addendum)
+
+1. Owner review and docs Git closure of DOC-TRACK-5.
+2. **CONN-HR-2** — owner-authorized hosted P1–P9 prechecks + reviewed Option B hosted apply specification/artifact (still no apply until gate 3).
+3. Hosted apply of the five migrations via **Option B only** (separate owner authorization) + post-apply catalog checks + hosted V8 empty-vault probe.
+4. Production binding slice (parallelizable offline); D14 → KEK wiring; D13 decision.
+5. CONN-2 OAuth (V10 end-to-end bind/reclaim) → operational slice → CONN-5 SyncRun.
+
+---
 
 ## 2026-11-25 — DOC-TRACK-4 CONN-HR-0/HR-1 reconciliation
 
-> **Authority:** Documentation-only reconciliation of DOC-TRACK-3 Git closure, CONN-HR-0 read-only preflight, and CONN-HR-1 offline readiness package (**DOC-TRACK-4**). No application source/test/SQL/migration/config edits, test execution, Supabase writes, KEK wiring, JWT, workers/cron, OAuth, Shopify HTTP, SyncRun, hosted apply, or Git stage/commit/push in this docs pass.
-> **Historical rule:** § 2026-11-24 DOC-TRACK-3 and all older dated sections remain **historical evidence** — not rewritten. This section supersedes their *current-status* pins only. The CONN-1 vault contract (including §11), V1–V15 tally, and slice implementation reports are unchanged. Protected `docs/SERVICE_ROLE_BOUNDARY.md` / `docs/BACKGROUND_JOBS.md` / `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md` are not edited by this docs pass (runbook retained as committed evidence; any stale “STOP for review” header is historical).
+> **SUPERSEDED for current-status pins** by § 2026-11-26 DOC-TRACK-5. Retained as historical CONN-HR-0/HR-1 / apply-method evidence (HEAD then `454f7ec`).
+> **Authority (historical):** Documentation-only reconciliation of DOC-TRACK-3 Git closure, CONN-HR-0 read-only preflight, and CONN-HR-1 offline readiness package (**DOC-TRACK-4**). No application source/test/SQL/migration/config edits, test execution, Supabase writes, KEK wiring, JWT, workers/cron, OAuth, Shopify HTTP, SyncRun, hosted apply, or Git stage/commit/push in this docs pass.
+> **Historical rule:** § 2026-11-24 DOC-TRACK-3 and all older dated sections remain **historical evidence** — not rewritten. This section superseded their *current-status* pins only at the time. The CONN-1 vault contract (including §11), V1–V15 tally, and slice implementation reports are unchanged. Protected `docs/SERVICE_ROLE_BOUNDARY.md` / `docs/BACKGROUND_JOBS.md` / `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md` were not edited by that docs pass (runbook retained as committed evidence; any stale “STOP for review” header is historical).
 
 ### Git evidence (verified 2026-11-25)
 

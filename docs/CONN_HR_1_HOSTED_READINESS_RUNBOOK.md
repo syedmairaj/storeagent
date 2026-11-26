@@ -1,7 +1,8 @@
 # CONN-HR-1 — Hosted Readiness Operator Runbook
 
-**Status:** Offline package COMPLETE — **STOP for owner review**
-**Baseline:** `main` @ `7bd2e8b` · 57 migrations · staging empty
+**Status:** Offline package COMPLETE — **CLOSED/PUSHED** @ `454f7ec` (historical package baseline below remains `7bd2e8b`)
+**Continuity (DOC-TRACK-5, 2026-11-26):** Current `main` HEAD is `1edc1ff` (FE-ACCEPT-1C). Next gated connectivity step is **CONN-HR-2**. Security gates in this runbook are unchanged. Hosted P1–P9 still **not run**; hosted apply still **NO-GO**.
+**Baseline (package creation):** `main` @ `7bd2e8b` · 57 migrations · staging empty
 **Mode:** No hosted SQL, migration apply, JWT, OAuth, KEK, workers, SyncRun, or Git writes in this slice.
 
 | Gate | State |
