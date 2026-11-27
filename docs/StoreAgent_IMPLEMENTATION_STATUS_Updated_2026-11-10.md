@@ -2,17 +2,58 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-26 DOC-TRACK-5):** See **§ 2026-11-26 — DOC-TRACK-5 FE-ACCEPT-1C continuity** below. Current V1–V15 status and decisions: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Offline readiness: `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI + merchant-value plan: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (verified):** `1edc1ff` — FE-ACCEPT-1C local automated merchant/Actions E2E; `main` **≡ `origin/main`** (same SHA; **no CI claim**); **57** migrations (hosted schema still **52**). Binding **`NOT_YET_VERIFIED`**. Five CONN migrations **not hosted-applied / not authorized**. Soft-enable AI **OFF**. Live nested cert **FALSE**.
-> **Latest engineering / UI:** **FE-ACCEPT-1C CLOSED/PUSHED** @ `1edc1ff` — local authenticated browser certification **PASS** (Mailpit magic-link; merchant 6/6; Actions 6/6; Actions-1280 8/8) — **≠ hosted/production certification**. UX-INV-1a–**1c.1 CLOSED/PUSHED**; UX-INV-1d **PLANNED**. AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6`; AI-INV-2…6 + AI-MKT-0…4 **PLANNED**.
-> **Latest connector / readiness:** DOC-TRACK-3 **CLOSED/PUSHED** @ `7bd2e8b`. CONN-HR-0 **CLOSED** (LOCAL-ONLY preflight). CONN-HR-1 **CLOSED/PUSHED** @ `454f7ec` (PARTIAL offline). CLI `db push` of #5 **BLOCKED** (`25P01`); Option B `psql` disposable **PASS**. Hosted apply **NO-GO**. V1–V15: 14 offline PASS · V11 **PARTIAL**; V8 offline PASS under §11, hosted **NOT VERIFIED**; §11 unchanged; **CONN-1 exit UNMET**. Next: **CONN-HR-2**.
-> **Does not** unlock hosted JWT, workers/cron, M7 production create, purchasing, live Shopify OAuth/SyncRun, live model/search, paid credits, hosted vault apply, or paying launch.
-> **Prior § 2026-11-25 DOC-TRACK-4 (HEAD `454f7ec`):** Historical for *current* HEAD/FE-ACCEPT pins — superseded by § 2026-11-26; retained as CONN-HR-0/HR-1 / apply-method evidence.
-> **Prior § 2026-11-24 DOC-TRACK-3 (HEAD `5de98cf`):** Historical — superseded for *current* HEAD/CONN-HR pins by § 2026-11-25; retained as V1–V15 / CONN-1d-E evidence.
-> **Prior § 2026-11-20 post-closure (HEAD `38f63d6`):** Historical — superseded for *current* HEAD/CONN pins by § 2026-11-22.
-> **Prior DOC-2026-11 / 2026-11-19 pins:** Historical — do not treat as fresher than § 2026-11-22.
-> **Latest execution closure (2026-11-18):** Local synthetic **Inventory CSV → Demand Metrics → Replenishment Planning** acceptance on snapstore/Main remains **COMPLETE** (≠ hosted unlock).
-> **Latest strategy/addendum (2026-11-10):** Historical product strategy; prefer § 2026-11-26 for connector/UI/Git truth when they differ.
+> **Authoritative current state (2026-11-27 AI-ARCH-0):** See **§ 2026-11-27 — AI-ARCH-0** below. Schema closeout: **§ DOC-CONTINUITY-6**. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. V1–V15 / CONN-1 exit: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Migration sync rule: `.cursor/rules/migration-synchronization-policy.mdc`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI roadmap: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (verified):** `78c1d45` — DOC-TRACK-5 docs reconcile on tip; `main` aligned with `origin/main` tracking (**no CI claim**). Local **57** / hosted **57**. History md5 `900da6949dfd6f7818a454b7f28ddf33`. Post-catalog **23/23 PASS**. Schema **DEPLOYED_VERIFIED** ≠ activation.
+> **Activation / security:** OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**. V11 **PARTIAL**. Binding **`NOT_YET_VERIFIED`**. D13/D14 **DEFERRED**. CONN-1 exit **UNMET**. Full Supabase DR **NOT ESTABLISHED**. Soft-enable AI **OFF**. Live nested cert **FALSE**. Paying launch **NO-GO**.
+> **Architecture:** AI-ARCH-0 / AI-ARCH-1 **PROPOSED** only. Principle: *The AI controls the investigation. It does not control what counts as a fact.*
+> **Next:** Owner accept **AI-ARCH-0** → **AI-ARCH-1** and/or **AI-INV-1.1 enablement** (PROPOSED) or **UX-INV-1d**.
+> **Prior § DOC-CONTINUITY-6:** Schema/activation authority retained; architecture next-step superseded by § AI-ARCH-0.
+> **Prior § 2026-11-26 DOC-TRACK-5 / older:** Historical — do not treat as fresher than § AI-ARCH-0.
+
+## 2026-11-27 — AI-ARCH-0 roadmap & architecture reconciliation
+
+> **Authority:** Documentation-only. No app/SQL/migration/Git ops. **PROPOSED** architecture — **not implemented**. Preserves DOC-CONTINUITY-6 schema pins and residue fixes.
+
+| Topic | Current state |
+|---|---|
+| HEAD | `78c1d45` · local/hosted **57/57** · post-catalog **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** |
+| Product framing | AI Commerce Intelligence & Buying Agent · Commerce Decision Loop |
+| AI-ARCH-0 | **PROPOSED** — orchestrator, tools, evidence contracts, L1–L3 autonomy model |
+| AI-ARCH-1 | **PROPOSED** — bounded read-only agent (after AI-ARCH-0) |
+| AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** |
+| AI-MKT-0…4 | **PLANNED** (IDs preserved) |
+| COMP-1 · CREATIVE-0…2 · LOOP-1 | **PROPOSED** |
+| DOCX | §36 preserved; **§37** AI-ARCH-0 appended |
+| Next | Owner accept AI-ARCH-0 → AI-ARCH-1 and/or AI-INV-1.1 enablement / UX-INV-1d |
+
+## 2026-11-27 — DOC-CONTINUITY-6 CONN migration closeout
+
+> **Authority:** Documentation-only reconciliation after hosted CONN Option B apply + post-catalog 23/23. No application/SQL/migration/operator/code edits, hosted SQL, or Git ops in this docs pass. Protected dirty/untracked files preserved.
+
+| Topic | Current state |
+|---|---|
+| HEAD | `78c1d45` · branch `main` · tracking `origin/main` |
+| Local / hosted migrations | **57 / 57** (pending filenames: **none**) |
+| History fingerprint | `900da6949dfd6f7818a454b7f28ddf33` · max `20261124120000` |
+| Post-catalog | **23/23 PASS** · `post_catalog_utc=2026-11-27T04:06:14Z` · evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z` |
+| Apply evidence | `~/StoreAgentEvidence/conn-hr-2c-apply-20261127T033439Z` (COMMITTED; interim parser false-fail resolved; evidence preserved) |
+| Migration DoD | **`DEPLOYED_VERIFIED`** (schema/history/catalog) |
+| Deployment status | Schema closed · connector production activation **OFF** |
+| Recovery | Backup checksum verified · partial restore only · **full Supabase DR NOT ESTABLISHED** |
+| Feature activation safe? | **No** for OAuth/SyncRun/workers/credentials/live AI — schema-only closeout |
+| Next eng | Superseded for architecture by § AI-ARCH-0; schema pins remain authoritative here |
+
+| Check | Result |
+|---|---|
+| FE-ACCEPT-1C local browser | PASS @ `1edc1ff` (≠ hosted) |
+| CONN-HR-2B P0–P9 | PASS (pre-apply evidence) |
+| Option B five CONN migrations | COMMITTED |
+| Catalog fingerprints | functions `b3b15a5e…` · vault `e8061599…` · guards `0921691f…` (from catalog evidence) |
+| OAuth / workers / cron / SyncRun | **OFF** |
+| V8 hosted JWT | **NOT VERIFIED** |
+| Binding / D13 / D14 | **NOT_YET_VERIFIED** / **DEFERRED** |
+
+**PROPOSED roadmap additions (not implementation permission):** AI-ARCH-0/1; COMP-1, CREATIVE-0/1/2, LOOP-1; AI-INV-1.1 enablement; sequence in `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` + master handoff §4.10.
 
 ## 2026-11-26 — DOC-TRACK-5 FE-ACCEPT-1C continuity
 

@@ -1,0 +1,36 @@
+---
+description: Permanent local vs hosted Supabase migration sync policy and DoD states
+alwaysApply: true
+---
+
+# Migration Synchronization Policy
+
+For every milestone that creates or modifies `supabase/migrations/**`:
+
+1. Implement and test migrations **locally with the feature**.
+2. Immediately compare local history vs the **hosted migration ledger**.
+3. Never call a DB-dependent milestone **fully deployed** while required hosted migrations are unapplied.
+4. If hosted apply is required, prepare deployment in the **same** milestone.
+5. After local tests + hosted readiness pass, **request owner authorization promptly**.
+6. After authorization, deploy only via the **approved** mechanism; verify hosted schema, RLS, grants, and migration history.
+7. If blocked, mark explicitly: `HOSTED_MIGRATION_BLOCKED` (reason, risk, owner action, next step).
+8. Do **not** silently accumulate pending migrations across later milestones.
+9. Before starting the next milestone, report: local count, hosted count, pending filenames, deployment status, activation safety.
+10. Never bypass approval, security gates, or production safety to force sync.
+11. Prefer concise reusable verification tooling; do not reopen completed audits without new evidence or a real blocker.
+12. Preserve protected dirty/untracked files; no automatic Git commit/push/reset/stash.
+
+Do **not** enable OAuth, workers, cron, SyncRun, credentials, or other activation gates unless separately authorized.
+
+## Definition of Done (never conflate)
+
+| State | Meaning |
+|---|---|
+| `LOCAL_COMPLETE` | Implementation + local checks pass |
+| `HOSTED_SYNC_PENDING` | Local done; required hosted migration deploy still outstanding |
+| `DEPLOYED_VERIFIED` | Required hosted migrations applied **and** post-deploy checks passed |
+
+```text
+❌ BAD: "Feature shipped" while hosted ledger lags local migrations
+✅ GOOD: "LOCAL_COMPLETE / HOSTED_SYNC_PENDING — pending: 2026….sql — activation OFF"
+```

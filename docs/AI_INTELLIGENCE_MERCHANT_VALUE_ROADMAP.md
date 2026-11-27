@@ -2,45 +2,228 @@
 
 **Document ID:** DOC-2026-11 / AI-INV
 **Mode:** Planning & product vision only — **not authorization** to deploy live models, enable workers, run JWT, connect live Shopify, activate M6/M7, spend credits, or claim merchant ROI.
-**As-of:** 2026-11-22 — **DOC-TRACK-1** (AI-INV-1/1.1 still CLOSED/PUSHED; AI-INV-2…6 + AI-MKT still PLANNED; connector HEAD advanced)
-**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-22 — DOC-TRACK-1 master milestone reconciliation**
+**As-of:** 2026-11-27 — **AI-ARCH-0** roadmap & architecture reconciliation (**PROPOSED**; DOC-CONTINUITY-6 schema pins preserved)
+**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-27 — AI-ARCH-0** (falls back to DOC-CONTINUITY-6 schema closeout)
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
-**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports
+**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports · canonical DOCX §36–§37
 
-### 2026-11-22 DOC-TRACK-1 status pin
+### 2026-11-27 status pin (DOC-CONTINUITY-6 + AI-ARCH-0)
 
 | Slice | Status |
 |---|---|
-| Git HEAD | `173a357` — CONN-1c-β; `main` ≡ `origin/main` (**no CI claim**) |
-| CONN-1c-β / CONN-MP-0 | **CLOSED/PUSHED** @ `173a357` / `1e18029` (PARTIAL offline / docs-only); binding **NOT_YET_VERIFIED** |
-| Shopify RO.3 | **CLOSED/PUSHED** @ `4f6ef0c`; offline mocks; live nested cert **FALSE** |
-| AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; offline/local **32/32** PASS; soft-enable **OFF**; not live-certified |
+| Git HEAD | `78c1d45` · hosted migrations **57/57** · post-catalog **23/23** · schema **DEPLOYED_VERIFIED** · activation **OFF** |
+| AI-ARCH-0 / AI-ARCH-1 | **PROPOSED** (architecture + bounded L1 agent — not implemented) |
+| AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** (not architecture substitute) |
 | AI-INV-2…6 | **PLANNED** |
-| AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4 | **PLANNED** (sequence preserved); no live search / paid credits; OpenAI/Gemini grounding = future adapters ≠ transaction DBs |
-| UX-INV-1d | **PLANNED** (merchant-first simplification + premium polish) |
-| Hosted JWT / workers / M6 prod / M7 create / purchasing / launch | **BLOCKED / NOT AUTHORIZED** |
+| AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4 | **PLANNED** (IDs preserved); no live search / paid credits |
+| COMP-1 · CREATIVE-0/1/2 · LOOP-1 | **PROPOSED** |
+| UX-INV-1d | **PLANNED** |
+| OAuth / SyncRun / workers / JWT / M6/M7 / launch | **BLOCKED / NOT AUTHORIZED** |
 
-> Prior pins expecting HEAD `38f63d6` as *current* Git tip, or AI-INV-1 as “Git pending”, are **superseded** for current status; historical milestone text below retains earlier wording where labeled.
+> Principle: *The AI controls the investigation. It does not control what counts as a fact.* Prefer this pin + master handoff for *current* truth.
+
+### PROPOSED dependency-aware intelligence sequence (AI-ARCH-0)
+
+Not implementation permission. No invented competitor sales/ROAS. Licensed sources only. Human approval for actions. Deterministic inventory math remains canonical.
+
+| Order | ID | Scope | Status |
+|---|---|---|---|
+| 0 | **AI-ARCH-0** | Orchestrator & evidence architecture (Commerce Decision Loop) | **PROPOSED** (docs next) |
+| 1 | **AI-ARCH-1** | Bounded read-only agent (L1) | **PROPOSED** |
+| 1b | AI-INV-1.1 enablement | Soft-enable / merchant UX iteration (code CLOSED @ `38f63d6`) | **PROPOSED** (parallel UX path) |
+| 2 | AI-MKT-0 | Data/source/licensing feasibility | PLANNED |
+| 3 | AI-MKT-1 | Grounded SKU/country research | PLANNED |
+| 4 | AI-MKT-1.1 | Credits and cost control | PLANNED |
+| 5 | AI-MKT-2 | Zero-sales detective | PLANNED |
+| 6 | COMP-1 | Competitor/customer sentiment workspace | **PROPOSED** |
+| 7 | AI-MKT-3 | Product/country opportunity advisor | PLANNED |
+| 8 | CREATIVE-0 | Ad-platform data feasibility | **PROPOSED** |
+| 9 | CREATIVE-1 | Owned creative/campaign analytics | **PROPOSED** |
+| 10 | CREATIVE-2 | Creative experiments and learning | **PROPOSED** |
+| 11 | AI-MKT-4 | Outcome and buying intelligence | PLANNED / wording **PROPOSED** |
+| 12 | LOOP-1 | Measured decision-learning system | **PROPOSED** |
 
 ---
 
-## 1. Product position (frozen thesis)
+## 1. Product position (frozen thesis + AI-ARCH-0 framing)
 
-StoreAgent.si is a **provider-independent AI Inventory & Buying Agent / Inventory Decision Copilot**.
+StoreAgent.si is a **provider-independent AI Commerce Intelligence & Buying Agent** (Inventory Decision Copilot) built on one **evidence-grounded Commerce Decision Loop**.
 
 | It is | It is not |
 |---|---|
-| Evidence-backed inventory decision workspace | Another inventory spreadsheet |
-| Deterministic metrics + forecast + decision engines with AI explanation | A generic chatbot bolted onto stock tables |
+| Evidence-backed commerce intelligence + buying workspace | Another inventory spreadsheet |
+| Deterministic metrics + forecast + decision engines with AI investigation/explanation | A generic chatbot bolted onto stock tables |
 | Provider-independent canonical domain (CSV → Shopify → Woo → Amazon) | A Shopify-only widget or ERP replacement |
-| Merchant-controlled Approve/Edit/Dismiss for consequential actions | An autonomous purchasing bot |
+| Merchant-controlled Approve/Edit/Dismiss for consequential actions | An autonomous purchasing bot that invents facts |
 
-**Thesis (unchanged):** Data determines reality. Deterministic forecasting and inventory logic calculate decisions. AI explains, prioritizes, retrieves scoped evidence, and assists. Merchants approve actions until automation earns trust.
+**Thesis (unchanged math authority):** Data determines reality. Deterministic forecasting and inventory logic calculate decisions. AI plans investigations, retrieves scoped evidence, explains, and assists. Merchants approve actions until automation earns trust. **AI-ARCH-0 principle:** *The AI controls the investigation. It does not control what counts as a fact.*
 
 **Initial ICP (hypothesis to validate — not achieved traction):** SMB / mid-market merchants ≈ **200–5,000 SKUs**, regular replenishment, spreadsheet/ops pain.
 **Long-term goal:** **1,000 merchants** — aspirational product goal, **not** current customers, paying launch, or guaranteed market success.
 
 **Paying-customer launch:** **NO-GO** until independent launch acceptance.
+
+---
+
+## AI-ARCH-0 — AI Commerce Intelligence Architecture (**PROPOSED**)
+
+> **Status:** **PROPOSED** documentation only — **not** implemented, **not** authorization for live models, paid research, OAuth, workers, SyncRun, credentials, M6/M7 activation, or purchasing.
+> **Milestone IDs:** `AI-ARCH-0` (this architecture) · `AI-ARCH-1` (bounded read-only agent — **PROPOSED**, after AI-ARCH-0). No prior ID collision found (2026-11-27).
+> **Non-negotiable principle:** *The AI controls the investigation. It does not control what counts as a fact.*
+
+### Product framing (reconciled)
+
+StoreAgent.si is an **AI Commerce Intelligence & Buying Agent**: one **provider-independent**, **evidence-grounded** **Commerce Decision Loop**. Deterministic inventory/forecast/decision engines remain numeric authority. Merchants approve consequential actions until higher autonomy is separately authorized.
+
+| LLMs may | LLMs must not |
+|---|---|
+| Plan investigations within approved tools | Fabricate business facts or competitor performance |
+| Choose typed, permissioned tools | Override canonical inventory / forecast / decision math |
+| Synthesize *sourced* evidence and explain | Select another tenant/org/store |
+| Draft recommendations for merchant review | Invent revenue, units sold, CPA, ROAS, demand, conversion |
+| Abstain when evidence is missing/stale | Bypass approval, spend, or policy gates |
+
+---
+
+### A. Central layers (separation of responsibilities)
+
+| # | Layer | Responsibility |
+|---|---|---|
+| 1 | Merchant natural-language interface | Capture intent; show provenance, abstentions, and decision workspace — not a free-form fact oracle |
+| 2 | Tenant / store / SKU / country context resolution | Bind every investigation to org → store → location → SKU/variant → country/currency; fail closed on ambiguity |
+| 3 | Bounded Commerce Intelligence Orchestrator | Run the Decision Loop with step/time/cost caps; schedule tool calls; never invent facts |
+| 4 | Typed, permissioned tool registry | Allowlisted tools only; least privilege; per-tenant policy; idempotent where side-effecting |
+| 5 | Canonical commerce domain + data adapters | Provider-independent domain; adapters normalize CSV/Shopify/…; unknown ≠ zero |
+| 6 | Internal + external evidence repository | Typed evidence records with provenance; licensed/authorized external sources only |
+| 7 | Deterministic calculation / decision engine | M5 metrics → M6 forecast → M7 decisions remain sole numeric truth |
+| 8 | Claim verification, policy & risk gates | Claim-level checks; licensing; spend caps; injection resistance; human-review triggers |
+| 9 | Merchant decision workspace | Approve / Edit / Dismiss; scenario compare; no silent action |
+| 10 | Outcome measurement / learning | Record approved tests → measured outcomes → updated evidence (tenant-private) |
+| 11 | Model-independent LLM router | Server-side router; provider swappable; schema-validated I/O; budgeted; auditable |
+
+**Orchestrator owns investigation control flow. Engines + evidence repository own facts. Merchants own consequential actions.**
+
+---
+
+### B. Dynamic merchant query flow (Commerce Decision Loop)
+
+```text
+UNDERSTAND → RESOLVE CONTEXT → PLAN → COLLECT → NORMALIZE → VALIDATE
+→ ANALYZE → VERIFY → RESPOND → TRACK OUTCOME
+```
+
+| Stage | Meaning |
+|---|---|
+| UNDERSTAND | Parse merchant question; classify intent (inventory Q, zero-sales, market, creative, reorder) |
+| RESOLVE CONTEXT | Org/store/SKU/country/currency; refuse cross-tenant; ask clarifying Q if ambiguous |
+| PLAN | Orchestrator selects approved tools only; declare max steps/deadline/cost |
+| COLLECT | Invoke tools; gather internal metrics + authorized external signals |
+| NORMALIZE | Map into canonical domain + typed evidence DTOs |
+| VALIDATE | Freshness, coverage, country/variant match, licensing, contradictions |
+| ANALYZE | Deterministic engines compute; LLM may hypothesize **labeled** inferences only |
+| VERIFY | Claim-level provenance; arithmetic re-check; policy/risk gates |
+| RESPOND | Answer with observed vs sourced vs inferred vs missing; recommend actions |
+| TRACK OUTCOME | If merchant approves a test/action, record outcome evidence for LOOP-1 |
+
+**Bounds (PROPOSED defaults — tune per slice):** max N tool steps; wall-clock deadline; per-org token/credit budget; cancellable mid-run; on budget/timeout → **safe fallback** = deterministic facts only + abstention (no invented fill). Bounded retries only for transient tool failures — never retry to “guess” a fact.
+
+**Coverage by query class**
+
+| Class | Internal first | External (gated) | Decision output |
+|---|---|---|---|
+| Simple inventory | M5 reads + AI-INV-1 | None | Explained facts + next steps |
+| Zero-sales diagnosis | AI-INV-1.1 situations + AI-MKT-2 | Optional AI-MKT-1 after confirm | Hypotheses labeled untested |
+| Competitor / country | COMP-1 + AI-MKT-1 | Licensed/API/permitted only | No invented competitor sales |
+| Product opportunity | AI-MKT-3 | Same | Opportunity ≠ guaranteed demand |
+| Creative / campaign | CREATIVE-1/2 | Ad-platform APIs after CREATIVE-0 | CPA/ROAS only if source provides |
+| Reorder / buying | M5/M6/M7 + AI-INV-6 | — | Merchant Approve/Edit/Dismiss only |
+
+#### Sample investigation (illustrative — not live data)
+
+**Merchant:** “Why isn’t SKU Blue Mug selling in AE, and should I reorder?”
+
+| Class | Content |
+|---|---|
+| Observed facts (internal) | Org/store scoped: available qty 42; units sold last 28d = 0; cover days high; last inventory observation 2026-11-20; listing status active *(hypothetical illustration)* |
+| Sourced external signals | Search-interest snippet for “blue mug UAE” from approved research adapter — **signal class = search interest ≠ units sold** |
+| Inferences (untested) | Possible demand mismatch **or** listing discoverability issue — **hypothesis, not confirmed** |
+| Missing evidence | Ad spend/ROAS for this SKU; competitor unit sales; returns rate; trusted unit cost for cash claim |
+| Recommended actions | (1) Confirm listing visibility in AE channel (2) Optional licensed market research with credit confirm (3) Do **not** auto-reorder — REORDER only after M7 gates + merchant approval |
+
+---
+
+### C. Evidence & accuracy contract (**PROPOSED** typed shapes)
+
+| Contract | Required fields (conceptual) |
+|---|---|
+| Query context | `org_id`, `store_id?`, `location_id?`, `sku_id?`, `variant_id?`, `country?`, `currency?`, `as_of`, actor |
+| Tool request/response | `tool_id`, args schema, permission scope, idempotency key, status, latency, cost |
+| Evidence record | `evidence_id`, claim text, value, unit, `claim_class` ∈ {observed_fact, sourced_signal, estimate, hypothesis, unknown} |
+| Provenance / citations | Source system/URL/provider, retrieval time, observation period, license/permit flag |
+| Observation vs inference | Explicit separation; inferences never silently upgraded to facts |
+| Country / currency / variant match | Match quality + fail-closed on mismatch |
+| Timestamps / freshness | `observed_at`, `as_of`, staleness class |
+| Coverage / contradictions | Coverage %, conflicting evidence list |
+| Decision recommendation | Action class, engine version, inputs hash, confidence class, human-required flag |
+| Merchant approval | Approve/Edit/Dismiss, actor, timestamp, edited fields |
+| Outcome / experiment | Baseline, treatment, metrics actually available, result class ∈ {correlation, hypothesis, controlled_causal} |
+
+**Invariants:** claim-level provenance · deterministic arithmetic · tenant isolation · source licensing · permission checks · abstention · human review for consequential actions.
+**Forbidden inventions:** competitor revenue/units, CPA/ROAS, demand volume, conversion rates — unless the authorized source literally provides them (then cite). Web-grounded AI research is **not** proof of sales.
+
+---
+
+### D. Autonomy and security
+
+| Level | Meaning | Gate |
+|---|---|---|
+| **L1** | Autonomous **read-only** investigation | **First** — AI-ARCH-1; still soft-enable / budgets / audit |
+| **L2** | Monitored recommendations & experiments | Separate auth; merchant confirm; spend caps |
+| **L3** | Bounded approved **external** actions | Separate auth; provider permissions; safety + release gates; idempotency |
+
+**Security controls (all levels):** prompt-injection resistance (tool outputs treated as untrusted data); least-privilege tools; source isolation; full audit trail; idempotent side effects; spending/credit controls.
+**Current production:** OAuth, workers, cron, SyncRun, live AI spend, credential ops remain **OFF**.
+
+---
+
+### E. Closed-loop intelligence (LOOP-1 target)
+
+```text
+Observations (merchant / store / market / campaign)
+→ evidence-backed hypotheses
+→ scenario comparison
+→ merchant-approved test
+→ measured business outcomes
+→ updated evidence & recommendations
+```
+
+Use sales, inventory, contribution margin, returns, creative metrics, CPA/ROAS **only when actually available from authorized sources**. Label **correlation** vs **hypothesis** vs **controlled causal** evidence. Tenant privacy: no uncontrolled cross-merchant sharing or model training on merchant data.
+
+---
+
+### F. Milestone roadmap (IDs verified — no collisions)
+
+| Order | ID | Scope | Status | Depends on | Acceptance (docs/impl) | NOT included |
+|---|---|---|---|---|---|---|
+| 0 | **AI-ARCH-0** | Orchestrator & evidence architecture (this doc) | **PROPOSED** | Owner review | Cross-doc consistency; principle frozen | Code, live AI, spend |
+| 1 | **AI-ARCH-1** | Bounded read-only agent (L1 loop) | **PROPOSED** | AI-ARCH-0 | Offline tests; budgets; abstention; tenant isolation | L2/L3 actions; paid research |
+| — | AI-INV-1 / 1.1 | Grounded explainer + situational guidance | **CLOSED/PUSHED** @ `38f63d6` | — | Soft-enable **OFF** | Live model cert |
+| 1b | AI-INV-1.1 enablement / UX | Soft-enable + merchant UX iteration | **PROPOSED** | Owner auth | Honesty review; flag still gated | OAuth/SyncRun |
+| 2 | AI-MKT-0 | Licensing / source feasibility | **PLANNED** | AI-ARCH-0 (contract) | Legal allowlists | Live providers |
+| 3 | AI-MKT-1 | Grounded SKU/country research | **PLANNED** | AI-MKT-0; AI-ARCH evidence contract | Evidence DTO PASS | Equating search≠sales |
+| 4 | AI-MKT-1.1 | Credits / cost control | **PLANNED** | Billing primitives | Idempotent reserve/settle | Silent spend |
+| 5 | AI-MKT-2 | Zero-sales detective | **PLANNED** | AI-INV-1.1; optional AI-MKT-1 | Hypotheses labeled | Confirmed causes |
+| 6 | **COMP-1** | Competitor & customer voice | **PROPOSED** | AI-MKT-0/1 | No invented competitor sales | Scraping without rights |
+| 7 | AI-MKT-3 | Opportunity advisor | **PLANNED** | AI-MKT-1 | Comparison quality gates | Auto-buy |
+| 8 | **CREATIVE-0** | Ads/creative data feasibility | **PROPOSED** | Licensing | Feasibility doc | Live ad APIs |
+| 9 | **CREATIVE-1** | Owned campaign performance | **PROPOSED** | CREATIVE-0 | Metrics only from APIs | Invented ROAS |
+| 10 | **CREATIVE-2** | Creative experiments | **PROPOSED** | CREATIVE-1; LOOP patterns | Merchant-approved tests | Uncontrolled spend |
+| 11 | AI-MKT-4 | Outcome / buying intelligence | **PLANNED** | M7/supplier where actions | No auto-buy | Autonomous purchasing |
+| 12 | **LOOP-1** | Decision/outcome learning | **PROPOSED** | AI-ARCH-0; outcomes plumbing | Tenant-private learning | Cross-merchant training |
+
+**Preserved IDs:** AI-MKT-0/1/1.1/2/3/4 · AI-INV-1.1 CLOSED @ `38f63d6` · COMP-1 · CREATIVE-0…2 · LOOP-1.
+**Feature gates:** connector activation, JWT, workers, live model, paid credits remain separately authorized.
+
 
 ---
 
@@ -306,7 +489,7 @@ Distinguish **CURRENT UI** (shipped local) vs **FUTURE** mockups/features. No fa
 
 ### Preserved security / hosted prerequisites (do not demote)
 
-- Hosted schema **52/52** ≠ ops unlock
+- Hosted schema **57/57 DEPLOYED_VERIFIED** ≠ ops / activation unlock
 - PE1.b.6b JWT **NOT EXECUTED**
 - Workers/cron **OFF**
 - M7 production create **hard-false**
@@ -317,22 +500,16 @@ Distinguish **CURRENT UI** (shipped local) vs **FUTURE** mockups/features. No fa
 
 ## 6. DOCX sync plan (non-destructive)
 
-Canonical DOCX: `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` remains **historical authority**.
+Canonical DOCX: `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` — §§1–35 historical authority; **§36 DOC-CONTINUITY-6** (status consolidation); **§37 AI Commerce Intelligence Architecture (PROPOSED)** — AI-ARCH-0. Markdown living truth: this file + November plan §0I + living ledger § AI-ARCH-0 + master handoff.
 
-**Proposed (owner-authorized later):** Add dated **Section 36+** addendum that points to:
-
-1. This file (AI-INV + merchant value)
-2. `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md`
-3. Living ledger § **2026-11-22 DOC-TRACK-1** + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (current status)
-
-**Do not** rewrite, delete, or replace DOCX body in the documentation pass that produced this Markdown.
+**Do not** rewrite or delete DOCX §§1–36; append-only addenda only. Do not create a competing canonical roadmap.
 
 ---
 
 ## 7. Owner decisions requested
 
-1. Accept **DOC-TRACK-1** master handoff reconciliation (CONN-1c-β / CONN-MP-0 already **CLOSED/PUSHED**; AI-INV-1/1.1 unchanged)?
-2. Authorize non-destructive DOCX Section 36+ sync?
-3. Authorize next engineering slice (**CONN-1d** — **not** OAuth/SyncRun/hosted vault apply yet)?
+1. Accept **AI-ARCH-0** architecture framing + milestone IDs (`AI-ARCH-0`, `AI-ARCH-1`) as **PROPOSED**?
+2. Keep AI-INV-1.1 **CLOSED** @ `38f63d6` (soft-enable OFF); treat enablement/UX as separate **PROPOSED** slice?
+3. Authorize DOC-CONTINUITY-6 + AI-ARCH-0 **docs Git closure** when ready (selective paths only)?
 4. Keep PE1.b.6b / workers / M6 prod / M7 create / live Shopify / live model / AI-MKT spend / paying launch **BLOCKED** (recommended YES)?
-5. Keep AI-INV-2…6 and AI-MKT-0…4 **PLANNED**; keep UX-INV-1d **PLANNED** until separately authorized?
+5. Keep AI-MKT-0…4 **PLANNED**; COMP/CREATIVE/LOOP **PROPOSED**; UX-INV-1d **PLANNED** until separately authorized?

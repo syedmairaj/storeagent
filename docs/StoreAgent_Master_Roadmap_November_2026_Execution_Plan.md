@@ -1,20 +1,63 @@
 # StoreAgent.si — November 2026 Execution Plan
 
 **Mode:** Documentation / planning reconciliation only
-**As-of current truth:** 2026-11-26 — **DOC-TRACK-5 FE-ACCEPT-1C continuity**
-**Git HEAD verified (2026-11-26):** `1edc1ff` — `test(e2e): automate FE-ACCEPT-1C magic-link merchant acceptance`
-**Remote:** `main` **≡ `origin/main`** (same SHA; **no CI claim**)
+**As-of current truth:** 2026-11-27 — **AI-ARCH-0** architecture reconciliation (**PROPOSED**; DOC-CONTINUITY-6 schema pins preserved)
+**Git HEAD verified (2026-11-27):** `78c1d45` — DOC-TRACK-5 docs reconcile on tip
+**Remote:** `main` tracking `origin/main` (**no CI claim**)
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
-**AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`
-**Authoritative status table:** living ledger § **2026-11-26 — DOC-TRACK-5 FE-ACCEPT-1C continuity**
-**Authority:** Augments the canonical master roadmap DOCX (`docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx`). Does **not** destructively rewrite frozen architecture, PE1.b gates, M5–M7 contracts, or historical ledger evidence.
-**DOCX synchronization:** **PENDING** — propose non-destructive **Section 36+** addendum pointing here + AI-INV doc + ledger § 2026-11-26 + master handoff. Do not rewrite/delete DOCX body in docs-only passes.
+**AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` (AI-ARCH-0 section)
+**Authoritative status table:** living ledger § **2026-11-27 — AI-ARCH-0**
+**Authority:** Augments the canonical master roadmap DOCX. Does **not** destructively rewrite frozen architecture, PE1.b gates, M5–M7 contracts, or historical ledger evidence.
+**DOCX synchronization:** §36 DOC-CONTINUITY-6 present; **§37 AI Commerce Intelligence Architecture (PROPOSED)** appended for AI-ARCH-0. §§1–36 preserved. Refresh Word Contents if needed.
+
+---
+
+## 0I. 2026-11-27 AI-ARCH-0 — Commerce Decision Loop architecture (**PROPOSED**)
+
+> **Authority for current *architecture* pins.** Schema/activation pins remain as in §0H. Prefer AI roadmap AI-ARCH-0 section + living ledger § AI-ARCH-0 + master handoff.
+
+| Topic | Current state |
+|---|---|
+| Product framing | AI Commerce Intelligence & Buying Agent · one evidence-grounded Commerce Decision Loop |
+| Principle | *The AI controls the investigation. It does not control what counts as a fact.* |
+| AI-ARCH-0 / AI-ARCH-1 | **PROPOSED** only — not implemented; no live AI spend |
+| AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** |
+| AI-MKT-0…4 | **PLANNED** (IDs preserved) |
+| COMP-1 · CREATIVE-0…2 · LOOP-1 | **PROPOSED** |
+| Autonomy | L1 read-only first; L2/L3 separately authorized |
+| Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · OAuth/workers/SyncRun/credentials **OFF** |
+
+### Proposed next sequence (dependency-aware; each step separately authorized)
+
+0. Owner review of **AI-ARCH-0** (+ DOC-CONTINUITY-6 docs Git closure when ready)
+1. **AI-ARCH-1** bounded L1 agent (**PROPOSED**) **and/or** **AI-INV-1.1** enablement / **UX-INV-1d** (parallel UX path)
+2. Hosted V8 JWT empty-vault probe → binding → D14/D13 → CONN-2 OAuth (still blocked until authorized)
+3. AI-MKT-0 → 1 → 1.1 → 2 → **COMP-1** → AI-MKT-3 → **CREATIVE-0…2** → AI-MKT-4 → **LOOP-1**
+4. SyncRun / M6 prod / M7 / launch only under separate gates
+
+---
+
+## 0H. 2026-11-27 DOC-CONTINUITY-6 reconciliation (hosted CONN 57/57)
+
+> **SUPERSEDED for *architecture* next-step pins** by §0I. Remains authority for hosted schema **57/57** / post-catalog **23/23** / activation **OFF**. §0G and older remain historical for “hosted schema 52 / apply NO-GO”.
+
+| Topic | Current state |
+|---|---|
+| HEAD | `78c1d45` · local **57** / hosted **57** · pending migrations **none** |
+| CONN Option B | Five migrations **COMMITTED**; history md5 `900da6949dfd6f7818a454b7f28ddf33` |
+| Post-catalog | **23/23 PASS** · evidence `conn-hr-2c-postcatalog-20261127T040549Z` |
+| Migration DoD | Schema **`DEPLOYED_VERIFIED`** · activation **OFF** |
+| DR residual | Backup checksum PASS · full Supabase DR **NOT ESTABLISHED** |
+| V8 / binding / D13/D14 / CONN-1 exit | Hosted JWT **NOT VERIFIED** · binding **NOT_YET_VERIFIED** · D13/D14 **DEFERRED** · exit **UNMET** |
+| Intelligence roadmap | See §0I (AI-ARCH-0); AI-MKT/COMP/CREATIVE/LOOP unchanged class |
+| PE1.b.6b / workers / M6/M7 / OAuth / SyncRun / launch | **Unchanged BLOCKED / NO-GO** |
 
 ---
 
 ## 0G. 2026-11-26 DOC-TRACK-5 reconciliation (FE-ACCEPT-1C local browser cert)
 
-> **Authority for current-status pins.** §0F / §0E / §0D / §0C / §0B / §0A and older Part A / Part E snapshots remain **historical evidence** — not rewritten. Prefer this §0G + living ledger § 2026-11-26 DOC-TRACK-5 + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` + `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` + `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`.
+> **SUPERSEDED for current-status pins** by §0I / §0H (hosted schema now 57). Retained as FE-ACCEPT-1C continuity evidence.
+> **Historical authority note.** Prefer living ledger § 2026-11-27 AI-ARCH-0 / DOC-CONTINUITY-6 + master handoff for current pins.
 
 | Topic | Current state |
 |---|---|
@@ -561,7 +604,7 @@ Viewports: 320 / 390 / 768 / 1024 / 1280 / 1440(+ ultrawide). Touch targets ≥4
 
 | Artifact | Role |
 |---|---|
-| `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` | Canonical DOCX — **Section 36+ sync PENDING** (point to this file + AI-INV + ledger § post-closure; do not wipe history) |
+| `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` | Canonical DOCX — §36 DOC-CONTINUITY-6 + **§37 AI-ARCH-0 (PROPOSED)**; §§1–36 preserved; refresh Word Contents if needed |
 | This file | November 2026 Markdown planning source |
 | `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` | AI-INV + merchant pain/value + 90-day sequence |
 | `docs/IMPLEMENTATION_STATUS.md` | Concise pointer + current status |
@@ -578,7 +621,8 @@ Viewports: 320 / 390 / 768 / 1024 / 1280 / 1440(+ ultrawide). Touch targets ≥4
 | Gate | Verdict |
 |---|---|
 | Documentation reconciliation (DOC-2026-11 **post-closure**) | **PASS** (pending owner read) — **STOP FOR OWNER REVIEW** |
-| DOCX non-destructive Section 36+ sync | **BLOCKED / PENDING** |
+| DOCX non-destructive Section 36 sync | **DONE** 2026-11-27 (DOC-CONTINUITY-6; Git closure still owner-gated) |
+| DOCX Section 37 AI-ARCH-0 architecture | **DONE** 2026-11-27 (**PROPOSED** only; not implementation) |
 | RO.3 Git closure | **CLOSED/PUSHED** @ `4f6ef0c` — live nested cert still **FALSE** |
 | RO.2 remote publish | **DONE** (historical; on origin) |
 | AI-INV-1 / 1.1 offline slice | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; not live-certified |

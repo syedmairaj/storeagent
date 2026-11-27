@@ -1,9 +1,9 @@
 # CONN-HR-1 — Hosted Readiness Operator Runbook
 
 **Status:** Offline package COMPLETE — **CLOSED/PUSHED** @ `454f7ec` (historical package baseline below remains `7bd2e8b`)
-**Continuity (DOC-TRACK-5, 2026-11-26):** Current `main` HEAD is `1edc1ff` (FE-ACCEPT-1C). Next gated connectivity step is **CONN-HR-2**. Security gates in this runbook are unchanged. Hosted P1–P9 still **not run**; hosted apply still **NO-GO**.
+**Continuity (DOC-CONTINUITY-6, 2026-11-27):** Hosted CONN migrations **DEPLOYED_VERIFIED** (57/57; history md5 `900da6949dfd6f7818a454b7f28ddf33`; post-catalog 23/23 PASS). This runbook remains the **offline Option B / disposable** authority; it does **not** authorize OAuth, workers, cron, SyncRun, KEK writes, or JWT unlock. Current HEAD pin: `78c1d45`. See master handoff + living ledger § 2026-11-27.
 **Baseline (package creation):** `main` @ `7bd2e8b` · 57 migrations · staging empty
-**Mode:** No hosted SQL, migration apply, JWT, OAuth, KEK, workers, SyncRun, or Git writes in this slice.
+**Mode (original slice):** No hosted SQL, migration apply, JWT, OAuth, KEK, workers, SyncRun, or Git writes in the HR-1 docs slice.
 
 | Gate | State |
 |---|---|
