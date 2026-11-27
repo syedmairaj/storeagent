@@ -2,29 +2,44 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-27 AI-ARCH-1f):** See **§ 2026-11-27 — AI-ARCH-1f** below. Schema closeout: **§ DOC-CONTINUITY-6**. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. V1–V15 / CONN-1 exit: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Migration sync rule: `.cursor/rules/migration-synchronization-policy.mdc`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI roadmap: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (verified tip):** `1c75de5` — AI-ARCH-1e CLOSED/PUSHED; AI-ARCH-1f **LOCAL_COMPLETE** (uncommitted). `main` aligned with `origin/main` at tip (**no CI claim**). Local **57** / hosted **57**. History md5 `900da6949dfd6f7818a454b7f28ddf33`. Post-catalog **23/23 PASS**. Schema **DEPLOYED_VERIFIED** ≠ activation.
+> **Authoritative current state (2026-11-27 AI-MKT-0):** See **§ 2026-11-27 — AI-MKT-0** below. Schema closeout: **§ DOC-CONTINUITY-6**. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Feasibility: `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`. V1–V15 / CONN-1 exit: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Migration sync rule: `.cursor/rules/migration-synchronization-policy.mdc`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI roadmap: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (verified tip):** `c216ded` — AI-ARCH-1a–1f **CLOSED/PUSHED**; AI-MKT-0 **`LOCAL_COMPLETE`** (docs; uncommitted). `main` aligned with `origin/main` at tip (**no CI claim**). Local **57** / hosted **57**. History md5 `900da6949dfd6f7818a454b7f28ddf33`. Post-catalog **23/23 PASS**. Schema **DEPLOYED_VERIFIED** ≠ activation.
 > **Activation / security:** OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**. V11 **PARTIAL**. Binding **`NOT_YET_VERIFIED`**. D13/D14 **DEFERRED**. CONN-1 exit **UNMET**. Full Supabase DR **NOT ESTABLISHED**. Soft-enable AI **OFF**. Live nested cert **FALSE**. Paying launch **NO-GO**.
-> **Architecture:** AI-ARCH-0 **PROPOSED** (design). AI-ARCH-1a–1e **CLOSED/PUSHED** (`d56de33` / `1c75de5`). AI-ARCH-1f **LOCAL_COMPLETE**. Principle: *The AI controls the investigation. It does not control what counts as a fact.*
-> **Next:** Owner review **AI-ARCH-1f** → parent AI-ARCH-1 Git checkpoint → **AI-MKT-0** (docs/legal; reconcile CONN/security before market prod). AI-INV-1.1 enablement / UX-INV-1d remain parallel **PROPOSED**.
-> **Prior § AI-ARCH-1e / AI-ARCH-0 / DOC-CONTINUITY-6:** Schema/activation authority retained; eng next-step superseded by § AI-ARCH-1f.
-> **Prior § 2026-11-26 DOC-TRACK-5 / older:** Historical — do not treat as fresher than § AI-ARCH-1f.
+> **Architecture:** AI-ARCH-0 **PROPOSED** (design). AI-ARCH-1 **CLOSED/PUSHED** @ `c216ded`. AI-MKT-0 **LOCAL_COMPLETE** (docs). Principle: *The AI controls the investigation. It does not control what counts as a fact.*
+> **Next:** Owner review **AI-MKT-0** → **AI-MKT-1** offline/mock under separate auth; **AI-MKT-1.1** before paid research; reconcile CONN/security before market prod. AI-INV-1.1 enablement / UX-INV-1d remain parallel **PROPOSED**.
+> **Prior § AI-ARCH-1f / AI-ARCH-1e / AI-ARCH-0 / DOC-CONTINUITY-6:** Schema/activation authority retained; eng next-step superseded by § AI-MKT-0.
+> **Prior § 2026-11-26 DOC-TRACK-5 / older:** Historical — do not treat as fresher than § AI-MKT-0.
 
-## 2026-11-27 — AI-ARCH-1f evaluation & release readiness
+## 2026-11-27 — AI-MKT-0 market intelligence feasibility (docs)
 
-> **Authority:** Local/offline eng slice. No migrations / hosted ops / Git closure in this pass. Soft-enable remains **OFF**. Offline eng **GO** ≠ production activation.
+> **Authority:** Documentation/design only. No app/lib/test runtime, migrations, provider execution, billing, or activation. Soft-enable remains **OFF**. Docs **GO** ≠ live research.
 
 | Topic | Current state |
 |---|---|
-| HEAD tip | `1c75de5` · AI-ARCH-1f work **uncommitted** · parent AI-ARCH-1 Git checkpoint **pending** |
+| HEAD tip | `c216ded` · AI-MKT-0 docs **uncommitted** · AI-ARCH-1 **CLOSED/PUSHED** |
+| AI-ARCH-1a–1f | **CLOSED/PUSHED** @ `c216ded` · 38/38 · 121/121 · 27/27 prior PASS · soft-enable **OFF** |
+| AI-MKT-0 | **`LOCAL_COMPLETE`** · `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` |
+| Governance rule | `.cursor/rules/commerce-intelligence-governance.mdc` (`alwaysApply: true`) installed; migration rule + `AGENTS.md` preserved |
+| MVP design | OpenAI `web_search` primary · Gemini grounding fallback (display/cache-restricted) · AE allowlist · SKU/country + zero-sales internal-first |
+| Live research / credits | **NO-GO** until AI-MKT-1.1 + applicable security gates |
+| Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** (unchanged; not reopened) |
+| Next | Owner review → **AI-MKT-1** offline/mock only under separate auth; STOP |
+
+## 2026-11-27 — AI-ARCH-1f evaluation & release readiness
+
+> **Authority (historical eng pin):** Later **CLOSED/PUSHED** with parent AI-ARCH-1 @ `c216ded`. Soft-enable remains **OFF**. Offline eng **GO** ≠ production activation. Superseded for *next-step* by § AI-MKT-0.
+
+| Topic | Current state |
+|---|---|
+| HEAD tip | Authoring tip was `1c75de5`; Git closure tip **`c216ded`** |
 | AI-ARCH-1a–1d | **CLOSED/PUSHED** @ `d56de33` · Vitest **62/62 PASS** |
 | AI-ARCH-1e | **CLOSED/PUSHED** @ `1c75de5` · fixture browser PASS · soft-enable **OFF** |
-| AI-ARCH-1f | **`LOCAL_COMPLETE`** · report `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md` |
+| AI-ARCH-1f | **CLOSED/PUSHED** @ `c216ded` · report `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md` |
 | Eval pack | Fixture `ai/ai-arch-1f-eval-v1` · runner exercises real L1 boundaries · §9 + adversarial **38/38** |
 | Tests | 1f **45/45 PASS**; combined 1a–1f **121/121**; AI-INV **27/27**; typecheck/lint/build **PASS** |
 | Bounds / budget | **6** steps / **4** tools / **8000** ms enforced; live spend **0**; credits **not** implemented |
 | Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** |
-| Next | Owner accept 1f / parent AI-ARCH-1 → **AI-MKT-0** (docs/legal); CONN-1 exit / V8 JWT / binding before market prod |
+| Next (historical) | Was AI-MKT-0 — now see § AI-MKT-0 |
 
 ## 2026-11-27 — AI-ARCH-1e guarded merchant intelligence UX
 
