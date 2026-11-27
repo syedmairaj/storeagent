@@ -9,6 +9,10 @@ import { PlanningInputsEditor } from "@/components/inventory/planning-inputs-edi
 import { DecisionReadinessPanel } from "@/components/inventory-readiness/decision-readiness-panel";
 import { requireAppIdentity } from "@/lib/auth/app-route";
 import { mayRunCommerceAgent } from "@/lib/commerce-agent/orchestrator/enablement";
+import {
+  mayShowMarketResearchPanel,
+  resolveMarketResearchEnablement,
+} from "@/lib/market-research";
 import { loadStoreIncomingEvidenceAttestations } from "@/lib/incoming-evidence/load";
 import {
   INVENTORY_EVIDENCE_ANCHOR,
@@ -175,6 +179,16 @@ export default async function InventoryPage({
     organizationId,
   }).mayRun;
 
+  // Market research panel visibility (default OFF). Soft-show ≠ orchestration unlock.
+  // Production action never injects synthetic fixtures regardless of this flag.
+  const marketResearchEnablement =
+    resolveMarketResearchEnablement(organizationId);
+  const marketResearchVisible = mayShowMarketResearchPanel({
+    organizationId,
+    researchEnabled: marketResearchEnablement.researchEnabled,
+    allowlistMatch: marketResearchEnablement.allowlistMatch,
+  });
+
   // Stable DOM order: SKU evidence always above readiness. Never swap sections
   // when filter=all ↔ filtered — that remount jump landed merchants on Decision
   // Readiness after clicking All. Overview deep links still use #inventory-evidence.
@@ -229,6 +243,7 @@ export default async function InventoryPage({
             sourceLabel={inventoryEvidenceSourceLabel(INVENTORY_SOURCE_KIND)}
             asOfLabel={asOfLabel}
             commerceAgentVisible={commerceAgentVisible}
+            marketResearchVisible={marketResearchVisible}
             planning={{
               leadTimeDays: planning.leadTimeDays,
               safetyStockDays: planning.safetyStockDays,

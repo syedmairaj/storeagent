@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 
 import { SkuCommerceAgentPanel } from "@/components/inventory/sku-commerce-agent-panel";
 import { SkuExplainerPanel } from "@/components/inventory/sku-explainer-panel";
+import { SkuMarketResearchPanel } from "@/components/inventory/sku-market-research-panel";
 import {
   presentSkuAttention,
   type SkuAttentionContext,
@@ -26,6 +27,7 @@ export function SkuIntelligenceInspector({
   planning = null,
   returnFocusRef,
   commerceAgentVisible = false,
+  marketResearchVisible = false,
 }: {
   row: MerchantInventoryIntelligenceRow | null;
   open: boolean;
@@ -37,6 +39,8 @@ export function SkuIntelligenceInspector({
   returnFocusRef?: React.RefObject<HTMLElement | null>;
   /** Server-resolved commerce-agent soft-enable ∧ allowlist (default hidden). */
   commerceAgentVisible?: boolean;
+  /** Server-resolved market-research panel enablement ∧ allowlist (default hidden). */
+  marketResearchVisible?: boolean;
 }) {
   const titleId = useId();
   const descriptionId = useId();
@@ -120,6 +124,7 @@ export function SkuIntelligenceInspector({
                 presentation={presentation}
                 stockObservationsStale={stockObservationsStale}
                 commerceAgentVisible={commerceAgentVisible}
+                marketResearchVisible={marketResearchVisible}
               />
             ) : null}
           </div>
@@ -134,11 +139,13 @@ function InspectorBody({
   presentation,
   stockObservationsStale,
   commerceAgentVisible,
+  marketResearchVisible,
 }: {
   row: MerchantInventoryIntelligenceRow;
   presentation: ReturnType<typeof presentSkuAttention>;
   stockObservationsStale: boolean;
   commerceAgentVisible: boolean;
+  marketResearchVisible: boolean;
 }) {
   const { evidence } = presentation;
   const thresholds = evidence.facts.find((f) => f.id === "thresholds");
@@ -192,6 +199,13 @@ function InspectorBody({
         organizationId={row.organizationId}
         stockObservationsStale={stockObservationsStale}
         visible={commerceAgentVisible}
+      />
+
+      <SkuMarketResearchPanel
+        key={`market-research:${row.grainKey}`}
+        row={row}
+        organizationId={row.organizationId}
+        visible={marketResearchVisible}
       />
 
       {/* Concise fact groups */}

@@ -1,9 +1,9 @@
 # StoreAgent.si — November 2026 Execution Plan
 
 **Mode:** Documentation / planning reconciliation only
-**As-of current truth:** 2026-11-27 — **AI-MKT-1d** (`LOCAL_COMPLETE` offline; AI-MKT-1c CLOSED/PUSHED @ `553e239`; AI-MKT-1b CLOSED/PUSHED @ `211d8e9`; AI-MKT-1a CLOSED/PUSHED @ `f685c15`; AI-MKT-0 CLOSED/PUSHED @ `de01686`; AI-ARCH-1 CLOSED/PUSHED @ `c216ded`; DOC-CONTINUITY-6 schema pins preserved)
-**Git HEAD verified tip (2026-11-27):** `553e239` — AI-MKT-1c CLOSED/PUSHED; AI-MKT-1b CLOSED/PUSHED @ `211d8e9`; AI-MKT-1a CLOSED/PUSHED @ `f685c15`; AI-MKT-0 CLOSED/PUSHED @ `de01686`; AI-ARCH-1a–1f CLOSED/PUSHED @ `c216ded`; AI-MKT-1d LOCAL_COMPLETE (uncommitted)
-**Remote:** `main` tracking `origin/main` at `211d8e9` (**no CI claim**)
+**As-of current truth:** 2026-11-27 — **AI-MKT-1e** (`LOCAL_COMPLETE` offline; AI-MKT-1d CLOSED/PUSHED @ `2f6ae43`; AI-MKT-1c CLOSED/PUSHED @ `553e239`; AI-MKT-1b CLOSED/PUSHED @ `211d8e9`; AI-MKT-1a CLOSED/PUSHED @ `f685c15`; AI-MKT-0 CLOSED/PUSHED @ `de01686`; AI-ARCH-1 CLOSED/PUSHED @ `c216ded`; DOC-CONTINUITY-6 schema pins preserved)
+**Git HEAD verified tip (2026-11-27):** `2f6ae43` — AI-MKT-1d CLOSED/PUSHED; AI-MKT-1c CLOSED/PUSHED @ `553e239`; AI-MKT-1b CLOSED/PUSHED @ `211d8e9`; AI-MKT-1a CLOSED/PUSHED @ `f685c15`; AI-MKT-0 CLOSED/PUSHED @ `de01686`; AI-ARCH-1a–1f CLOSED/PUSHED @ `c216ded`; AI-MKT-1e LOCAL_COMPLETE (uncommitted)
+**Remote:** `main` tracking `origin/main` at `2f6ae43` (**no CI claim**)
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
 **AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`
 **AI-MKT-0 feasibility:** `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`
@@ -11,24 +11,38 @@
 **AI-MKT-1b report:** `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md`
 **AI-MKT-1c report:** `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md`
 **AI-MKT-1d report:** `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md`
-**Authoritative status table:** living ledger § **2026-11-27 — AI-MKT-1d**
+**AI-MKT-1e report:** `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md`
+**Authoritative status table:** living ledger § **2026-11-27 — AI-MKT-1e**
 **Authority:** Augments the canonical master roadmap DOCX. Does **not** destructively rewrite frozen architecture, PE1.b gates, M5–M7 contracts, or historical ledger evidence.
 **DOCX synchronization:** §36 DOC-CONTINUITY-6 present; **§37 AI Commerce Intelligence Architecture (PROPOSED)** appended for AI-ARCH-0. §§1–36 preserved. Refresh Word Contents if needed.
 
 ---
 
-## 0P. 2026-11-27 AI-MKT-1d — Bounded orchestration & claim validation (`LOCAL_COMPLETE`)
+## 0Q. 2026-11-27 AI-MKT-1e — Guarded merchant research UX (`LOCAL_COMPLETE`)
 
-> **Authority for current *eng* pins.** Schema/activation pins remain as in §0H. §0I remains architecture design authority. Offline **GO** ≠ live research / AI-MKT-1e start.
+> **Authority for current *eng* pins.** Schema/activation pins remain as in §0H. §0I remains architecture design authority. Offline **GO** ≠ live research / AI-MKT-1f start.
+
+| Field | Value |
+|---|---|
+| AI-MKT-1d | **CLOSED/PUSHED** @ `2f6ae43` |
+| AI-MKT-1e | **`LOCAL_COMPLETE`** · SKU Market Intelligence panel + guarded action + `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` |
+| Tests | Focused **19/19**; 1a–1e **102/102**; AI-ARCH **121/121**; AI-INV **27/27**; fixture browser 375→2560 **PASS** |
+| Live / credits / soft-show unlock | **NO-GO** (soft-show default OFF; production never injects synthetic) |
+| Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · **OFF** |
+| Next | Owner review AI-MKT-1e → **AI-MKT-1f** adversarial evaluation & offline acceptance only under separate auth; STOP |
+
+## 0P. 2026-11-27 AI-MKT-1d — Bounded orchestration & claim validation (CLOSED/PUSHED @ `2f6ae43`)
+
+> **Authority (historical eng pin).** Schema/activation pins remain as in §0H. Offline **GO** ≠ live research. Superseded for *next-step* by §0Q.
 
 | Field | Value |
 |---|---|
 | AI-MKT-1c | **CLOSED/PUSHED** @ `553e239` |
-| AI-MKT-1d | **`LOCAL_COMPLETE`** · `lib/market-research/orchestration/` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` |
+| AI-MKT-1d | **CLOSED/PUSHED** @ `2f6ae43` · `lib/market-research/orchestration/` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` |
 | Tests | Focused **19/19**; 1a–1d **83/83**; AI-ARCH **121/121**; AI-INV **27/27** |
 | Live / credits | **NO-GO** |
 | Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · **OFF** |
-| Next | Owner review AI-MKT-1d → **AI-MKT-1e** guarded merchant research UX only under separate auth; STOP |
+| Next (historical) | Was AI-MKT-1e — see §0Q |
 
 ## 0O. 2026-11-27 AI-MKT-1c — Evidence normalization & matching (CLOSED/PUSHED @ `553e239`)
 
@@ -144,15 +158,16 @@
 | AI-MKT-1a | **CLOSED/PUSHED** @ `f685c15` |
 | AI-MKT-1b | **CLOSED/PUSHED** @ `211d8e9` |
 | AI-MKT-1c | **CLOSED/PUSHED** @ `553e239` |
-| AI-MKT-1d | **`LOCAL_COMPLETE`** (offline) |
-| AI-MKT-1e…4 | **PLANNED** (IDs preserved) |
+| AI-MKT-1d | **CLOSED/PUSHED** @ `2f6ae43` |
+| AI-MKT-1e | **`LOCAL_COMPLETE`** (offline) |
+| AI-MKT-1f…4 | **PLANNED** (IDs preserved) |
 | COMP-1 · CREATIVE-0…2 · LOOP-1 | **PROPOSED** |
 | Autonomy | L1 read-only first; L2/L3 separately authorized |
 | Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · OAuth/workers/SyncRun/credentials **OFF** |
 
 ### Proposed next sequence (dependency-aware; each step separately authorized)
 
-0. Owner review of **AI-MKT-1d** (`LOCAL_COMPLETE` offline) — STOP; do not start AI-MKT-1e without auth
+0. Owner review of **AI-MKT-1e** (`LOCAL_COMPLETE` offline) — STOP; do not start AI-MKT-1f without auth
 1. **AI-MKT-1e** (guarded merchant research UX only) under separate authorization
 2. **AI-MKT-1.1** credits/cost controls before any paid research
 3. **AI-INV-1.1** enablement / **UX-INV-1d** remain parallel **PROPOSED** paths
@@ -502,8 +517,9 @@ A workstream may hold multiple labels. Schema ≠ operation. Synthetic ≠ merch
 | AI-MKT-1a | Contracts/registry/rights | — | — | — | — | No | **CLOSED/PUSHED** @ `f685c15` — see §0M |
 | AI-MKT-1b | Offline adapters/fixtures | Yes (`211d8e9`) | — | — | — | No | **CLOSED/PUSHED** — see §0N |
 | AI-MKT-1c | Evidence normalization/matching | Yes (`553e239`) | — | — | — | No | **CLOSED/PUSHED** — see §0O |
-| AI-MKT-1d | Bounded orchestration/claim validation | — | — | — | — | No | **`LOCAL_COMPLETE`** offline — see §0P |
-| AI-INV-2…6 / AI-MKT-1e…4 | Docs / roadmap | — | — | — | — | No | **PLANNED** — sequence 1e → 1.1 → 2 → 3 → 4 |
+| AI-MKT-1d | Bounded orchestration/claim validation | — | — | — | — | No | **CLOSED/PUSHED** @ `2f6ae43` — see §0P |
+| AI-MKT-1e | Guarded merchant research UX | — | — | — | — | No | **`LOCAL_COMPLETE`** offline — see §0Q |
+| AI-INV-2…6 / AI-MKT-1f…4 | Docs / roadmap | — | — | — | — | No | **PLANNED** — sequence 1f → 1.1 → 2 → 3 → 4 |
 | Shopify M0.7 boundary freezes | Yes (docs/contracts) | Architecture tests | — | N/A | N/A | No | Continues as adapter law |
 | Shopify RO.1 offline normalizers | Yes (`0072a04`) **CLOSED/PUSHED** | Unit normalization suites | Offline fixtures only | N/A | No live shop | No | Live cert **Blocked** |
 | Shopify RO.2 transport | Yes (`7fc8f2a`) **CLOSED/PUSHED** | Transport unit PASS (suite grown since 17/17) | No live E2E | N/A | No live shop; no OAuth | No | Nested live completeness **Blocked** for SyncRun; OAuth/SyncRun **Planned** |
@@ -685,8 +701,9 @@ Primary public source already captured (2026-11 competitive UX doc): Prediko Sho
 | AI-MKT-1a | Contracts / registry / rights | **CLOSED/PUSHED** @ `f685c15` | Runtime DTOs + deny-by-default rights | No live/network | LEGAL open | Licensed sources; consent | `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` | See §0N |
 | AI-MKT-1b | Offline adapters / fixtures | **CLOSED/PUSHED** @ `211d8e9` | Synthetic OpenAI/Gemini adapters | No SDK/live | LEGAL open; live forbidden | Licensed sources; consent | `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md` | Closed |
 | AI-MKT-1c | Evidence normalization / matching | **CLOSED/PUSHED** @ `553e239` | Normalize + product/geo match | No credits | LEGAL open; live forbidden | Licensed sources; consent | `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` | Closed |
-| AI-MKT-1d | Bounded orchestration / claim validation | **`LOCAL_COMPLETE`** | Orchestration + claim validation | No UX/credits | LEGAL open; live forbidden | Licensed sources; consent | `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` | STOP — do not start AI-MKT-1e without auth |
-| AI-MKT-1e…4 | Credit-based market intelligence | **PLANNED only** | UX + credits + zero-sales detective | No live web/AI/billing in this plan | AI-MKT-1d; AI-MKT-1.1 before paid | Licensed sources; consent | Spec in AI roadmap | Future — not authorized |
+| AI-MKT-1d | Bounded orchestration / claim validation | **CLOSED/PUSHED** @ `2f6ae43` | Orchestration + claim validation | No live/credits | LEGAL open; live forbidden | Licensed sources; consent | `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` | Closed — see §0P |
+| AI-MKT-1e | Guarded merchant research UX | **`LOCAL_COMPLETE`** | SKU panel + guarded action + safe DTO | Soft-show OFF; no live/paid | LEGAL open; live forbidden | Licensed sources; consent | `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` | STOP — do not start AI-MKT-1f without auth |
+| AI-MKT-1f…4 | Credit-based market intelligence | **PLANNED only** | Eval + credits + zero-sales detective | No live web/AI/billing in this plan | AI-MKT-1e; AI-MKT-1.1 before paid | Licensed sources; consent | Spec in AI roadmap | Future — not authorized |
 
 ### NEXT
 
@@ -701,7 +718,8 @@ Primary public source already captured (2026-11 competitive UX doc): Prediko Sho
 | AI-MKT-1a | Research contracts / registry / rights | **CLOSED/PUSHED** @ `f685c15` — live NO-GO; see §0M |
 | AI-MKT-1b | Offline adapters / research fixtures | **CLOSED/PUSHED** @ `211d8e9` — live NO-GO; see §0N |
 | AI-MKT-1c | Evidence normalization / matching | **CLOSED/PUSHED** @ `553e239` — live NO-GO; see §0O |
-| AI-MKT-1d | Bounded orchestration / claim validation | **`LOCAL_COMPLETE`** offline — live NO-GO; see §0P |
+| AI-MKT-1d | Bounded orchestration / claim validation | **CLOSED/PUSHED** @ `2f6ae43` — live NO-GO; see §0P |
+| AI-MKT-1e | Guarded merchant research UX | **`LOCAL_COMPLETE`** offline — live NO-GO; see §0Q |
 
 ### LATER
 
@@ -766,6 +784,6 @@ Viewports: 320 / 390 / 768 / 1024 / 1280 / 1440(+ ultrawide). Touch targets ≥4
 | RO.2 remote publish | **DONE** (historical; on origin) |
 | AI-INV-1 / 1.1 offline slice | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; not live-certified |
 | AI-INV-2…6 | **PLANNED** |
-| AI-MKT Market Brain (0→1a→1b→1c→1d→1e→1.1→2→3→4) | **AI-MKT-0 CLOSED/PUSHED** @ `de01686`; **AI-MKT-1a CLOSED/PUSHED** @ `f685c15`; **AI-MKT-1b CLOSED/PUSHED** @ `211d8e9`; **AI-MKT-1c CLOSED/PUSHED** @ `553e239`; **AI-MKT-1d LOCAL_COMPLETE** (offline); 1e…4 **PLANNED** — no live web/AI, credits, or billing execution |
+| AI-MKT Market Brain (0→1a→1b→1c→1d→1e→1f→1.1→2→3→4) | **AI-MKT-0 CLOSED/PUSHED** @ `de01686`; **AI-MKT-1a CLOSED/PUSHED** @ `f685c15`; **AI-MKT-1b CLOSED/PUSHED** @ `211d8e9`; **AI-MKT-1c CLOSED/PUSHED** @ `553e239`; **AI-MKT-1d CLOSED/PUSHED** @ `2f6ae43`; **AI-MKT-1e LOCAL_COMPLETE** (offline); 1f…4 **PLANNED** — no live web/AI, credits, or billing execution |
 | Application/UI implementation beyond approved slices | **NO-GO** until separate slice approval |
 | Workers / JWT / M6 prod / M7 / live Shopify / live model / purchasing / launch | **BLOCKED** unchanged |

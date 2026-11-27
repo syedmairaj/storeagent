@@ -112,6 +112,7 @@ export function InventoryIntelligenceWorkspace({
   asOfLabel,
   planning = null,
   commerceAgentVisible = false,
+  marketResearchVisible = false,
 }: {
   rows: readonly MerchantInventoryIntelligenceRow[];
   /** Deep-link from Overview attention signals. */
@@ -127,6 +128,8 @@ export function InventoryIntelligenceWorkspace({
   planning?: MerchantPlanningInputs | null;
   /** Server-resolved commerce-agent soft-enable ∧ allowlist (default hidden). */
   commerceAgentVisible?: boolean;
+  /** Server-resolved market-research panel enablement ∧ allowlist (default hidden). */
+  marketResearchVisible?: boolean;
   /** @deprecated Pending copy lives on readiness freshness; kept optional for callers. */
   hasPendingMetricWork?: boolean;
 }) {
@@ -587,6 +590,7 @@ export function InventoryIntelligenceWorkspace({
         stockObservationsStale={stockObservationsStale}
         planning={planning}
         commerceAgentVisible={commerceAgentVisible}
+        marketResearchVisible={marketResearchVisible}
         returnFocusRef={returnFocusRef}
         onOpenChange={(open) => {
           if (!open) {

@@ -1,8 +1,10 @@
 /**
- * AI-MKT-1a/1b/1c/1d — market research contracts, source registry, rights enforcement,
+ * AI-MKT-1a/1b/1c/1d/1e — market research contracts, source registry, rights enforcement,
  * offline provider adapters / synthetic fixtures, evidence normalization /
- * product-geographic matching, and bounded orchestration & claim validation.
- * Schema-neutral. No live network, SDKs, persistence, credits, or merchant routes.
+ * product-geographic matching, bounded orchestration & claim validation,
+ * and guarded merchant research UX contracts (DTO / intents / stale helpers).
+ * Schema-neutral. No live network, SDKs, persistence, credits, or public routes.
+ * Server action stays in actions.ts — not re-exported from this barrel.
  */
 
 export type {
@@ -272,3 +274,63 @@ export {
   type ApplyResearchDraftResult,
   type RunMarketResearchOrchestrationInput,
 } from "@/lib/market-research/orchestration";
+
+export {
+  MERCHANT_RESEARCH_STRUCTURED_INTENTS,
+  MERCHANT_RESEARCH_STRUCTURED_DEPTHS,
+  MERCHANT_RESEARCH_COUNTRIES,
+  isMerchantResearchStructuredIntent,
+  isMerchantResearchStructuredDepth,
+  isMerchantResearchCountryCode,
+  isUnsupportedMerchantResearchIntent,
+  isForbiddenResearchDepth,
+  getMerchantResearchCountryOption,
+  listMerchantResearchCountriesForUx,
+  type MerchantResearchStructuredIntent,
+  type MerchantResearchStructuredDepth,
+  type MerchantResearchCountryCode,
+  type MerchantResearchIntentOption,
+  type MerchantResearchDepthOption,
+  type MerchantResearchCountryOption,
+} from "@/lib/market-research/merchant-intents";
+
+export {
+  SYNTHETIC_PREVIEW_WARNING,
+  toMerchantResearchDto,
+  merchantResearchError,
+  assertMerchantResearchSafeDto,
+  type MerchantResearchDto,
+  type MerchantResearchAnswerDto,
+  type MerchantResearchAbstentionDto,
+  type MerchantResearchErrorDto,
+  type MerchantResearchRejectionCode,
+  type MerchantResearchFindingDto,
+  type MerchantResearchCitationDto,
+  type MerchantResearchConflictDto,
+} from "@/lib/market-research/merchant-response";
+
+export {
+  runGuardedMerchantResearch,
+  buildTrustedTargetProductFromRow,
+  FORBIDDEN_MERCHANT_RESEARCH_CLIENT_KEYS,
+  type MerchantResearchInput,
+  type MerchantResearchPorts,
+  type MerchantResearchPreviewPorts,
+  type MerchantResearchIdentity,
+  type MerchantResearchOrgContext,
+} from "@/lib/market-research/merchant-research";
+
+export {
+  isCurrentMarketResearchResponse,
+  createMarketResearchClientRequestId,
+  type MarketResearchRequestKey,
+} from "@/lib/market-research/client-request";
+
+export {
+  FORBIDDEN_SYNTHETIC_ENV_OVERRIDE_KEYS,
+  detectForbiddenSyntheticEnvOverrides,
+  assertProductionMarketResearchExecutionForbidden,
+  mayShowMarketResearchPanel,
+} from "@/lib/market-research/preview-isolation";
+
+// runMarketResearchAction stays server-only — do not re-export from this barrel.
