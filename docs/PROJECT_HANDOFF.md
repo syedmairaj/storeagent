@@ -2,14 +2,14 @@
 
 Bootstrap for new ChatGPT / Cursor sessions.
 
-**Read first (compact current truth):** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**AI-MKT-0**), then `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`, `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` for V1–V15 / CONN-1 exit, and `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+**Read first (compact current truth):** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**AI-MKT-1a**), then `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md`, `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`, `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` for V1–V15 / CONN-1 exit, and `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
 **Active PE1.b.6b continuity (JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`
-Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger § **2026-11-27 — AI-MKT-0**.
-**November 2026 execution plan:** `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md` (§0L / §0K / §0J / §0I / §0H).
+Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger § **2026-11-27 — AI-MKT-1a**.
+**November 2026 execution plan:** `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md` (§0M / §0L / §0K / §0J / §0I / §0H).
 **Migration sync policy:** `.cursor/rules/migration-synchronization-policy.mdc` (`LOCAL_COMPLETE` ≠ `HOSTED_SYNC_PENDING` ≠ `DEPLOYED_VERIFIED`).
 **Overview/Inventory UX delivery:** `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` (UX-INV-1a–**1c.1 CLOSED**; 1d **PLANNED**).
 
-Hosted schema ledger: **57/57 DEPLOYED_VERIFIED** (CONN Option B + post-catalog 23/23; evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z`). Historical 38→52 closeout remains in `docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`. Full Supabase DR **NOT ESTABLISHED**. OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**. **AI-ARCH-0 PROPOSED** (design @ `d12fd04`). **AI-ARCH-1a–1f CLOSED/PUSHED** @ `c216ded` (soft-enable **OFF**; 38/38 · 121/121 · 27/27 prior PASS). Principle: *The AI controls the investigation. It does not control what counts as a fact.* AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**; enablement **PROPOSED**). **AI-MKT-0 LOCAL_COMPLETE** (docs); AI-MKT-1…4 **PLANNED**; COMP-1 / CREATIVE-0…2 / LOOP-1 **PROPOSED**. Canonical DOCX §§36–37. M5.6/M5.7: `docs/M5_6_HANDOFF.md`. After every milestone (including blocked): update master handoff before the next — do not rely on chat length.
+Hosted schema ledger: **57/57 DEPLOYED_VERIFIED** (CONN Option B + post-catalog 23/23; evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z`). Historical 38→52 closeout remains in `docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`. Full Supabase DR **NOT ESTABLISHED**. OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**. **AI-ARCH-0 PROPOSED** (design @ `d12fd04`). **AI-ARCH-1a–1f CLOSED/PUSHED** @ `c216ded` (soft-enable **OFF**; 38/38 · 121/121 · 27/27 PASS). Principle: *The AI controls the investigation. It does not control what counts as a fact.* AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**; enablement **PROPOSED**). **AI-MKT-0 CLOSED/PUSHED** @ `de01686`; **AI-MKT-1a LOCAL_COMPLETE** (offline contracts/rights; live **NO-GO**); AI-MKT-1b…4 **PLANNED**; COMP-1 / CREATIVE-0…2 / LOOP-1 **PROPOSED**. Canonical DOCX §§36–37. M5.6/M5.7: `docs/M5_6_HANDOFF.md`. After every milestone (including blocked): update master handoff before the next — do not rely on chat length.
 
 ## 1. Thesis and non-negotiables
 
@@ -27,9 +27,9 @@ Data determines reality. Deterministic forecasting and inventory logic calculate
 |---|---|
 | Repository | StoreAgent.si |
 | Branch | `main` |
-| HEAD (verify) | Expect `c216ded` tip (AI-ARCH-1a–1f CLOSED/PUSHED); AI-MKT-0 docs may be uncommitted; ancestors include 1e `1c75de5`, 1a–1d `d56de33`, DOC-CONTINUITY-6 `d12fd04`, FE-ACCEPT-1C `1edc1ff`, … |
-| Remote | Tracking `origin/main` at `c216ded`. **No CI verification claimed** without evidence. |
-| As-of | 2026-11-27 — **AI-MKT-0 LOCAL_COMPLETE** (docs); local/hosted migrations **57/57**; history md5 `900da6949dfd6f7818a454b7f28ddf33`; post-catalog **23/23 PASS**; schema **DEPLOYED_VERIFIED**; activation **OFF**; CONN-1 exit **UNMET**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; PE1.b.6b JWT still BLOCKED |
+| HEAD (verify) | Expect `de01686` tip (AI-MKT-0 CLOSED/PUSHED); AI-MKT-1a may be uncommitted LOCAL_COMPLETE; ancestors include AI-ARCH-1 `c216ded`, 1e `1c75de5`, 1a–1d `d56de33`, DOC-CONTINUITY-6 `d12fd04`, FE-ACCEPT-1C `1edc1ff`, … |
+| Remote | Tracking `origin/main` at `de01686`. **No CI verification claimed** without evidence. |
+| As-of | 2026-11-27 — **AI-MKT-1a LOCAL_COMPLETE** (offline); AI-MKT-0 **CLOSED/PUSHED** @ `de01686`; local/hosted migrations **57/57**; history md5 `900da6949dfd6f7818a454b7f28ddf33`; post-catalog **23/23 PASS**; schema **DEPLOYED_VERIFIED**; activation **OFF**; CONN-1 exit **UNMET**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; PE1.b.6b JWT still BLOCKED |
 | Hosted pin | `qlsqminsfdntpqdkhxjx`; ledger **57/57** including CONN `20261121120000`…`20261124120000` |
 
 > **Superseded current-status pins:** Text expecting hosted schema **52**, “five CONN not applied”, “CONN-HR-2 next / apply NO-GO”, or older HEADs as *current* tip is **historical**. Prefer this baseline + ledger § 2026-11-27 + master handoff.
@@ -67,8 +67,9 @@ Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Pre
 | CONN-MP-0 multi-provider architecture | **CLOSED/PUSHED** @ `1e18029` (docs) | — | — | D13/D14 deferred; impl separately gated |
 | CSV → Shopify → Woo → Amazon/Noon | Product locked; CSV local PASS; Shopify RO + CONN offline | CSV + RO + CONN offline | — | Live Shopify first; Woo/Amazon/Noon later |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6` | Offline/local focused **32/32** + typecheck/lint/build; soft-enable **OFF** | — | Not live-certified; no live model/search |
-| AI-MKT-0 | Docs feasibility | Yes (`LOCAL_COMPLETE`) | — | Owner review; unresolved LEGAL; no live providers |
-| AI-INV-2…6 / AI-MKT-1…4 | Docs / roadmap | — | — | **PLANNED**; AI ≠ numeric authority; no paid credits/live research |
+| AI-MKT-0 | Docs feasibility | Yes (**CLOSED/PUSHED** @ `de01686`) | — | Unresolved LEGAL; no live providers |
+| AI-MKT-1a | Contracts/registry/rights | Yes (`LOCAL_COMPLETE` offline) | — | Owner review; live **NO-GO**; no adapters yet |
+| AI-INV-2…6 / AI-MKT-1b…4 | Docs / roadmap | — | — | **PLANNED**; AI ≠ numeric authority; no paid credits/live research |
 | Billing / trial / ops | Partial docs/code | — | — | Paying launch **NO-GO** |
 
 ## 4. M5 snapshot
@@ -119,7 +120,7 @@ Local implementation/testing committed on `main` through **`6136874`** (P1 → P
 
 1. **Owner review of DOC-TRACK-4** (`docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` + ledger § 2026-11-25) — docs Git closure; **not** authorization for hosted apply, live Shopify, or live AI.
 2. **CONN-HR-2** — owner-authorized hosted P1–P9 prechecks + reviewed Option B apply artifact (still no apply alone); then separately authorized Option B hosted apply of the five CONN migrations, production binding, D14 KEK and D13 decisions before OAuth; offline RO.3 ≠ SyncRun complete.
-3. **Parallel PLANNED:** UX-INV-1d merchant-first simplification + premium polish (separate UI slice). **Keep blocked:** PE1.b.6b JWT, workers/cron, M6 production forecast, M7 create/purchasing, real model/search, AI-MKT paid credits, paying launch. AI-MKT-0 is **LOCAL_COMPLETE** (docs); AI-INV-2…6 and AI-MKT-1…4 remain **PLANNED** only — do **not** start AI-MKT-1 without owner authorization.
+3. **Parallel PLANNED:** UX-INV-1d merchant-first simplification + premium polish (separate UI slice). **Keep blocked:** PE1.b.6b JWT, workers/cron, M6 production forecast, M7 create/purchasing, real model/search, AI-MKT paid credits, paying launch. AI-MKT-1a is **LOCAL_COMPLETE** (offline); AI-INV-2…6 and AI-MKT-1b…4 remain **PLANNED** only — do **not** start AI-MKT-1b without owner authorization.
 
 ## 7. Hard bans
 

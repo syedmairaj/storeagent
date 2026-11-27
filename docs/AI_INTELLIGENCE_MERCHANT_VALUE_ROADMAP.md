@@ -2,22 +2,23 @@
 
 **Document ID:** DOC-2026-11 / AI-INV
 **Mode:** Planning & product vision only — **not authorization** to deploy live models, enable workers, run JWT, connect live Shopify, activate M6/M7, spend credits, or claim merchant ROI.
-**As-of:** 2026-11-27 — **AI-MKT-0** feasibility (`LOCAL_COMPLETE`; AI-ARCH-1 CLOSED/PUSHED @ `c216ded`; DOC-CONTINUITY-6 schema pins preserved)
-**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-27 — AI-MKT-0** (falls back to AI-ARCH-1f / AI-ARCH-0 / DOC-CONTINUITY-6)
+**As-of:** 2026-11-27 — **AI-MKT-1a** (`LOCAL_COMPLETE` offline; AI-MKT-0 CLOSED/PUSHED @ `de01686`; AI-ARCH-1 CLOSED/PUSHED @ `c216ded`; DOC-CONTINUITY-6 schema pins preserved)
+**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-27 — AI-MKT-1a** (falls back to AI-MKT-0 / AI-ARCH-1f / AI-ARCH-0 / DOC-CONTINUITY-6)
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
-**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports · canonical DOCX §36–§37 · `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`
+**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports · canonical DOCX §36–§37 · `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` · `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md`
 
-### 2026-11-27 status pin (DOC-CONTINUITY-6 + AI-ARCH-1 + AI-MKT-0)
+### 2026-11-27 status pin (DOC-CONTINUITY-6 + AI-ARCH-1 + AI-MKT-0/1a)
 
 | Slice | Status |
 |---|---|
-| Git HEAD tip | `c216ded` — AI-ARCH-1a–1f **CLOSED/PUSHED** · AI-MKT-0 **`LOCAL_COMPLETE`** (docs; uncommitted) · hosted migrations **57/57** · post-catalog **23/23** · schema **DEPLOYED_VERIFIED** · activation **OFF** |
+| Git HEAD tip (committed) | `de01686` — AI-MKT-0 **CLOSED/PUSHED** · AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded` · AI-MKT-1a **`LOCAL_COMPLETE`** (uncommitted) · hosted migrations **57/57** · post-catalog **23/23** · schema **DEPLOYED_VERIFIED** · activation **OFF** |
 | AI-ARCH-0 | **PROPOSED** (design) · closed with DOC-CONTINUITY-6 @ `d12fd04` |
-| AI-ARCH-1a–1f | **CLOSED/PUSHED** @ `c216ded` (1e `1c75de5`; 1a–1d `d56de33`); soft-enable **OFF**; 38/38 · 121/121 · 27/27 prior PASS |
-| AI-MKT-0 | **`LOCAL_COMPLETE`** — `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` + governance rule `.cursor/rules/commerce-intelligence-governance.mdc` |
+| AI-ARCH-1a–1f | **CLOSED/PUSHED** @ `c216ded` (1e `1c75de5`; 1a–1d `d56de33`); soft-enable **OFF**; 38/38 · 121/121 · 27/27 PASS |
+| AI-MKT-0 | **CLOSED/PUSHED** @ `de01686` — feasibility + governance rule |
+| AI-MKT-1a | **`LOCAL_COMPLETE`** — `lib/market-research/` + `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md`; offline **GO** / live **NO-GO** |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** (not architecture substitute) |
 | AI-INV-2…6 | **PLANNED** |
-| AI-MKT-1 → 1.1 → 2 → 3 → 4 | **PLANNED** (IDs preserved); no live search / paid credits |
+| AI-MKT-1b → 1.1 → 2 → 3 → 4 | **PLANNED** (IDs preserved); no live search / paid credits |
 | COMP-1 · CREATIVE-0/1/2 · LOOP-1 | **PROPOSED** |
 | UX-INV-1d | **PLANNED** |
 | OAuth / SyncRun / workers / JWT / M6/M7 / launch | **BLOCKED / NOT AUTHORIZED** |
@@ -33,9 +34,10 @@ Not implementation permission. No invented competitor sales/ROAS. Licensed sourc
 | 0 | **AI-ARCH-0** | Orchestrator & evidence architecture (Commerce Decision Loop) | **PROPOSED** (design closed @ `d12fd04`) |
 | 1 | **AI-ARCH-1** | Bounded read-only agent (L1) | **CLOSED/PUSHED** @ `c216ded` (1a–1f) |
 | 1b | AI-INV-1.1 enablement | Soft-enable / merchant UX iteration (code CLOSED @ `38f63d6`) | **PROPOSED** (parallel UX path) |
-| 2 | **AI-MKT-0** | Data/source/licensing feasibility | **`LOCAL_COMPLETE`** (docs) |
-| 3 | AI-MKT-1 | Grounded SKU/country research | PLANNED (offline/mock first) |
-| 4 | AI-MKT-1.1 | Credits and cost control | PLANNED |
+| 2 | **AI-MKT-0** | Data/source/licensing feasibility | **CLOSED/PUSHED** @ `de01686` |
+| 3a | **AI-MKT-1a** | Research contracts / registry / rights | **`LOCAL_COMPLETE`** (offline) |
+| 3b | AI-MKT-1b | Offline provider adapters & fixtures | PLANNED |
+| 4 | AI-MKT-1.1 | Credits and cost control | PLANNED
 | 5 | AI-MKT-2 | Zero-sales detective | PLANNED |
 | 6 | COMP-1 | Competitor/customer sentiment workspace | **PROPOSED** |
 | 7 | AI-MKT-3 | Product/country opportunity advisor | PLANNED |
@@ -211,8 +213,9 @@ Use sales, inventory, contribution margin, returns, creative metrics, CPA/ROAS *
 | 1 | **AI-ARCH-1** | Bounded read-only agent (L1 loop) | **1a–1e CLOSED/PUSHED** (`d56de33`/`1c75de5`); **1f LOCAL_COMPLETE**; parent pending | AI-ARCH-0 | Offline tests; budgets; abstention; tenant isolation; soft-enable OFF | L2/L3 actions; paid research |
 | — | AI-INV-1 / 1.1 | Grounded explainer + situational guidance | **CLOSED/PUSHED** @ `38f63d6` | — | Soft-enable **OFF** | Live model cert |
 | 1b | AI-INV-1.1 enablement / UX | Soft-enable + merchant UX iteration | **PROPOSED** | Owner auth | Honesty review; flag still gated | OAuth/SyncRun |
-| 2 | **AI-MKT-0** | Licensing / source feasibility | **`LOCAL_COMPLETE`** (docs) | AI-ARCH-0 (contract) | Legal allowlists recorded; unresolved LEGAL open | Live providers |
-| 3 | AI-MKT-1 | Grounded SKU/country research | **PLANNED** | AI-MKT-0; AI-ARCH evidence contract | Offline Evidence DTO PASS | Equating search≠sales; live before 1.1 |
+| 2 | **AI-MKT-0** | Licensing / source feasibility | **CLOSED/PUSHED** @ `de01686` | AI-ARCH-0 (contract) | Legal allowlists recorded; unresolved LEGAL open | Live providers |
+| 3a | **AI-MKT-1a** | Research contracts / registry / rights | **`LOCAL_COMPLETE`** | AI-MKT-0 | Runtime DTO + rights/geo/tenant tests PASS | Adapters; live path |
+| 3b | AI-MKT-1b | Offline adapters & fixtures | **PLANNED** | AI-MKT-1a | Offline Evidence DTO PASS | Equating search≠sales; live before 1.1 |
 | 4 | AI-MKT-1.1 | Credits / cost control | **PLANNED** | Billing primitives | Idempotent reserve/settle | Silent spend |
 | 5 | AI-MKT-2 | Zero-sales detective | **PLANNED** | AI-INV-1.1; optional AI-MKT-1 | Hypotheses labeled | Confirmed causes |
 | 6 | **COMP-1** | Competitor & customer voice | **PROPOSED** | AI-MKT-0/1 | No invented competitor sales | Scraping without rights |
@@ -399,8 +402,10 @@ Controls: per-org caps, cache identical research keys, clear confirmation UX, no
 
 | Id | Scope | Status | Dependencies |
 |---|---|---|---|
-| **AI-MKT-0** | Research/data rights & country/category feasibility | **`LOCAL_COMPLETE`** (docs) | See `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`; unresolved LEGAL items remain |
-| **AI-MKT-1** | On-demand sourced SKU/country market research | **PLANNED** | AI-MKT-0; offline/mock adapters first; evidence contract; no paid calls before 1.1 |
+| **AI-MKT-0** | Research/data rights & country/category feasibility | **CLOSED/PUSHED** @ `de01686` | See `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`; unresolved LEGAL items remain |
+| **AI-MKT-1a** | Research contracts, source registry & rights enforcement | **`LOCAL_COMPLETE`** | `lib/market-research/` + `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md`; offline GO / live NO-GO |
+| **AI-MKT-1b** | Offline provider adapters & research fixtures | **PLANNED** | After AI-MKT-1a owner accept; no paid calls before 1.1 |
+| **AI-MKT-1** (umbrella) | On-demand sourced SKU/country market research | **IN PROGRESS** (1a done) | Offline path: 1a → 1b; evidence contract; no paid calls before 1.1 |
 | **AI-MKT-1.1** | Credit ledger, cost caps, cache, billing controls | **PLANNED** | Billing primitives; idempotent reserve/settle |
 | **AI-MKT-2** | Zero-Sales Detective: internal analytics + market hypotheses | **PLANNED** | AI-INV-1.1 situations; AI-MKT-1 for optional external |
 | **AI-MKT-3** | Country/Product/Color/Variant Opportunity Advisor | **PLANNED** | AI-MKT-1 + comparison quality gates |

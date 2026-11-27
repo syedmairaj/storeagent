@@ -2,28 +2,42 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-27 AI-MKT-0):** See **§ 2026-11-27 — AI-MKT-0** below. Schema closeout: **§ DOC-CONTINUITY-6**. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Feasibility: `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`. V1–V15 / CONN-1 exit: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Migration sync rule: `.cursor/rules/migration-synchronization-policy.mdc`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI roadmap: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (verified tip):** `c216ded` — AI-ARCH-1a–1f **CLOSED/PUSHED**; AI-MKT-0 **`LOCAL_COMPLETE`** (docs; uncommitted). `main` aligned with `origin/main` at tip (**no CI claim**). Local **57** / hosted **57**. History md5 `900da6949dfd6f7818a454b7f28ddf33`. Post-catalog **23/23 PASS**. Schema **DEPLOYED_VERIFIED** ≠ activation.
+> **Authoritative current state (2026-11-27 AI-MKT-1a):** See **§ 2026-11-27 — AI-MKT-1a** below. Schema closeout: **§ DOC-CONTINUITY-6**. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Feasibility: `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`. 1a report: `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md`. V1–V15 / CONN-1 exit: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Migration sync rule: `.cursor/rules/migration-synchronization-policy.mdc`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI roadmap: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (committed tip):** `de01686` — AI-MKT-0 **CLOSED/PUSHED**; AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded`. AI-MKT-1a **`LOCAL_COMPLETE`** (uncommitted). `main` aligned with `origin/main` at `de01686` (**no CI claim**). Local **57** / hosted **57**. History md5 `900da6949dfd6f7818a454b7f28ddf33`. Post-catalog **23/23 PASS**. Schema **DEPLOYED_VERIFIED** ≠ activation.
 > **Activation / security:** OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**. V11 **PARTIAL**. Binding **`NOT_YET_VERIFIED`**. D13/D14 **DEFERRED**. CONN-1 exit **UNMET**. Full Supabase DR **NOT ESTABLISHED**. Soft-enable AI **OFF**. Live nested cert **FALSE**. Paying launch **NO-GO**.
-> **Architecture:** AI-ARCH-0 **PROPOSED** (design). AI-ARCH-1 **CLOSED/PUSHED** @ `c216ded`. AI-MKT-0 **LOCAL_COMPLETE** (docs). Principle: *The AI controls the investigation. It does not control what counts as a fact.*
-> **Next:** Owner review **AI-MKT-0** → **AI-MKT-1** offline/mock under separate auth; **AI-MKT-1.1** before paid research; reconcile CONN/security before market prod. AI-INV-1.1 enablement / UX-INV-1d remain parallel **PROPOSED**.
-> **Prior § AI-ARCH-1f / AI-ARCH-1e / AI-ARCH-0 / DOC-CONTINUITY-6:** Schema/activation authority retained; eng next-step superseded by § AI-MKT-0.
-> **Prior § 2026-11-26 DOC-TRACK-5 / older:** Historical — do not treat as fresher than § AI-MKT-0.
+> **Architecture:** AI-ARCH-0 **PROPOSED** (design). AI-ARCH-1 **CLOSED/PUSHED** @ `c216ded`. AI-MKT-0 **CLOSED/PUSHED** @ `de01686`. AI-MKT-1a **LOCAL_COMPLETE** (offline contracts/rights). Principle: *The AI controls the investigation. It does not control what counts as a fact.*
+> **Next:** Owner review **AI-MKT-1a** → **AI-MKT-1b** offline adapters/fixtures under separate auth; **AI-MKT-1.1** before paid research; reconcile CONN/security before market prod. AI-INV-1.1 enablement / UX-INV-1d remain parallel **PROPOSED**.
+> **Prior § AI-MKT-0 / AI-ARCH-1f / AI-ARCH-1e / AI-ARCH-0 / DOC-CONTINUITY-6:** Schema/activation authority retained; eng next-step superseded by § AI-MKT-1a.
+> **Prior § 2026-11-26 DOC-TRACK-5 / older:** Historical — do not treat as fresher than § AI-MKT-1a.
 
-## 2026-11-27 — AI-MKT-0 market intelligence feasibility (docs)
+## 2026-11-27 — AI-MKT-1a research contracts, source registry & rights
 
-> **Authority:** Documentation/design only. No app/lib/test runtime, migrations, provider execution, billing, or activation. Soft-enable remains **OFF**. Docs **GO** ≠ live research.
+> **Authority:** Offline schema-neutral foundation under `lib/market-research/`. No provider adapters, network, persistence, UI, routes, migrations, credits, or activation. Soft-enable / research enablement **OFF**. Offline **GO** ≠ live research.
 
 | Topic | Current state |
 |---|---|
-| HEAD tip | `c216ded` · AI-MKT-0 docs **uncommitted** · AI-ARCH-1 **CLOSED/PUSHED** |
+| Committed HEAD tip | `de01686` · AI-MKT-0 **CLOSED/PUSHED** · AI-ARCH-1 **CLOSED/PUSHED** @ `c216ded` |
+| AI-MKT-1a | **`LOCAL_COMPLETE`** · report `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` |
+| Code | `lib/market-research/` — versioned DTOs, immutable registry, rights engine, geo/category, trusted scope, enablement gate |
+| Tests | Focused **24/24 PASS**; AI-ARCH **121/121**; AI-INV **27/27**; typecheck/lint/build **PASS** |
+| Live research / credits | **NO-GO** (live path structurally forbidden in 1a; 1.1 before paid) |
+| Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** (unchanged; not reopened) |
+| Next | Owner review → **AI-MKT-1b** offline adapters/fixtures only under separate auth; STOP |
+
+## 2026-11-27 — AI-MKT-0 market intelligence feasibility (docs)
+
+> **Authority (historical):** Documentation/design. Later **CLOSED/PUSHED** @ `de01686`. Soft-enable remains **OFF**. Superseded for *eng next-step* by § AI-MKT-1a.
+
+| Topic | Current state |
+|---|---|
+| HEAD tip | **CLOSED/PUSHED** @ `de01686` (authoring also referenced `c216ded`) |
 | AI-ARCH-1a–1f | **CLOSED/PUSHED** @ `c216ded` · 38/38 · 121/121 · 27/27 prior PASS · soft-enable **OFF** |
-| AI-MKT-0 | **`LOCAL_COMPLETE`** · `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` |
+| AI-MKT-0 | **CLOSED/PUSHED** @ `de01686` · `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` |
 | Governance rule | `.cursor/rules/commerce-intelligence-governance.mdc` (`alwaysApply: true`) installed; migration rule + `AGENTS.md` preserved |
 | MVP design | OpenAI `web_search` primary · Gemini grounding fallback (display/cache-restricted) · AE allowlist · SKU/country + zero-sales internal-first |
 | Live research / credits | **NO-GO** until AI-MKT-1.1 + applicable security gates |
 | Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** (unchanged; not reopened) |
-| Next | Owner review → **AI-MKT-1** offline/mock only under separate auth; STOP |
+| Next (historical) | Was AI-MKT-1 — see § AI-MKT-1a |
 
 ## 2026-11-27 — AI-ARCH-1f evaluation & release readiness
 
