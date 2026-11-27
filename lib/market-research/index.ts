@@ -1,7 +1,8 @@
 /**
- * AI-MKT-1a/1b — market research contracts, source registry, rights enforcement,
- * and offline provider adapters / synthetic fixtures.
- * Schema-neutral. No live network, SDKs, persistence, or evidence normalization (1c).
+ * AI-MKT-1a/1b/1c — market research contracts, source registry, rights enforcement,
+ * offline provider adapters / synthetic fixtures, and evidence normalization /
+ * product-geographic matching.
+ * Schema-neutral. No live network, SDKs, persistence, orchestration, or credits.
  */
 
 export type {
@@ -110,6 +111,7 @@ export {
   buildOpenAiOfflineFixture,
   buildGeminiOfflineFixture,
   assertSyntheticOnly,
+  buildSyntheticOpenAiSuccessEnvelope,
   createOpenAiOfflineStubAdapter,
   createOpenAiRecordedReplayAdapter,
   openaiCandidateApprovalImpliesLiveRights,
@@ -150,4 +152,50 @@ export {
   type InvokeMarketResearchAdapterInput,
   type InvokeMarketResearchAdapterResult,
   type FixtureBuildContext,
+  type MarketResearchProductAttributes,
+  type MarketResearchGeoObservation,
 } from "@/lib/market-research/adapters";
+
+export {
+  MARKET_RESEARCH_NORMALIZATION_VERSION,
+  matchProductAttributes,
+  isComparableMatchQuality,
+  matchGeographicObservation,
+  isComparableGeoQuality,
+  expectedCurrencyForCountry,
+  isValidHttpCitationUrl,
+  validateCitationList,
+  bindSnippetCitations,
+  DEFAULT_FRESHNESS_POLICY,
+  evaluateEvidenceFreshness,
+  evaluateSnippetHonesty,
+  deriveConfidenceClass,
+  claimRequiresCitation,
+  dedupeAndDetectConflicts,
+  validateAdapterEnvelopeForNormalize,
+  OPENAI_NORMALIZE_CONDITIONS,
+  normalizeMarketResearchEvidence,
+  authorizeNormalizedEvidenceForL1Findings,
+  mapAuthorizedResearchEvidenceToEvidenceRecord,
+  type ProductMatchQuality,
+  type ProductMatchReasonCode,
+  type GeoMatchQuality,
+  type GeoMatchReasonCode,
+  type EvidenceRejectCode,
+  type ProductMatchTarget,
+  type ProductMatchResult,
+  type GeoMatchResult,
+  type CitationBindingResult,
+  type NormalizedEvidenceItem,
+  type RejectedEvidenceItem,
+  type NormalizationSuccess,
+  type NormalizationFailure,
+  type NormalizationResult,
+  type EvidenceRecordPromotionResult,
+  type FreshnessPolicy,
+  type FreshnessEvaluation,
+  type HonestyEvaluation,
+  type DedupeConflictOutcome,
+  type AdapterEnvelopeValidation,
+  type NormalizeMarketResearchInput,
+} from "@/lib/market-research/normalize";

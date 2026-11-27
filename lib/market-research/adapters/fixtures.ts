@@ -87,12 +87,51 @@ export function buildOpenAiOfflineFixture(
             text: "SYNTHETIC: Public listing describes a 500W kitchen blender sold in AE.",
             signalClass: "public_listing",
             claimClass: "sourced_signal",
+            observedValue: "listed",
+            observedUnit: null,
+            observedProduct: {
+              brand: "BlendCo",
+              model: "BC-500",
+              gtin: "1234567890123",
+              mpn: "BC500-AE",
+              variant: "500W-black",
+              size: "standard",
+              color: "black",
+              capacity: "500W",
+              packQuantity: 1,
+              condition: "new",
+              category: "kitchen_appliances",
+              role: "product",
+              title: "BlendCo BC-500 500W Kitchen Blender",
+            },
+            observedGeo: {
+              countryCode: "AE",
+              currencyCode: "AED",
+              geoProofClass: "explicit_market",
+            },
+            supportingCitationIndexes: [0],
           }),
           snippet({
             snippetId: "oa-s2",
             text: "SYNTHETIC: Review text mentions color options; not verified sales.",
             signalClass: "public_review",
             claimClass: "sourced_signal",
+            observedValue: "4.2",
+            observedUnit: "stars",
+            observedProduct: {
+              brand: "BlendCo",
+              model: "BC-500",
+              color: "black",
+              category: "kitchen_appliances",
+              role: "product",
+              title: "BlendCo BC-500",
+            },
+            observedGeo: {
+              countryCode: "AE",
+              currencyCode: "AED",
+              geoProofClass: "explicit_market",
+            },
+            supportingCitationIndexes: [1],
           }),
         ],
         conflicts: [],
@@ -153,12 +192,44 @@ export function buildOpenAiOfflineFixture(
             text: "SYNTHETIC: Source A describes the item as in-stock online.",
             signalClass: "public_listing",
             claimClass: "sourced_signal",
+            observedValue: "in_stock",
+            observedProduct: {
+              brand: "BlendCo",
+              model: "BC-500",
+              gtin: "1234567890123",
+              packQuantity: 1,
+              condition: "new",
+              category: "kitchen_appliances",
+              role: "product",
+            },
+            observedGeo: {
+              countryCode: "AE",
+              currencyCode: "AED",
+              geoProofClass: "explicit_market",
+            },
+            supportingCitationIndexes: [0],
           }),
           snippet({
             snippetId: "oa-c2",
             text: "SYNTHETIC: Source B describes the item as discontinued online.",
             signalClass: "public_listing",
             claimClass: "sourced_signal",
+            observedValue: "discontinued",
+            observedProduct: {
+              brand: "BlendCo",
+              model: "BC-500",
+              gtin: "1234567890123",
+              packQuantity: 1,
+              condition: "new",
+              category: "kitchen_appliances",
+              role: "product",
+            },
+            observedGeo: {
+              countryCode: "AE",
+              currencyCode: "AED",
+              geoProofClass: "explicit_market",
+            },
+            supportingCitationIndexes: [1],
           }),
         ],
         conflicts: [
@@ -393,4 +464,50 @@ export function assertSyntheticOnly(
   return result.snippets.every(
     (snippet) => snippet.isRealMerchantOrMarketFact === false,
   );
+}
+
+/**
+ * AI-MKT-1c test helper — build a synthetic OpenAI success envelope with
+ * caller-supplied snippets/citations. Still always synthetic_fixture.
+ */
+export function buildSyntheticOpenAiSuccessEnvelope(input: {
+  ctx: FixtureBuildContext;
+  snippets: readonly MarketResearchAdapterSnippet[];
+  citations?: MarketResearchAdapterSuccess["citations"];
+  conflicts?: MarketResearchAdapterSuccess["conflicts"];
+  observationPeriodStart?: string;
+  observationPeriodEnd?: string;
+  fixtureId?: string;
+  mode?: "offline_stub" | "recorded_replay";
+}): MarketResearchAdapterSuccess {
+  return {
+    ok: true,
+    schemaVersion: MARKET_RESEARCH_ADAPTER_RESPONSE_VERSION,
+    originClass: "synthetic_fixture",
+    syntheticLabel: "SYNTHETIC_OPENAI_CUSTOM_ENVELOPE",
+    fixtureId: input.fixtureId ?? "openai_success_citations_v1",
+    sourceId: MARKET_SOURCE_IDS.OPENAI_WEB_SEARCH,
+    adapterId: MARKET_ADAPTER_IDS.OPENAI_WEB_SEARCH,
+    mode: input.mode ?? "offline_stub",
+    providerShape: "openai_responses_web_search_v1",
+    sourcePolicyVersion: MARKET_RESEARCH_POLICY_PIN,
+    clientRequestId: input.ctx.clientRequestId,
+    organizationId: input.ctx.organizationId,
+    retrievedAt: input.ctx.retrievedAt,
+    observationPeriodStart: input.observationPeriodStart,
+    observationPeriodEnd: input.observationPeriodEnd,
+    attributionText: "Synthetic custom envelope for offline normalization tests",
+    citations: input.citations ?? [
+      {
+        url: "https://fixture.example/listings/blender-ae",
+        title: "SYNTHETIC listing page (not real)",
+      },
+    ],
+    snippets: input.snippets.map((s) => ({
+      ...s,
+      isRealMerchantOrMarketFact: false as const,
+    })),
+    conflicts: input.conflicts ?? [],
+    latencyMs: 1,
+  };
 }

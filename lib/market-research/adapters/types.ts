@@ -60,16 +60,74 @@ export type MarketResearchAdapterCitation = {
 };
 
 /**
+ * Structured product attributes for offline matching (AI-MKT-1c).
+ * Missing fields never imply exact match. Never invent GTIN/MPN.
+ */
+export type MarketResearchProductAttributes = {
+  brand?: string;
+  model?: string;
+  gtin?: string;
+  mpn?: string;
+  variant?: string;
+  size?: string;
+  color?: string;
+  capacity?: string;
+  packQuantity?: number;
+  condition?: "new" | "refurbished" | "used" | "unknown";
+  category?: string;
+  /** Accessory/bundle vs primary product. */
+  role?: "product" | "accessory" | "bundle" | "unknown";
+  title?: string;
+};
+
+/**
+ * Claimed observation geography. Domain suffix / currency alone cannot prove market.
+ */
+export type MarketResearchGeoObservation = {
+  countryCode?: string;
+  currencyCode?: string;
+  unit?: string;
+  /**
+   * How geography was asserted in the fixture.
+   * `domain_suffix_only` / `currency_only` are unproven.
+   */
+  geoProofClass?:
+    | "explicit_market"
+    | "domain_suffix_only"
+    | "currency_only"
+    | "unknown";
+};
+
+/**
  * Synthetic snippet — labeled fixture data only.
- * Not a normalized EvidenceRecord / finding (deferred to 1c).
+ * Not a normalized EvidenceRecord / finding until AI-MKT-1c authorization.
  */
 export type MarketResearchAdapterSnippet = {
   snippetId: string;
   text: string;
   signalClass: SignalClass;
   claimClass: ResearchEvidenceClaimClass;
-  /** Always false for synthetic fixtures in 1b. */
+  /** Always false for synthetic fixtures in 1b/1c. */
   isRealMerchantOrMarketFact: false;
+  /** Raw observation value when the fixture encodes one (unknown ≠ zero). */
+  observedValue?: string;
+  observedUnit?: string | null;
+  observedProduct?: MarketResearchProductAttributes;
+  observedGeo?: MarketResearchGeoObservation;
+  /**
+   * Indexes into the envelope citations array that support this snippet.
+   * Blankets / invented URLs are rejected at normalization.
+   */
+  supportingCitationIndexes?: readonly number[];
+  /**
+   * Dishonest promotion attempt fixtures may set this; normalizer must reject.
+   * Never treated as authority.
+   */
+  attemptedPromotionTo?:
+    | "observed_fact"
+    | "engine_calculation"
+    | "verified_sales"
+    | "merchant_observation";
 };
 
 export type MarketResearchAdapterConflictHint = {

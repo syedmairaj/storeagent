@@ -9,6 +9,8 @@ export {
   type MarketResearchProviderShape,
   type MarketResearchAdapterFailureReason,
   type MarketResearchAdapterCitation,
+  type MarketResearchProductAttributes,
+  type MarketResearchGeoObservation,
   type MarketResearchAdapterSnippet,
   type MarketResearchAdapterConflictHint,
   type MarketResearchAdapterSuccess,
@@ -26,6 +28,7 @@ export {
   buildOpenAiOfflineFixture,
   buildGeminiOfflineFixture,
   assertSyntheticOnly,
+  buildSyntheticOpenAiSuccessEnvelope,
   type FixtureBuildContext,
 } from "@/lib/market-research/adapters/fixtures";
 

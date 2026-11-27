@@ -4,11 +4,11 @@ The full living status ledger is:
 
 `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md`
 
-**Canonical compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**DOC-TRACK-1** … **DOC-CONTINUITY-6** · **AI-ARCH-0** · **AI-ARCH-1** · **AI-MKT-0** · **AI-MKT-1a** · **AI-MKT-1b**).
+**Canonical compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**DOC-TRACK-1** … **DOC-CONTINUITY-6** · **AI-ARCH-0** · **AI-ARCH-1** · **AI-MKT-0** · **AI-MKT-1a** · **AI-MKT-1b** · **AI-MKT-1c**).
 
-**Authoritative current-state table (use this, not older pins):** ledger § **2026-11-27 — AI-MKT-1b**. Schema closeout detail: § **DOC-CONTINUITY-6**. AI-ARCH-1 closure: § **AI-ARCH-1f** / handoff §11. Current V1–V15 status: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Offline Option B package history: `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Migration sync policy: `.cursor/rules/migration-synchronization-policy.mdc`.
+**Authoritative current-state table (use this, not older pins):** ledger § **2026-11-27 — AI-MKT-1c**. Schema closeout detail: § **DOC-CONTINUITY-6**. AI-ARCH-1 closure: § **AI-ARCH-1f** / handoff §11. Current V1–V15 status: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Offline Option B package history: `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Migration sync policy: `.cursor/rules/migration-synchronization-policy.mdc`.
 
-> **Superseded current-status pointers:** ledger § AI-MKT-1a / AI-MKT-0 / AI-ARCH-1f / AI-ARCH-1e / AI-ARCH-0 / DOC-CONTINUITY-6 for *architecture next-step* only (schema pins still valid); § 2026-11-26 DOC-TRACK-5 and earlier remain **historical** — do not treat as fresher than § AI-MKT-1b.
+> **Superseded current-status pointers:** ledger § AI-MKT-1b / AI-MKT-1a / AI-MKT-0 / AI-ARCH-1f / AI-ARCH-1e / AI-ARCH-0 / DOC-CONTINUITY-6 for *architecture next-step* only (schema pins still valid); § 2026-11-26 DOC-TRACK-5 and earlier remain **historical** — do not treat as fresher than § AI-MKT-1c.
 
 Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 
@@ -17,18 +17,19 @@ Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 **AI-MKT-0 feasibility:** `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`
 **AI-MKT-1a report:** `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md`
 **AI-MKT-1b report:** `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md`
+**AI-MKT-1c report:** `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md`
 **Overview/Inventory UX delivery:** `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md`
 **Session bootstrap:** `docs/PROJECT_HANDOFF.md`
 **Canonical DOCX:** `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` — **§36** DOC-CONTINUITY-6 + **§37** AI-ARCH-0 (**PROPOSED**); §§1–36 preserved.
 
-## Git baseline (current — 2026-11-27 AI-MKT-1b)
+## Git baseline (current — 2026-11-27 AI-MKT-1c)
 
 | Field | Value |
 |---|---|
 | Branch | `main` |
-| HEAD tip (committed) | `f685c15` — AI-MKT-1a **CLOSED/PUSHED** (18-file); AI-MKT-0 @ `de01686`; AI-ARCH-1 @ `c216ded` |
-| AI-MKT-1b | **`LOCAL_COMPLETE`** (uncommitted; offline adapters/fixtures + report) |
-| vs `origin/main` | **Aligned** at `f685c15` (tracking; **no CI claim**) |
+| HEAD tip (committed) | `211d8e9` — AI-MKT-1b **CLOSED/PUSHED**; AI-MKT-1a @ `f685c15`; AI-MKT-0 @ `de01686`; AI-ARCH-1 @ `c216ded` |
+| AI-MKT-1c | **`LOCAL_COMPLETE`** (uncommitted; normalize/matching + report) |
+| vs `origin/main` | **Aligned** at `211d8e9` (tracking; **no CI claim**) |
 | Local / hosted migrations | **57 / 57** |
 | Hosted history md5 | `900da6949dfd6f7818a454b7f28ddf33` |
 | Hosted post-catalog | **23/23 PASS** · `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z` |
@@ -44,12 +45,13 @@ Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 | AI-ARCH-1a–1f | **CLOSED/PUSHED** @ `c216ded` (1e `1c75de5`; 1a–1d `d56de33`); soft-enable **OFF**; 38/38 · 121/121 · 27/27 PASS |
 | AI-MKT-0 | **CLOSED/PUSHED** @ `de01686` |
 | AI-MKT-1a | **CLOSED/PUSHED** @ `f685c15` — contracts/registry/rights; focused **24/24**; offline **GO** / live **NO-GO** |
-| AI-MKT-1b | **`LOCAL_COMPLETE`** — offline adapters/fixtures; focused **21/21**; 1a+1b **45/45**; offline **GO** / live **NO-GO** |
+| AI-MKT-1b | **CLOSED/PUSHED** @ `211d8e9` — offline adapters/fixtures; focused **21/21**; offline **GO** / live **NO-GO** |
+| AI-MKT-1c | **`LOCAL_COMPLETE`** — evidence normalization/matching; focused **19/19**; 1a–1c **64/64**; offline **GO** / live **NO-GO** |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** |
-| UX-INV-1d / AI-MKT-1c…4 / COMP / CREATIVE / LOOP | 1d **PLANNED**; AI-MKT-1c…4 **PLANNED**; COMP-1 / CREATIVE-0…2 / LOOP-1 **PROPOSED** |
-| Next eng | Owner review **AI-MKT-1b** → **AI-MKT-1c** evidence normalization under separate auth; **AI-MKT-1.1** before paid; reconcile CONN/security before market prod — STOP |
+| UX-INV-1d / AI-MKT-1d…4 / COMP / CREATIVE / LOOP | 1d **PLANNED**; AI-MKT-1d…4 **PLANNED**; COMP-1 / CREATIVE-0…2 / LOOP-1 **PROPOSED** |
+| Next eng | Owner review **AI-MKT-1c** → **AI-MKT-1d** bounded orchestration under separate auth; **AI-MKT-1.1** before paid; reconcile CONN/security before market prod — STOP |
 
-> **STALE WARNING:** Any doc still claiming AI-MKT-1a uncommitted as *current*, hosted schema **52**, or “start 1b without 1a closure” as *current* truth is **superseded** by ledger § 2026-11-27 AI-MKT-1b + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Activation gates remain **OFF**.
+> **STALE WARNING:** Any doc still claiming AI-MKT-1b uncommitted as *current*, hosted schema **52**, or “start 1c without 1b closure” as *current* truth is **superseded** by ledger § 2026-11-27 AI-MKT-1c + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Activation gates remain **OFF**.
 
 ## Shopify connector track
 
