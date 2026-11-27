@@ -4,11 +4,11 @@ The full living status ledger is:
 
 `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md`
 
-**Canonical compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**DOC-TRACK-1** … **DOC-TRACK-5** · **DOC-CONTINUITY-6** · **AI-ARCH-0**).
+**Canonical compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**DOC-TRACK-1** … **DOC-CONTINUITY-6** · **AI-ARCH-0** · **AI-ARCH-1a–1e**).
 
-**Authoritative current-state table (use this, not older pins):** ledger § **2026-11-27 — AI-ARCH-0**. Schema closeout detail: § **DOC-CONTINUITY-6**. Current V1–V15 status: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Offline Option B package history: `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Migration sync policy: `.cursor/rules/migration-synchronization-policy.mdc`.
+**Authoritative current-state table (use this, not older pins):** ledger § **2026-11-27 — AI-ARCH-1e**. Schema closeout detail: § **DOC-CONTINUITY-6**. Current V1–V15 status: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Offline Option B package history: `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Migration sync policy: `.cursor/rules/migration-synchronization-policy.mdc`.
 
-> **Superseded current-status pointers:** ledger § DOC-CONTINUITY-6 for *architecture next-step* only (schema pins still valid); § 2026-11-26 DOC-TRACK-5 and earlier remain **historical** — do not treat as fresher than § AI-ARCH-0.
+> **Superseded current-status pointers:** ledger § AI-ARCH-0 / DOC-CONTINUITY-6 for *architecture next-step* only (schema pins still valid); § 2026-11-26 DOC-TRACK-5 and earlier remain **historical** — do not treat as fresher than § AI-ARCH-1e.
 
 Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 
@@ -18,13 +18,13 @@ Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 **Session bootstrap:** `docs/PROJECT_HANDOFF.md`
 **Canonical DOCX:** `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` — **§36** DOC-CONTINUITY-6 + **§37** AI-ARCH-0 (**PROPOSED**); §§1–36 preserved.
 
-## Git baseline (current — 2026-11-27 AI-ARCH-0)
+## Git baseline (current — 2026-11-27 AI-ARCH-1e)
 
 | Field | Value |
 |---|---|
 | Branch | `main` |
-| HEAD | `78c1d45` — `docs(storeagent): reconcile FE-ACCEPT-1C closure and hosted readiness` |
-| vs `origin/main` | **Aligned** (tracking; **no CI claim**) |
+| HEAD | `d56de33` — AI-ARCH-1a–1d CLOSED/PUSHED; **AI-ARCH-1e LOCAL_COMPLETE** (uncommitted; Git checkpoint pending) |
+| vs `origin/main` | **Aligned** at `d56de33` (tracking; **no CI claim**) |
 | Local / hosted migrations | **57 / 57** |
 | Hosted history md5 | `900da6949dfd6f7818a454b7f28ddf33` |
 | Hosted post-catalog | **23/23 PASS** · `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z` |
@@ -36,10 +36,12 @@ Historical snapshot: `docs/archive/IMPLEMENTATION_STATUS.md`
 | V1–V15 / CONN-1 exit | 14 offline PASS · V11 **PARTIAL**; V8 hosted **NOT VERIFIED**; §11 unchanged; **CONN-1 exit UNMET** |
 | Binding / D13 / D14 | **`NOT_YET_VERIFIED`** / **DEFERRED** |
 | Activation | OAuth / workers / cron / SyncRun / credentials **OFF** |
-| AI-ARCH-0 / AI-ARCH-1 | **PROPOSED** (architecture + L1 agent — not implemented) |
+| AI-ARCH-0 | **PROPOSED** (design) · DOC-CONTINUITY-6 closed @ `d12fd04` |
+| AI-ARCH-1a–1d | **CLOSED/PUSHED** @ `d56de33` (62/62 PASS) |
+| AI-ARCH-1e | **`LOCAL_COMPLETE`** — guarded merchant UX; soft-enable **OFF**; final acceptance `docs/AI_ARCH_1E_FINAL_ACCEPTANCE_REPORT.md` |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** |
 | UX-INV-1d / AI-MKT / COMP / CREATIVE / LOOP | 1d **PLANNED**; AI-MKT **PLANNED**; COMP-1 / CREATIVE-0…2 / LOOP-1 **PROPOSED** |
-| Next eng | Owner accept **AI-ARCH-0** → **AI-ARCH-1** and/or **AI-INV-1.1 enablement** / **UX-INV-1d** — STOP without owner authorization |
+| Next eng | Owner review **AI-ARCH-1e** → **AI-ARCH-1f** (eval pack) — STOP without owner authorization |
 
 > **STALE WARNING:** Any doc still claiming hosted schema **52**, five CONN migrations unapplied, or “CONN-HR-2 next / hosted apply NO-GO” as *current* truth is **superseded** by ledger § 2026-11-27 + `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Activation gates remain **OFF**.
 

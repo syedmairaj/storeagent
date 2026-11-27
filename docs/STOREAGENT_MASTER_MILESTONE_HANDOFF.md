@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Document ID | DOC-TRACK-1…5 · DOC-CONTINUITY-6 · **AI-ARCH-0** (architecture reconciliation **PROPOSED**) |
+| Document ID | DOC-TRACK-1…5 · DOC-CONTINUITY-6 · AI-ARCH-0 · **AI-ARCH-1e** (`LOCAL_COMPLETE`) |
 | Canonical path | `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` |
-| As-of | 2026-11-27 (Asia/Dubai) — AI-ARCH-0 |
+| As-of | 2026-11-27 (Asia/Dubai) — AI-ARCH-1e |
 | Mode | Living compact handoff — **not** a substitute for frozen contracts, audit reports, or original decision docs |
 | Update policy | After **every** milestone completion or block, refresh current-state §§2–4/7/8 + append §11 **before** starting the next milestone. Never rely on ChatGPT thread length. Never silently rewrite historical approvals or promote schema deploy to connector activation |
 | Migration sync rule | `.cursor/rules/migration-synchronization-policy.mdc` — DoD: `LOCAL_COMPLETE` ≠ `HOSTED_SYNC_PENDING` ≠ `DEPLOYED_VERIFIED` |
@@ -38,20 +38,20 @@
 |---|---|
 | Repository | `/Users/syedmairaj/Documents/storeagent` · `syedmairaj/storeagent` |
 | Branch | `main` |
-| HEAD | `78c1d45` — `docs(storeagent): reconcile FE-ACCEPT-1C closure and hosted readiness` |
-| Full SHA | `78c1d4594cf1eed8ed8f80b2132bcaf203febbef` |
-| `origin/main` | **Aligned** (`main...origin/main`; no CI claim) |
-| Last Git closure on tip | **DOC-TRACK-5** docs reconcile @ `78c1d45` (includes FE-ACCEPT-1C continuity) |
-| Prior eng / docs pins | FE-ACCEPT-1C `1edc1ff` → CONN-HR-1 `454f7ec` → DOC-TRACK-3 `7bd2e8b` → CONN-1d-E `5de98cf` → … |
+| HEAD tip | `d56de33` — `feat(ai-arch): add bounded L1 commerce agent and grounded validation (1a-1d)` |
+| Full SHA | `d56de3306313f3eca19cec29e0b971ab3b82e201` |
+| `origin/main` | **Aligned** at tip (`main...origin/main`; no CI claim) |
+| Last Git closure on tip | **AI-ARCH-1a–1d** @ `d56de33` |
+| Prior continuity pins | DOC-CONTINUITY-6 + AI-ARCH-0 docs @ `d12fd04` → DOC-TRACK-5 `78c1d45` → FE-ACCEPT-1C `1edc1ff` → … |
 | Local migrations | **57** files = **57** `migrations.sha256` entries (latest `20261124120000`) |
 | Hosted migrations | **57** (owner-confirmed; Option B apply of five CONN migrations) |
 | Hosted history fingerprint | `versions_md5=900da6949dfd6f7818a454b7f28ddf33` |
 | Hosted post-catalog | **23/23 PASS** · evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z` · `post_catalog_utc=2026-11-27T04:06:14Z` |
 | Migration DoD | Schema path **`DEPLOYED_VERIFIED`** for CONN 53–57 + catalog · **≠** connector production activation |
-| Staging | Dirty/untracked work present; **do not** auto-stage |
-| Dirty tree (preserve) | Modified `docs/BACKGROUND_JOBS.md`, `docs/SERVICE_ROLE_BOUNDARY.md`, `next-env.d.ts`; deleted tracked `docs/StoreAgent_Roadmap_2026.docx`; untracked `.cursor/` (incl. migration sync rule), `.tmp/`, `.vitest/`, `AGENTS.md`, `scripts/conn-hr-1/operator/`, SQL snippets, DOCX/archives, `supabase/snippets/`, dated handoff draft, etc. **Never** auto stage/clean/reset/stash |
+| Staging | Dirty/untracked work present (incl. AI-ARCH-1e); **do not** auto-stage |
+| Dirty tree (preserve) | Modified `docs/BACKGROUND_JOBS.md`, `docs/SERVICE_ROLE_BOUNDARY.md`, `next-env.d.ts`; deleted tracked `docs/StoreAgent_Roadmap_2026.docx`; untracked `.cursor/` (incl. migration sync rule), `.tmp/`, `.vitest/`, `AGENTS.md`, `scripts/conn-hr-1/operator/`, SQL snippets, DOCX/archives, `supabase/snippets/`, dated handoff draft, AI-ARCH-1e files, etc. **Never** auto stage/clean/reset/stash |
 
-**Current milestone:** **AI-ARCH-0** — docs-only architecture reconciliation for StoreAgent as an **AI Commerce Intelligence & Buying Agent** with one evidence-grounded **Commerce Decision Loop** (**PROPOSED**; not implemented). Schema baseline unchanged from DOC-CONTINUITY-6: **57/57** · **23/23** · **DEPLOYED_VERIFIED** ≠ OAuth / workers / cron / SyncRun / credential activation (all **OFF**). V11 **PARTIAL**; V8 hosted JWT **NOT VERIFIED**; binding **`NOT_YET_VERIFIED`**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**; full Supabase DR **NOT ESTABLISHED**. **Exact next (owner-gated):** accept **AI-ARCH-0** → then **AI-ARCH-1** (L1 read-only agent) **and/or** **AI-INV-1.1** enablement / **UX-INV-1d**. AI-INV-1/1.1 code remains **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**). AI-MKT/COMP/CREATIVE/LOOP dependencies preserved in AI roadmap.
+**Current milestone:** **AI-ARCH-1e** — Guarded Merchant Intelligence UX (`LOCAL_COMPLETE`; Git checkpoint **pending**). Prior: AI-ARCH-1a–1d **CLOSED/PUSHED** @ `d56de33` (62/62 PASS); AI-ARCH-0 design **PROPOSED** / DOC-CONTINUITY-6 @ `d12fd04`. Schema baseline unchanged: **57/57** · **23/23** · **DEPLOYED_VERIFIED** ≠ OAuth / workers / cron / SyncRun / credential activation (all **OFF**). Commerce-agent soft-enable **OFF**. V11 **PARTIAL**; V8 hosted JWT **NOT VERIFIED**; binding **`NOT_YET_VERIFIED`**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**; full Supabase DR **NOT ESTABLISHED**. **Exact next (owner-gated):** review AI-ARCH-1e → **AI-ARCH-1f**. AI-INV-1/1.1 code remains **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**). AI-MKT/COMP/CREATIVE/LOOP dependency order preserved.
 
 ---
 
@@ -90,9 +90,11 @@
 | FE-ACCEPT-1C | CLOSED/PUSHED · LOCAL-ONLY | `1edc1ff` · `npm run test:e2e:fe-accept-1c` | Automated local Mailpit magic-link auth; merchant/Actions E2E + stress | ≠ hosted/production browser certification | DOC-TRACK-5 |
 | DOC-TRACK-5 | CLOSED/PUSHED (docs) | `78c1d45` | FE-ACCEPT-1C continuity + readiness pins on `main` | — | CONN-HR-2 / DOC-CONTINUITY-6 |
 | CONN-HR-2 / 2B / 2C | LOCAL-ONLY · schema **DEPLOYED_VERIFIED** | Chat + outside-Git evidence; untracked `scripts/conn-hr-1/operator/` | Hosted P0–P9 PASS; Option B apply COMMITTED; post-catalog 23/23 PASS (parser fix); migration sync rule installed | Operator scripts **not** Git-closed; activation **OFF**; V8 hosted JWT still open | Binding / D14 / D13 / CONN-2 |
-| DOC-CONTINUITY-6 | PARTIAL (docs only) · pending Git closure | HEAD `78c1d45` + local docs | Record 57/57 + 23/23 closeout; §36 DOCX | Owner docs Git closure | AI-ARCH-0 / AI-INV-1.1 enablement |
-| **AI-ARCH-0** | **PROPOSED** (docs) | AI roadmap + Nov §0I + DOCX §37 | Orchestrator & evidence architecture; Commerce Decision Loop; L1–L3 autonomy model | Owner accept IDs/principle; **not** implemented | **AI-ARCH-1** |
-| **AI-ARCH-1** | **PROPOSED** | AI roadmap | Bounded read-only agent (L1) | AI-ARCH-0 acceptance; offline tests; budgets | AI-MKT / L2 gates |
+| DOC-CONTINUITY-6 | CLOSED/PUSHED (docs) | `d12fd04` | Record 57/57 + 23/23 closeout; §36 DOCX | — | AI-ARCH-0 / AI-ARCH-1 |
+| **AI-ARCH-0** | **PROPOSED** (docs) | `d12fd04` · AI roadmap + Nov §0I + DOCX §37 | Orchestrator & evidence architecture; Commerce Decision Loop; L1–L3 autonomy model | Design authority retained | AI-ARCH-1 |
+| **AI-ARCH-1a–1d** | **CLOSED/PUSHED** | `d56de33` · reports 1A–1D | Contracts, L1 tools, orchestrator, grounded draft validation | Soft-enable **OFF** | AI-ARCH-1e |
+| **AI-ARCH-1e** | **LOCAL_COMPLETE** | uncommitted · `docs/AI_ARCH_1E_IMPLEMENTATION_REPORT.md` | Guarded structured-intent UX in SKU inspector + server action | Git checkpoint; soft-enable **OFF** | **AI-ARCH-1f** |
+| **AI-ARCH-1f** | **PLANNED** | AI-ARCH-0 design §11 | Evaluation pack expansion | Owner auth after 1e review | AI-MKT / L2 gates |
 | CONN-2…6 | PLANNED / BLOCKED | CONN-0 sequence | — | OAuth, webhooks, live cert, SyncRun, health UX; V10 bind/reclaim (with D13) | After binding + D13/D14 + separate auth |
 | CONN-MP-0 | CLOSED/PUSHED (docs) | `1e18029` | Multi-provider architecture freeze | D13/D14 **DEFERRED**; impl gated | CONN-MP-1 / CRED |
 | Woo / Amazon / Noon | PLANNED | CONN-MP-0 | Design only | Amazon/Noon enum **CONTRACT_CHANGE**; partner approvals | After Shopify-first path |
@@ -200,16 +202,16 @@ DOC-TRACK-1 does **not** implement UX-INV-1d.
 
 ### 4.10 AI-ARCH + AI-MKT + proposed intelligence expansion (AI-ARCH-0)
 
-**Architecture (PROPOSED):** AI-ARCH-0 Commerce Decision Loop + evidence contracts; AI-ARCH-1 bounded L1 read-only agent. Principle: *The AI controls the investigation. It does not control what counts as a fact.* Full detail: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` AI-ARCH-0 section · DOCX §37.
+**Architecture (PROPOSED design):** AI-ARCH-0 Commerce Decision Loop + evidence contracts. **L1 eng:** AI-ARCH-1a–1d **CLOSED/PUSHED** @ `d56de33`; AI-ARCH-1e **LOCAL_COMPLETE** (soft-enable **OFF**). Principle: *The AI controls the investigation. It does not control what counts as a fact.* Full detail: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` · DOCX §37 · `docs/AI_ARCH_1E_IMPLEMENTATION_REPORT.md`.
 
 **Existing PLANNED sequence (unchanged IDs):** AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4. External research requires authorized/licensed evidence. OpenAI/Gemini grounding are **future adapters**, not retail transaction DBs. Credits/billing/live research remain **unimplemented**.
 
-**PROPOSED dependency-aware product sequence (owner approval required):**
+**PROPOSED dependency-aware product sequence (owner approval required; order unchanged):**
 
 | Order | ID | Intent | Status |
 |---|---|---|---|
-| 0 | **AI-ARCH-0** | Orchestrator & evidence architecture | **PROPOSED** (docs next) |
-| 1 | **AI-ARCH-1** | Bounded read-only agent (L1) | **PROPOSED** |
+| 0 | **AI-ARCH-0** | Orchestrator & evidence architecture | **PROPOSED** (design @ `d12fd04`) |
+| 1 | **AI-ARCH-1** | Bounded read-only agent (L1) | **1a–1d CLOSED/PUSHED** @ `d56de33`; **1e LOCAL_COMPLETE**; **1f** next |
 | 1b | AI-INV-1.1 enablement | Soft-enable / merchant UX (code CLOSED @ `38f63d6`) | **PROPOSED** |
 | 2 | AI-MKT-0 | Data/source/licensing feasibility | PLANNED |
 | 3 | AI-MKT-1 | Grounded SKU/country research | PLANNED |
@@ -304,11 +306,11 @@ Each step needs its own owner authorization. Migration DoD classes: `LOCAL_COMPL
 2. **CONN hosted migrations 53–57** — **DEPLOYED_VERIFIED** (57/57; md5 `900da694…`; post-catalog 23/23).
 3. Migration synchronization policy rule installed.
 
-**Immediate (this docs pass)**
-4. **AI-ARCH-0** owner review (+ DOC-CONTINUITY-6 docs Git closure when ready).
+**Immediate**
+4. Owner review of **AI-ARCH-1e** (`LOCAL_COMPLETE`) + Git checkpoint when authorized.
 
-**Recommended next eng (pick; separately gated)**
-5. **AI-ARCH-1** bounded L1 read-only agent (**PROPOSED**) **and/or** **AI-INV-1.1** soft-enable / UX iteration (**PROPOSED**; soft-enable stays OFF until auth) **or** **UX-INV-1d**.
+**Recommended next eng (separately gated)**
+5. **AI-ARCH-1f** evaluation pack (**PLANNED**). Parallel: **AI-INV-1.1** soft-enable / UX (**PROPOSED**; soft-enable stays OFF until auth) **or** **UX-INV-1d**.
 
 **Before OAuth / runtime credential ops**
 6. Hosted **V8 JWT** empty-vault / PostgREST probe (still NOT VERIFIED).
@@ -317,8 +319,8 @@ Each step needs its own owner authorization. Migration DoD classes: `LOCAL_COMPL
 
 **Before SyncRun:** `lease_held` retry · fail-finalization / stale-run · real-clock lease test.
 
-**PROPOSED intelligence track (after AI-ARCH-0; no live spend without AI-MKT-1.1):**
-**AI-ARCH-0 → AI-ARCH-1** → AI-MKT-0 → 1 → 1.1 → 2 → **COMP-1** → AI-MKT-3 → **CREATIVE-0→1→2** → AI-MKT-4 → **LOOP-1** (AI-INV-1.1 enablement may run in parallel as UX).
+**PROPOSED intelligence track (dependency order unchanged; no live spend without AI-MKT-1.1):**
+**AI-ARCH-0 → AI-ARCH-1 (1a–1e done locally; 1f next)** → AI-MKT-0 → 1 → 1.1 → 2 → **COMP-1** → AI-MKT-3 → **CREATIVE-0→1→2** → AI-MKT-4 → **LOOP-1** (AI-INV-1.1 enablement may run in parallel as UX).
 
 **Still later / blocked:** live nested cert → SyncRun → AI-INV-2…6 → M6 production (post-JWT) → M7 inbox → Woo/Amazon/Noon → paying launch.
 
@@ -328,10 +330,10 @@ Each step needs its own owner authorization. Migration DoD classes: `LOCAL_COMPL
 
 ```text
 Continue StoreAgent.si as engineering reviewer/planner, not an autonomous production operator.
-1) Verify: git branch=main, HEAD=78c1d45 (or newer after verified closure), origin aligned; preserve protected dirty/untracked files.
-2) Read first: docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md (this file), docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md, docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md, then the frozen contract for the authorized slice.
-3) Frozen truth: Hosted migrations 57/57 DEPLOYED_VERIFIED; history md5 900da6949dfd6f7818a454b7f28ddf33; post-catalog 23/23 PASS (evidence conn-hr-2c-postcatalog-20261127T040549Z). FE-ACCEPT-1C @ 1edc1ff local browser cert PASS ≠ hosted. V11 PARTIAL; V8 hosted JWT NOT VERIFIED; CONN-1 exit UNMET; binding NOT_YET_VERIFIED; D13/D14 DEFERRED; OAuth/workers/cron/SyncRun OFF; full Supabase DR NOT ESTABLISHED. AI-INV-1/1.1 @ 38f63d6 soft-enable OFF. AI-ARCH-0/1 PROPOSED only. Principle: AI controls investigation, not facts. Migration sync rule: .cursor/rules/migration-synchronization-policy.mdc.
-4) Next: owner review of AI-ARCH-0 (+ DOC-CONTINUITY-6 docs Git closure), then AI-ARCH-1 and/or AI-INV-1.1 enablement OR UX-INV-1d — not OAuth/SyncRun/activation from docs alone.
+1) Verify: git branch=main, HEAD tip=d56de33 (AI-ARCH-1a–1d); AI-ARCH-1e may be uncommitted LOCAL_COMPLETE; origin aligned; preserve protected dirty/untracked files.
+2) Read first: docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md (this file), docs/AI_ARCH_1E_IMPLEMENTATION_REPORT.md, docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md, docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md, then the frozen contract for the authorized slice.
+3) Frozen truth: Hosted migrations 57/57 DEPLOYED_VERIFIED; history md5 900da6949dfd6f7818a454b7f28ddf33; post-catalog 23/23 PASS (evidence conn-hr-2c-postcatalog-20261127T040549Z). FE-ACCEPT-1C @ 1edc1ff local browser cert PASS ≠ hosted. V11 PARTIAL; V8 hosted JWT NOT VERIFIED; CONN-1 exit UNMET; binding NOT_YET_VERIFIED; D13/D14 DEFERRED; OAuth/workers/cron/SyncRun OFF; full Supabase DR NOT ESTABLISHED. AI-INV-1/1.1 @ 38f63d6 soft-enable OFF. AI-ARCH-0 PROPOSED; AI-ARCH-1a–1d CLOSED/PUSHED @ d56de33; AI-ARCH-1e LOCAL_COMPLETE soft-enable OFF. Principle: AI controls investigation, not facts. Migration sync rule: .cursor/rules/migration-synchronization-policy.mdc.
+4) Next: owner review of AI-ARCH-1e → AI-ARCH-1f only — not OAuth/SyncRun/activation from docs alone.
 5) Bans: no OAuth/SyncRun/workers/JWT/M6-prod/M7-create/purchasing/live AI research; no migration reapply/repair; no fake ROI or autonomous buying; no drive-by Git on protected dirties.
 6) After EVERY milestone (including BLOCKED): update this handoff current-state + §11 + living ledger pins BEFORE the next milestone. Do not rely on chat length.
 ```
@@ -389,4 +391,7 @@ Continue StoreAgent.si as engineering reviewer/planner, not an autonomous produc
 - **2026-11-25 (DOC-TRACK-4):** Verified `main` @ `454f7ec` ≡ `origin/main`; staging empty; **57** migrations = 57 manifest entries; integrity check PASS. **DOC-TRACK-3 CLOSED/PUSHED** @ `7bd2e8b` (docs). **CONN-HR-0** read-only preflight **CLOSED** (LOCAL-ONLY chat evidence `CONN_HR_0_HOSTED_READINESS_PREFLIGHT_REPORT`; no hosted SQL). **CONN-HR-1 CLOSED/PUSHED** @ `454f7ec` — offline package: `scripts/conn-hr-1/readonly/*`, disposable tooling, Option B single-transaction `psql` candidate, `docs/CONN_HR_1_HOSTED_READINESS_RUNBOOK.md`. Offline apply-method evidence: CLI `supabase db push` of migration #5 (`20261124120000`) **BLOCKED** (SQLSTATE **25P01** — `LOCK TABLE` cannot run inside a multi-statement transaction); Option B disposable **PASS** (history 52→57; post-apply catalog 23/23; abort restores 52). Hosted P1–P9 **not run**; hosted apply **NO-GO**. V11 **PARTIAL**; §11 unchanged; **CONN-1 exit UNMET**; V8 hosted JWT **NOT VERIFIED**; binding **`NOT_YET_VERIFIED`**; D13/D14 unresolved; five CONN migrations still **not hosted-applied**. **Next: CONN-HR-2** (hosted P1–P9 + reviewed Option B artifact; apply remains separately gated). DOC-TRACK-4 = docs-only, pending its own Git closure. STOP for owner review.
 - **2026-11-26 (DOC-TRACK-5):** Verified `main` @ `1edc1ff` ≡ `origin/main`; staging empty; **57** migrations = 57 manifest entries; hosted schema track still **52**; integrity check PASS. **FE-ACCEPT-1C CLOSED/PUSHED** @ `1edc1ff` (16 files) — automated local Mailpit magic-link authentication **PASS**; merchant E2E 6/6 **PASS**; Actions E2E 6/6 **PASS**; Actions-1280 stress 8/8 **PASS** (queue-row `lg:scroll-mt-[4.25rem]` under sticky DemoDataBanner). Local authenticated browser certification **PASS** — **not** hosted/production certification. CONN-HR-0/HR-1 pins unchanged (`7bd2e8b` / `454f7ec`); CLI #5 **25P01 BLOCKED**; Option B disposable **PASS**; hosted P1–P9 **not run**; hosted apply **NO-GO**. V11 **PARTIAL**; §11 unchanged; **CONN-1 exit UNMET**; V8 hosted JWT **NOT VERIFIED**; binding **`NOT_YET_VERIFIED`**; D13/D14 **DEFERRED**; five CONN migrations still **not hosted-applied**. OAuth / SyncRun / workers / M6 production / M7 production / buying / launch remain **BLOCKED**. **Next: CONN-HR-2**. DOC-TRACK-5 later Git-closed on tip `78c1d45`.
 - **2026-11-27 (DOC-CONTINUITY-6):** Verified `main` @ `78c1d45` ≡ `origin/main` tracking. Owner-confirmed hosted migration ledger **57/57** after Option B apply of CONN `20261121120000`…`20261124120000`; history md5 **`900da6949dfd6f7818a454b7f28ddf33`**; hosted post-catalog **23/23 PASS** (exit 0) evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z` (`post_catalog_utc=2026-11-27T04:06:14Z`). Apply evidence `~/StoreAgentEvidence/conn-hr-2c-apply-20261127T033439Z` (COMMIT observed; interim parser false-fail resolved by pipe-delimiter fix — incident preserved). Backup checksum verified; **full Supabase DR NOT ESTABLISHED**. Schema path **DEPLOYED_VERIFIED**; OAuth / workers / cron / SyncRun / credentials **OFF**; V8 hosted JWT **NOT VERIFIED**; V11 **PARTIAL**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**. Migration sync rule `.cursor/rules/migration-synchronization-policy.mdc` installed. PROPOSED intelligence sequence recorded (AI-INV-1.1 enablement NEXT; COMP-1 / CREATIVE-0…2 / LOOP-1 new). Docs-only; pending Git closure.
-- **2026-11-27 (AI-ARCH-0):** Docs-only architecture reconciliation at HEAD `78c1d45`. StoreAgent framed as **AI Commerce Intelligence & Buying Agent** with one evidence-grounded **Commerce Decision Loop**. New **PROPOSED** IDs: **AI-ARCH-0** (orchestrator & evidence architecture), **AI-ARCH-1** (bounded L1 read-only agent). Principle: *The AI controls the investigation. It does not control what counts as a fact.* Autonomy L1 first; L2/L3 separately gated. Evidence contracts, query flow, closed-loop/LOOP-1 target, and security invariants recorded in AI roadmap + Nov plan §0I + DOCX **§37**. AI-INV-1/1.1 remains **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**); enablement/UX only **PROPOSED**. AI-MKT-0…4 IDs preserved **PLANNED**; COMP/CREATIVE/LOOP remain **PROPOSED**. Schema pins unchanged (57/57 · 23/23 · DEPLOYED_VERIFIED · activation OFF). **Not implemented.** **Next:** owner accept AI-ARCH-0 → AI-ARCH-1 and/or AI-INV-1.1 enablement / UX-INV-1d. STOP for owner review.
+- **2026-11-27 (AI-ARCH-0):** Docs-only architecture reconciliation (later closed with DOC-CONTINUITY-6 @ `d12fd04`; historical authoring also referenced tip `78c1d45`). StoreAgent framed as **AI Commerce Intelligence & Buying Agent** with one evidence-grounded **Commerce Decision Loop**. New **PROPOSED** IDs: **AI-ARCH-0** (orchestrator & evidence architecture), **AI-ARCH-1** (bounded L1 read-only agent). Principle: *The AI controls the investigation. It does not control what counts as a fact.* Autonomy L1 first; L2/L3 separately gated. Evidence contracts, query flow, closed-loop/LOOP-1 target, and security invariants recorded in AI roadmap + Nov plan §0I + DOCX **§37**. AI-INV-1/1.1 remains **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**); enablement/UX only **PROPOSED**. AI-MKT-0…4 IDs preserved **PLANNED**; COMP/CREATIVE/LOOP remain **PROPOSED**. Schema pins unchanged (57/57 · 23/23 · DEPLOYED_VERIFIED · activation OFF). Historical note: “not implemented” applied at authoring; superseded for L1 eng status by AI-ARCH-1a–1e entries below.
+- **2026-11-27 (AI-ARCH-1a–1d):** **CLOSED/PUSHED** @ `d56de33` — contracts, L1 tool registry, bounded orchestrator, grounded draft validation; Vitest **62/62 PASS**; soft-enable **OFF**; no UI/live AI/migrations. Historical reports preserve their own STOP/pending headers.
+- **2026-11-27 (AI-ARCH-1e):** Verified tip `d56de33` ≡ `origin/main`. Guarded merchant intelligence UX **`LOCAL_COMPLETE`** (uncommitted; Git checkpoint pending). Thin structured-intent panel in SKU inspector; server action with auth/membership/`inventory.read`/enablement-before-tools; merchant-safe DTO; soft-enable **OFF**. Vitest 1e **14/14** · combined 1a–1e **76/76** · typecheck/lint/build **PASS**. Schema **57/57** · post-catalog **23/23** prior · **DEPLOYED_VERIFIED** · activation **OFF**. Protected dirty/untracked set preserved. Report: `docs/AI_ARCH_1E_IMPLEMENTATION_REPORT.md`.
+- **2026-11-27 (AI-ARCH-1e final acceptance):** Config safety PASS (`.env.example` docs-only; no real env enablement). Security denial + zero evidence-load PASS. Isolated fixture browser matrix **375/768/1280/1440/2560 PASS** (evidence `.tmp/ai-arch-1e-accept/artifacts/`); live soft-enable inventory browser **NOT EXECUTED**. Final report: `docs/AI_ARCH_1E_FINAL_ACCEPTANCE_REPORT.md`. Owner Git checkpoint **GO** (allowlist only). **Next:** AI-ARCH-1f only after owner review. STOP.

@@ -8,6 +8,7 @@ import { InventoryIntelligenceWorkspace } from "@/components/inventory/inventory
 import { PlanningInputsEditor } from "@/components/inventory/planning-inputs-editor";
 import { DecisionReadinessPanel } from "@/components/inventory-readiness/decision-readiness-panel";
 import { requireAppIdentity } from "@/lib/auth/app-route";
+import { mayRunCommerceAgent } from "@/lib/commerce-agent/orchestrator/enablement";
 import { loadStoreIncomingEvidenceAttestations } from "@/lib/incoming-evidence/load";
 import {
   INVENTORY_EVIDENCE_ANCHOR,
@@ -168,6 +169,12 @@ export default async function InventoryPage({
 
   const asOfLabel = readiness.presence.primaryAsOfMetricDate;
 
+  // Trusted server-resolved soft-enable (default OFF / empty allowlist).
+  // Distinct from AI-INV / Actions flags. Client never overrides.
+  const commerceAgentVisible = mayRunCommerceAgent({
+    organizationId,
+  }).mayRun;
+
   // Stable DOM order: SKU evidence always above readiness. Never swap sections
   // when filter=all ↔ filtered — that remount jump landed merchants on Decision
   // Readiness after clicking All. Overview deep links still use #inventory-evidence.
@@ -221,6 +228,7 @@ export default async function InventoryPage({
             stockObservationsStale={stockObservationsStale}
             sourceLabel={inventoryEvidenceSourceLabel(INVENTORY_SOURCE_KIND)}
             asOfLabel={asOfLabel}
+            commerceAgentVisible={commerceAgentVisible}
             planning={{
               leadTimeDays: planning.leadTimeDays,
               safetyStockDays: planning.safetyStockDays,

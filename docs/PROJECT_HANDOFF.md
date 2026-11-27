@@ -2,14 +2,14 @@
 
 Bootstrap for new ChatGPT / Cursor sessions.
 
-**Read first (compact current truth):** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**AI-ARCH-0**), then `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` for V1–V15 / CONN-1 exit, and `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` for AI-ARCH-0 + PROPOSED intelligence sequence.
+**Read first (compact current truth):** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**AI-ARCH-1e**), then `docs/AI_ARCH_1E_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` for V1–V15 / CONN-1 exit, and `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
 **Active PE1.b.6b continuity (JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`
-Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger § **2026-11-27 — AI-ARCH-0**.
-**November 2026 execution plan:** `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md` (§0I / §0H).
+Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger § **2026-11-27 — AI-ARCH-1e**.
+**November 2026 execution plan:** `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md` (§0J / §0I / §0H).
 **Migration sync policy:** `.cursor/rules/migration-synchronization-policy.mdc` (`LOCAL_COMPLETE` ≠ `HOSTED_SYNC_PENDING` ≠ `DEPLOYED_VERIFIED`).
 **Overview/Inventory UX delivery:** `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` (UX-INV-1a–**1c.1 CLOSED**; 1d **PLANNED**).
 
-Hosted schema ledger: **57/57 DEPLOYED_VERIFIED** (CONN Option B + post-catalog 23/23; evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z`). Historical 38→52 closeout remains in `docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`. Full Supabase DR **NOT ESTABLISHED**. OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**. **AI-ARCH-0 / AI-ARCH-1 PROPOSED** (not implemented). Principle: *The AI controls the investigation. It does not control what counts as a fact.* AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**; enablement **PROPOSED**). AI-MKT-0…4 **PLANNED**; COMP-1 / CREATIVE-0…2 / LOOP-1 **PROPOSED**. Canonical DOCX §§36–37. M5.6/M5.7: `docs/M5_6_HANDOFF.md`. After every milestone (including blocked): update master handoff before the next — do not rely on chat length.
+Hosted schema ledger: **57/57 DEPLOYED_VERIFIED** (CONN Option B + post-catalog 23/23; evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z`). Historical 38→52 closeout remains in `docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`. Full Supabase DR **NOT ESTABLISHED**. OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**. **AI-ARCH-0 PROPOSED** (design @ `d12fd04`). **AI-ARCH-1a–1d CLOSED/PUSHED** @ `d56de33`. **AI-ARCH-1e LOCAL_COMPLETE** (soft-enable **OFF**; Git checkpoint pending). Principle: *The AI controls the investigation. It does not control what counts as a fact.* AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**; enablement **PROPOSED**). AI-MKT-0…4 **PLANNED**; COMP-1 / CREATIVE-0…2 / LOOP-1 **PROPOSED**. Canonical DOCX §§36–37. M5.6/M5.7: `docs/M5_6_HANDOFF.md`. After every milestone (including blocked): update master handoff before the next — do not rely on chat length.
 
 ## 1. Thesis and non-negotiables
 
@@ -27,9 +27,9 @@ Data determines reality. Deterministic forecasting and inventory logic calculate
 |---|---|
 | Repository | StoreAgent.si |
 | Branch | `main` |
-| HEAD (verify) | Expect `78c1d45` (DOC-CONTINUITY-6 baseline; ancestors include FE-ACCEPT-1C `1edc1ff`, CONN-HR-1 `454f7ec`, DOC-TRACK-3 `7bd2e8b`, 1d-E `5de98cf`, …) |
-| Remote | Tracking `origin/main` at DOC-CONTINUITY-6 verification. **No CI verification claimed** without evidence. |
-| As-of | 2026-11-27 — **AI-ARCH-0**; local/hosted migrations **57/57**; history md5 `900da6949dfd6f7818a454b7f28ddf33`; post-catalog **23/23 PASS**; schema **DEPLOYED_VERIFIED**; activation **OFF**; CONN-1 exit **UNMET**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; PE1.b.6b JWT still BLOCKED |
+| HEAD (verify) | Expect `d56de33` tip (AI-ARCH-1a–1d); AI-ARCH-1e local work uncommitted; ancestors include DOC-CONTINUITY-6 `d12fd04`, FE-ACCEPT-1C `1edc1ff`, … |
+| Remote | Tracking `origin/main` at `d56de33`. **No CI verification claimed** without evidence. |
+| As-of | 2026-11-27 — **AI-ARCH-1e LOCAL_COMPLETE**; local/hosted migrations **57/57**; history md5 `900da6949dfd6f7818a454b7f28ddf33`; post-catalog **23/23 PASS**; schema **DEPLOYED_VERIFIED**; activation **OFF**; CONN-1 exit **UNMET**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; PE1.b.6b JWT still BLOCKED |
 | Hosted pin | `qlsqminsfdntpqdkhxjx`; ledger **57/57** including CONN `20261121120000`…`20261124120000` |
 
 > **Superseded current-status pins:** Text expecting hosted schema **52**, “five CONN not applied”, “CONN-HR-2 next / apply NO-GO”, or older HEADs as *current* tip is **historical**. Prefer this baseline + ledger § 2026-11-27 + master handoff.

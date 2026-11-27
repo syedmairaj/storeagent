@@ -4,6 +4,7 @@ import { useEffect, useId, useRef } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 
+import { SkuCommerceAgentPanel } from "@/components/inventory/sku-commerce-agent-panel";
 import { SkuExplainerPanel } from "@/components/inventory/sku-explainer-panel";
 import {
   presentSkuAttention,
@@ -24,6 +25,7 @@ export function SkuIntelligenceInspector({
   stockObservationsStale,
   planning = null,
   returnFocusRef,
+  commerceAgentVisible = false,
 }: {
   row: MerchantInventoryIntelligenceRow | null;
   open: boolean;
@@ -33,6 +35,8 @@ export function SkuIntelligenceInspector({
   planning?: MerchantPlanningInputs | null;
   /** Element that opened the inspector — receives focus on safe close. */
   returnFocusRef?: React.RefObject<HTMLElement | null>;
+  /** Server-resolved commerce-agent soft-enable ∧ allowlist (default hidden). */
+  commerceAgentVisible?: boolean;
 }) {
   const titleId = useId();
   const descriptionId = useId();
@@ -115,6 +119,7 @@ export function SkuIntelligenceInspector({
                 row={row}
                 presentation={presentation}
                 stockObservationsStale={stockObservationsStale}
+                commerceAgentVisible={commerceAgentVisible}
               />
             ) : null}
           </div>
@@ -128,10 +133,12 @@ function InspectorBody({
   row,
   presentation,
   stockObservationsStale,
+  commerceAgentVisible,
 }: {
   row: MerchantInventoryIntelligenceRow;
   presentation: ReturnType<typeof presentSkuAttention>;
   stockObservationsStale: boolean;
+  commerceAgentVisible: boolean;
 }) {
   const { evidence } = presentation;
   const thresholds = evidence.facts.find((f) => f.id === "thresholds");
@@ -177,6 +184,14 @@ function InspectorBody({
         row={row}
         organizationId={row.organizationId}
         stockObservationsStale={stockObservationsStale}
+      />
+
+      <SkuCommerceAgentPanel
+        key={row.grainKey}
+        row={row}
+        organizationId={row.organizationId}
+        stockObservationsStale={stockObservationsStale}
+        visible={commerceAgentVisible}
       />
 
       {/* Concise fact groups */}

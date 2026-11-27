@@ -111,6 +111,7 @@ export function InventoryIntelligenceWorkspace({
   sourceLabel,
   asOfLabel,
   planning = null,
+  commerceAgentVisible = false,
 }: {
   rows: readonly MerchantInventoryIntelligenceRow[];
   /** Deep-link from Overview attention signals. */
@@ -124,6 +125,8 @@ export function InventoryIntelligenceWorkspace({
   asOfLabel?: string | null;
   /** Persisted org planning days for SKU inspector threshold impact (UX-INV-1c). */
   planning?: MerchantPlanningInputs | null;
+  /** Server-resolved commerce-agent soft-enable ∧ allowlist (default hidden). */
+  commerceAgentVisible?: boolean;
   /** @deprecated Pending copy lives on readiness freshness; kept optional for callers. */
   hasPendingMetricWork?: boolean;
 }) {
@@ -583,6 +586,7 @@ export function InventoryIntelligenceWorkspace({
         open={selectedRow !== null}
         stockObservationsStale={stockObservationsStale}
         planning={planning}
+        commerceAgentVisible={commerceAgentVisible}
         returnFocusRef={returnFocusRef}
         onOpenChange={(open) => {
           if (!open) {

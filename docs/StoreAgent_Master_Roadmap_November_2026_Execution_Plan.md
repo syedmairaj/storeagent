@@ -1,26 +1,43 @@
 # StoreAgent.si — November 2026 Execution Plan
 
 **Mode:** Documentation / planning reconciliation only
-**As-of current truth:** 2026-11-27 — **AI-ARCH-0** architecture reconciliation (**PROPOSED**; DOC-CONTINUITY-6 schema pins preserved)
-**Git HEAD verified (2026-11-27):** `78c1d45` — DOC-TRACK-5 docs reconcile on tip
-**Remote:** `main` tracking `origin/main` (**no CI claim**)
+**As-of current truth:** 2026-11-27 — **AI-ARCH-1e** guarded merchant UX (`LOCAL_COMPLETE`; DOC-CONTINUITY-6 schema pins preserved)
+**Git HEAD verified tip (2026-11-27):** `d56de33` — AI-ARCH-1a–1d CLOSED/PUSHED; 1e uncommitted
+**Remote:** `main` tracking `origin/main` at tip (**no CI claim**)
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
-**AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` (AI-ARCH-0 section)
-**Authoritative status table:** living ledger § **2026-11-27 — AI-ARCH-0**
+**AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`
+**Authoritative status table:** living ledger § **2026-11-27 — AI-ARCH-1e**
 **Authority:** Augments the canonical master roadmap DOCX. Does **not** destructively rewrite frozen architecture, PE1.b gates, M5–M7 contracts, or historical ledger evidence.
 **DOCX synchronization:** §36 DOC-CONTINUITY-6 present; **§37 AI Commerce Intelligence Architecture (PROPOSED)** appended for AI-ARCH-0. §§1–36 preserved. Refresh Word Contents if needed.
 
 ---
 
+## 0J. 2026-11-27 AI-ARCH-1e — Guarded merchant intelligence UX (`LOCAL_COMPLETE`)
+
+> **Authority for current *eng* pins.** Schema/activation pins remain as in §0H. §0I remains architecture design authority.
+
+| Topic | Current state |
+|---|---|
+| AI-ARCH-1a–1d | **CLOSED/PUSHED** @ `d56de33` · 62/62 PASS |
+| AI-ARCH-1e | **`LOCAL_COMPLETE`** · soft-enable **OFF** · final acceptance recorded |
+| UX | Structured intents in SKU inspector; no chatbot / no Actions redesign |
+| Security | Auth + membership + `inventory.read` + enablement before evidence/tools |
+| Browser | Fixture matrix 375→2560 **PASS**; live soft-enable inventory **NOT EXECUTED** |
+| Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** |
+| Next | Owner Git checkpoint → **AI-ARCH-1f** only |
+
+---
+
 ## 0I. 2026-11-27 AI-ARCH-0 — Commerce Decision Loop architecture (**PROPOSED**)
 
-> **Authority for current *architecture* pins.** Schema/activation pins remain as in §0H. Prefer AI roadmap AI-ARCH-0 section + living ledger § AI-ARCH-0 + master handoff.
+> **SUPERSEDED for *eng next-step* pins** by §0J. Remains authority for AI-ARCH-0 design framing. Schema/activation pins remain as in §0H.
 
 | Topic | Current state |
 |---|---|
 | Product framing | AI Commerce Intelligence & Buying Agent · one evidence-grounded Commerce Decision Loop |
 | Principle | *The AI controls the investigation. It does not control what counts as a fact.* |
-| AI-ARCH-0 / AI-ARCH-1 | **PROPOSED** only — not implemented; no live AI spend |
+| AI-ARCH-0 | **PROPOSED** (design) — closed with DOC-CONTINUITY-6 @ `d12fd04` |
+| AI-ARCH-1 | **1a–1d CLOSED/PUSHED** @ `d56de33`; **1e LOCAL_COMPLETE**; **1f** next |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** |
 | AI-MKT-0…4 | **PLANNED** (IDs preserved) |
 | COMP-1 · CREATIVE-0…2 · LOOP-1 | **PROPOSED** |
@@ -29,8 +46,8 @@
 
 ### Proposed next sequence (dependency-aware; each step separately authorized)
 
-0. Owner review of **AI-ARCH-0** (+ DOC-CONTINUITY-6 docs Git closure when ready)
-1. **AI-ARCH-1** bounded L1 agent (**PROPOSED**) **and/or** **AI-INV-1.1** enablement / **UX-INV-1d** (parallel UX path)
+0. Owner review of **AI-ARCH-1e** (Git checkpoint) → **AI-ARCH-1f**
+1. **AI-INV-1.1** enablement / **UX-INV-1d** remain parallel **PROPOSED** paths
 2. Hosted V8 JWT empty-vault probe → binding → D14/D13 → CONN-2 OAuth (still blocked until authorized)
 3. AI-MKT-0 → 1 → 1.1 → 2 → **COMP-1** → AI-MKT-3 → **CREATIVE-0…2** → AI-MKT-4 → **LOOP-1**
 4. SyncRun / M6 prod / M7 / launch only under separate gates

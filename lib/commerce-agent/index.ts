@@ -1,6 +1,6 @@
 /**
- * AI-ARCH-1a/1b/1c/1d — commerce agent contracts, L1 tools, orchestrator, draft validation.
- * Soft-enable default OFF. No live route, UI, paid AI, or migrations in these slices.
+ * AI-ARCH-1a–1e — commerce agent contracts, L1 tools, orchestrator, draft validation,
+ * and guarded merchant investigation UX entry (soft-enable default OFF).
  */
 
 export type {
@@ -107,3 +107,44 @@ export {
   type PolishCommerceAgentAnswerResult,
   type ValidateCommerceAgentDraftResult,
 } from "@/lib/commerce-agent/validation";
+
+export {
+  COMMERCE_AGENT_STRUCTURED_INTENTS,
+  isCommerceAgentStructuredIntent,
+  getCommerceAgentIntentOption,
+  type CommerceAgentStructuredIntent,
+  type CommerceAgentIntentOption,
+} from "@/lib/commerce-agent/intents";
+
+export {
+  toMerchantInvestigationDto,
+  serializeAbstention,
+  merchantInvestigationError,
+  assertMerchantSafeDto,
+  type MerchantInvestigationDto,
+  type MerchantInvestigationAnswerDto,
+  type MerchantInvestigationAbstentionDto,
+  type MerchantInvestigationErrorDto,
+  type MerchantInvestigationRejectionCode,
+  type MerchantInvestigationClaimDto,
+  type MerchantInvestigationEvidenceDto,
+  type MerchantInvestigationRecommendationDto,
+} from "@/lib/commerce-agent/merchant-response";
+
+export {
+  runGuardedMerchantInvestigation,
+  FORBIDDEN_CLIENT_OVERRIDE_KEYS,
+  type MerchantInvestigationInput,
+  type MerchantInvestigationPorts,
+  type MerchantInvestigationIdentity,
+  type MerchantInvestigationOrgContext,
+} from "@/lib/commerce-agent/merchant-investigation";
+
+export {
+  isCurrentCommerceAgentResponse,
+  createCommerceAgentClientRequestId,
+  type CommerceAgentRequestKey,
+} from "@/lib/commerce-agent/client-request";
+
+// createAuthorizedL1ToolDeps / actions stay server-only entrypoints — do not
+// re-export from this barrel (would pull server-only loaders into client graphs).
