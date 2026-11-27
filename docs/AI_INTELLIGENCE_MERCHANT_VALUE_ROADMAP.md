@@ -2,20 +2,20 @@
 
 **Document ID:** DOC-2026-11 / AI-INV
 **Mode:** Planning & product vision only — **not authorization** to deploy live models, enable workers, run JWT, connect live Shopify, activate M6/M7, spend credits, or claim merchant ROI.
-**As-of:** 2026-11-27 — **AI-ARCH-1e** guarded merchant UX (`LOCAL_COMPLETE`; DOC-CONTINUITY-6 schema pins preserved)
-**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-27 — AI-ARCH-1e** (falls back to AI-ARCH-0 / DOC-CONTINUITY-6)
+**As-of:** 2026-11-27 — **AI-ARCH-1f** evaluation & release readiness (`LOCAL_COMPLETE`; DOC-CONTINUITY-6 schema pins preserved)
+**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-27 — AI-ARCH-1f** (falls back to AI-ARCH-1e / AI-ARCH-0 / DOC-CONTINUITY-6)
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
-**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports · canonical DOCX §36–§37 · `docs/AI_ARCH_1E_IMPLEMENTATION_REPORT.md`
+**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports · canonical DOCX §36–§37 · `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md`
 
-### 2026-11-27 status pin (DOC-CONTINUITY-6 + AI-ARCH-1e)
+### 2026-11-27 status pin (DOC-CONTINUITY-6 + AI-ARCH-1f)
 
 | Slice | Status |
 |---|---|
-| Git HEAD tip | `d56de33` (1a–1d CLOSED/PUSHED) · AI-ARCH-1e **LOCAL_COMPLETE** uncommitted · hosted migrations **57/57** · post-catalog **23/23** · schema **DEPLOYED_VERIFIED** · activation **OFF** |
+| Git HEAD tip | `1c75de5` (1e CLOSED/PUSHED) · AI-ARCH-1f **LOCAL_COMPLETE** uncommitted · hosted migrations **57/57** · post-catalog **23/23** · schema **DEPLOYED_VERIFIED** · activation **OFF** |
 | AI-ARCH-0 | **PROPOSED** (design) · closed with DOC-CONTINUITY-6 @ `d12fd04` |
 | AI-ARCH-1a–1d | **CLOSED/PUSHED** @ `d56de33` (62/62 PASS) |
-| AI-ARCH-1e | **`LOCAL_COMPLETE`** — guarded SKU-inspector UX; soft-enable **OFF**; final acceptance fixture browser PASS |
-| AI-ARCH-1f | **PLANNED** (next; owner-gated) |
+| AI-ARCH-1e | **CLOSED/PUSHED** @ `1c75de5` — guarded SKU-inspector UX; soft-enable **OFF**; fixture browser PASS |
+| AI-ARCH-1f | **`LOCAL_COMPLETE`** — offline §9/adversarial eval; 121/121 PASS; parent AI-ARCH-1 closure pending |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** (not architecture substitute) |
 | AI-INV-2…6 | **PLANNED** |
 | AI-MKT-0 → 1 → 1.1 → 2 → 3 → 4 | **PLANNED** (IDs preserved); no live search / paid credits |
@@ -32,7 +32,7 @@ Not implementation permission. No invented competitor sales/ROAS. Licensed sourc
 | Order | ID | Scope | Status |
 |---|---|---|---|
 | 0 | **AI-ARCH-0** | Orchestrator & evidence architecture (Commerce Decision Loop) | **PROPOSED** (design closed @ `d12fd04`) |
-| 1 | **AI-ARCH-1** | Bounded read-only agent (L1) | **1a–1d CLOSED/PUSHED** @ `d56de33`; **1e LOCAL_COMPLETE**; **1f** next |
+| 1 | **AI-ARCH-1** | Bounded read-only agent (L1) | **1a–1e CLOSED/PUSHED** (`d56de33`/`1c75de5`); **1f LOCAL_COMPLETE**; parent closure pending |
 | 1b | AI-INV-1.1 enablement | Soft-enable / merchant UX iteration (code CLOSED @ `38f63d6`) | **PROPOSED** (parallel UX path) |
 | 2 | AI-MKT-0 | Data/source/licensing feasibility | PLANNED |
 | 3 | AI-MKT-1 | Grounded SKU/country research | PLANNED |
@@ -209,7 +209,7 @@ Use sales, inventory, contribution margin, returns, creative metrics, CPA/ROAS *
 | Order | ID | Scope | Status | Depends on | Acceptance (docs/impl) | NOT included |
 |---|---|---|---|---|---|---|
 | 0 | **AI-ARCH-0** | Orchestrator & evidence architecture (this doc) | **PROPOSED** | Owner review | Cross-doc consistency; principle frozen | Live AI, spend |
-| 1 | **AI-ARCH-1** | Bounded read-only agent (L1 loop) | **1a–1d CLOSED/PUSHED** @ `d56de33`; **1e LOCAL_COMPLETE**; **1f** next | AI-ARCH-0 | Offline tests; budgets; abstention; tenant isolation; soft-enable OFF | L2/L3 actions; paid research |
+| 1 | **AI-ARCH-1** | Bounded read-only agent (L1 loop) | **1a–1e CLOSED/PUSHED** (`d56de33`/`1c75de5`); **1f LOCAL_COMPLETE**; parent pending | AI-ARCH-0 | Offline tests; budgets; abstention; tenant isolation; soft-enable OFF | L2/L3 actions; paid research |
 | — | AI-INV-1 / 1.1 | Grounded explainer + situational guidance | **CLOSED/PUSHED** @ `38f63d6` | — | Soft-enable **OFF** | Live model cert |
 | 1b | AI-INV-1.1 enablement / UX | Soft-enable + merchant UX iteration | **PROPOSED** | Owner auth | Honesty review; flag still gated | OAuth/SyncRun |
 | 2 | AI-MKT-0 | Licensing / source feasibility | **PLANNED** | AI-ARCH-0 (contract) | Legal allowlists | Live providers |

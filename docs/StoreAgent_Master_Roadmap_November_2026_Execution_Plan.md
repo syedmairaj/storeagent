@@ -1,43 +1,59 @@
 # StoreAgent.si — November 2026 Execution Plan
 
 **Mode:** Documentation / planning reconciliation only
-**As-of current truth:** 2026-11-27 — **AI-ARCH-1e** guarded merchant UX (`LOCAL_COMPLETE`; DOC-CONTINUITY-6 schema pins preserved)
-**Git HEAD verified tip (2026-11-27):** `d56de33` — AI-ARCH-1a–1d CLOSED/PUSHED; 1e uncommitted
+**As-of current truth:** 2026-11-27 — **AI-ARCH-1f** evaluation & release readiness (`LOCAL_COMPLETE`; DOC-CONTINUITY-6 schema pins preserved)
+**Git HEAD verified tip (2026-11-27):** `1c75de5` — AI-ARCH-1e CLOSED/PUSHED; 1f uncommitted LOCAL_COMPLETE
 **Remote:** `main` tracking `origin/main` at tip (**no CI claim**)
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
 **AI + merchant-value roadmap:** `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`
-**Authoritative status table:** living ledger § **2026-11-27 — AI-ARCH-1e**
+**Authoritative status table:** living ledger § **2026-11-27 — AI-ARCH-1f**
 **Authority:** Augments the canonical master roadmap DOCX. Does **not** destructively rewrite frozen architecture, PE1.b gates, M5–M7 contracts, or historical ledger evidence.
 **DOCX synchronization:** §36 DOC-CONTINUITY-6 present; **§37 AI Commerce Intelligence Architecture (PROPOSED)** appended for AI-ARCH-0. §§1–36 preserved. Refresh Word Contents if needed.
 
 ---
 
-## 0J. 2026-11-27 AI-ARCH-1e — Guarded merchant intelligence UX (`LOCAL_COMPLETE`)
+## 0K. 2026-11-27 AI-ARCH-1f — Evaluation & release readiness (`LOCAL_COMPLETE`)
 
-> **Authority for current *eng* pins.** Schema/activation pins remain as in §0H. §0I remains architecture design authority.
+> **Authority for current *eng* pins.** Schema/activation pins remain as in §0H. §0I remains architecture design authority. Offline eng **GO** ≠ production activation.
 
 | Topic | Current state |
 |---|---|
 | AI-ARCH-1a–1d | **CLOSED/PUSHED** @ `d56de33` · 62/62 PASS |
-| AI-ARCH-1e | **`LOCAL_COMPLETE`** · soft-enable **OFF** · final acceptance recorded |
+| AI-ARCH-1e | **CLOSED/PUSHED** @ `1c75de5` · soft-enable **OFF** · fixture browser PASS |
+| AI-ARCH-1f | **`LOCAL_COMPLETE`** · report `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md` |
+| Eval | §9 + adversarial fixtures; real orchestrator/validators; **38/38** cases · Vitest **121/121** AI-ARCH |
+| Bounds / budget | **6/4/8000** enforced; live spend **0**; credits **not** implemented |
+| Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** |
+| Next | Owner accept 1f / parent AI-ARCH-1 → **AI-MKT-0** (docs/legal); reconcile CONN-1 exit / V8 JWT / binding before market prod |
+
+---
+
+## 0J. 2026-11-27 AI-ARCH-1e — Guarded merchant intelligence UX (CLOSED/PUSHED @ `1c75de5`)
+
+> **SUPERSEDED for *eng next-step* pins** by §0K. Historical UX acceptance retained. Schema/activation pins remain as in §0H.
+
+| Topic | Current state |
+|---|---|
+| AI-ARCH-1a–1d | **CLOSED/PUSHED** @ `d56de33` · 62/62 PASS |
+| AI-ARCH-1e | **CLOSED/PUSHED** @ `1c75de5` · soft-enable **OFF** · final acceptance recorded |
 | UX | Structured intents in SKU inspector; no chatbot / no Actions redesign |
 | Security | Auth + membership + `inventory.read` + enablement before evidence/tools |
 | Browser | Fixture matrix 375→2560 **PASS**; live soft-enable inventory **NOT EXECUTED** |
 | Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** |
-| Next | Owner Git checkpoint → **AI-ARCH-1f** only |
+| Next (historical) | Was AI-ARCH-1f — see §0K |
 
 ---
 
 ## 0I. 2026-11-27 AI-ARCH-0 — Commerce Decision Loop architecture (**PROPOSED**)
 
-> **SUPERSEDED for *eng next-step* pins** by §0J. Remains authority for AI-ARCH-0 design framing. Schema/activation pins remain as in §0H.
+> **SUPERSEDED for *eng next-step* pins** by §0K. Remains authority for AI-ARCH-0 design framing. Schema/activation pins remain as in §0H.
 
 | Topic | Current state |
 |---|---|
 | Product framing | AI Commerce Intelligence & Buying Agent · one evidence-grounded Commerce Decision Loop |
 | Principle | *The AI controls the investigation. It does not control what counts as a fact.* |
 | AI-ARCH-0 | **PROPOSED** (design) — closed with DOC-CONTINUITY-6 @ `d12fd04` |
-| AI-ARCH-1 | **1a–1d CLOSED/PUSHED** @ `d56de33`; **1e LOCAL_COMPLETE**; **1f** next |
+| AI-ARCH-1 | **1a–1e CLOSED/PUSHED** (`d56de33`/`1c75de5`); **1f LOCAL_COMPLETE**; parent pending |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** |
 | AI-MKT-0…4 | **PLANNED** (IDs preserved) |
 | COMP-1 · CREATIVE-0…2 · LOOP-1 | **PROPOSED** |
@@ -46,11 +62,12 @@
 
 ### Proposed next sequence (dependency-aware; each step separately authorized)
 
-0. Owner review of **AI-ARCH-1e** (Git checkpoint) → **AI-ARCH-1f**
-1. **AI-INV-1.1** enablement / **UX-INV-1d** remain parallel **PROPOSED** paths
-2. Hosted V8 JWT empty-vault probe → binding → D14/D13 → CONN-2 OAuth (still blocked until authorized)
-3. AI-MKT-0 → 1 → 1.1 → 2 → **COMP-1** → AI-MKT-3 → **CREATIVE-0…2** → AI-MKT-4 → **LOOP-1**
-4. SyncRun / M6 prod / M7 / launch only under separate gates
+0. Owner review of **AI-ARCH-1f** (parent AI-ARCH-1 Git checkpoint)
+1. **AI-MKT-0** (docs/legal feasibility — no live providers) under separate authorization
+2. **AI-INV-1.1** enablement / **UX-INV-1d** remain parallel **PROPOSED** paths
+3. Hosted V8 JWT empty-vault probe → binding → D14/D13 → CONN-2 OAuth (still blocked until authorized; **required before AI-MKT production use**)
+4. AI-MKT-1 → 1.1 → 2 → **COMP-1** → AI-MKT-3 → **CREATIVE-0…2** → AI-MKT-4 → **LOOP-1**
+5. SyncRun / M6 prod / M7 / launch only under separate gates
 
 ---
 
