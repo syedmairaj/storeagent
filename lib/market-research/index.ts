@@ -1,6 +1,7 @@
 /**
- * AI-MKT-1a — market research contracts, source registry, and rights enforcement.
- * Offline / schema-neutral. No provider adapters, network, or persistence.
+ * AI-MKT-1a/1b — market research contracts, source registry, rights enforcement,
+ * and offline provider adapters / synthetic fixtures.
+ * Schema-neutral. No live network, SDKs, persistence, or evidence normalization (1c).
  */
 
 export type {
@@ -103,3 +104,50 @@ export {
   type ResearchAdmissionInput,
   type ResearchAdmissionResult,
 } from "@/lib/market-research/gate";
+
+export {
+  MARKET_RESEARCH_ADAPTER_RESPONSE_VERSION,
+  buildOpenAiOfflineFixture,
+  buildGeminiOfflineFixture,
+  assertSyntheticOnly,
+  createOpenAiOfflineStubAdapter,
+  createOpenAiRecordedReplayAdapter,
+  openaiCandidateApprovalImpliesLiveRights,
+  createGeminiOfflineStubAdapter,
+  createGeminiRecordedReplayAdapter,
+  geminiAutomaticFallbackAllowed,
+  getDefaultProviderApproval,
+  evaluateProviderApproval,
+  openaiDesignCandidateImpliesLiveApproval,
+  listOfflineAdapterRegistryKeys,
+  getOfflineAdapterFromRegistry,
+  resolveOfflineResearchAdapter,
+  isOfflineAllowlistedAdapterId,
+  invokeMarketResearchAdapter,
+  DEFAULT_ADAPTER_TIMEOUT_MS,
+  type MarketResearchAdapterMode,
+  type MarketResearchOriginClass,
+  type MarketResearchProviderShape,
+  type MarketResearchAdapterFailureReason,
+  type MarketResearchAdapterCitation,
+  type MarketResearchAdapterSnippet,
+  type MarketResearchAdapterConflictHint,
+  type MarketResearchAdapterSuccess,
+  type MarketResearchAdapterFailure,
+  type MarketResearchAdapterResult,
+  type MarketResearchAdapterGenerateOptions,
+  type MarketResearchAdapterInput,
+  type MarketResearchAdapter,
+  type OpenAiOfflineFixtureId,
+  type GeminiOfflineFixtureId,
+  type MarketResearchOfflineFixtureId,
+  type OpenAiOfflineAdapterOptions,
+  type GeminiOfflineAdapterOptions,
+  type MarketResearchProviderApproval,
+  type ProviderApprovalEvaluation,
+  type MarketResearchAdapterRegistryKey,
+  type ResolveAdapterResult,
+  type InvokeMarketResearchAdapterInput,
+  type InvokeMarketResearchAdapterResult,
+  type FixtureBuildContext,
+} from "@/lib/market-research/adapters";
