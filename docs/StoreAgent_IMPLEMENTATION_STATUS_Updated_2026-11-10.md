@@ -2,31 +2,45 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-27 AI-MKT-1e):** See **§ 2026-11-27 — AI-MKT-1e** below. Schema closeout: **§ DOC-CONTINUITY-6**. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Feasibility: `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`. 1a–1e reports: `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md`. V1–V15 / CONN-1 exit: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Migration sync rule: `.cursor/rules/migration-synchronization-policy.mdc`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI roadmap: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (committed tip):** `2f6ae43` — AI-MKT-1d **CLOSED/PUSHED**; AI-MKT-1c **CLOSED/PUSHED** @ `553e239`; AI-MKT-1b **CLOSED/PUSHED** @ `211d8e9`; AI-MKT-1a **CLOSED/PUSHED** @ `f685c15`; AI-MKT-0 **CLOSED/PUSHED** @ `de01686`; AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded`. AI-MKT-1e **`LOCAL_COMPLETE`** (uncommitted). `main` aligned with `origin/main` at `2f6ae43` (**no CI claim**). Local **57** / hosted **57**. History md5 `900da6949dfd6f7818a454b7f28ddf33`. Post-catalog **23/23 PASS**. Schema **DEPLOYED_VERIFIED** ≠ activation.
+> **Authoritative current state (2026-11-27 AI-MKT-1f):** See **§ 2026-11-27 — AI-MKT-1f** below. Schema closeout: **§ DOC-CONTINUITY-6**. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Feasibility: `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md`. 1a–1f reports: `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`. V1–V15 / CONN-1 exit: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Migration sync rule: `.cursor/rules/migration-synchronization-policy.mdc`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI roadmap: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (committed tip):** `59ff8b0` — AI-MKT-1e **CLOSED/PUSHED**; AI-MKT-1d **CLOSED/PUSHED** @ `2f6ae43`; AI-MKT-1c **CLOSED/PUSHED** @ `553e239`; AI-MKT-1b **CLOSED/PUSHED** @ `211d8e9`; AI-MKT-1a **CLOSED/PUSHED** @ `f685c15`; AI-MKT-0 **CLOSED/PUSHED** @ `de01686`; AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded`. AI-MKT-1f **`LOCAL_COMPLETE`** (uncommitted). `main` aligned with `origin/main` at `59ff8b0` (**no CI claim**). Local **57** / hosted **57**. History md5 `900da6949dfd6f7818a454b7f28ddf33`. Post-catalog **23/23 PASS**. Schema **DEPLOYED_VERIFIED** ≠ activation.
 > **Activation / security:** OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**. V11 **PARTIAL**. Binding **`NOT_YET_VERIFIED`**. D13/D14 **DEFERRED**. CONN-1 exit **UNMET**. Full Supabase DR **NOT ESTABLISHED**. Soft-enable AI **OFF**. Market-research soft-show **OFF**. Live nested cert **FALSE**. Paying launch **NO-GO**.
-> **Architecture:** AI-ARCH-0 **PROPOSED** (design). AI-ARCH-1 **CLOSED/PUSHED** @ `c216ded`. AI-MKT-0 **CLOSED/PUSHED** @ `de01686`. AI-MKT-1a **CLOSED/PUSHED** @ `f685c15`. AI-MKT-1b **CLOSED/PUSHED** @ `211d8e9`. AI-MKT-1c **CLOSED/PUSHED** @ `553e239`. AI-MKT-1d **CLOSED/PUSHED** @ `2f6ae43`. AI-MKT-1e **LOCAL_COMPLETE** (offline guarded merchant research UX). Principle: *The AI controls the investigation. It does not control what counts as a fact.*
-> **Next:** Owner review **AI-MKT-1e** → **AI-MKT-1f** adversarial evaluation & offline acceptance under separate auth; **AI-MKT-1.1** before paid research; reconcile CONN/security before market prod. AI-INV-1.1 enablement / UX-INV-1d remain parallel **PROPOSED**.
-> **Prior § AI-MKT-1d / AI-MKT-1c / AI-MKT-1b / AI-MKT-1a / AI-MKT-0 / AI-ARCH-1f / AI-ARCH-1e / AI-ARCH-0 / DOC-CONTINUITY-6:** Schema/activation authority retained; eng next-step superseded by § AI-MKT-1e.
-> **Prior § 2026-11-26 DOC-TRACK-5 / older:** Historical — do not treat as fresher than § AI-MKT-1e.
+> **Architecture:** AI-ARCH-0 **PROPOSED** (design). AI-ARCH-1 **CLOSED/PUSHED** @ `c216ded`. AI-MKT-0 **CLOSED/PUSHED** @ `de01686`. AI-MKT-1a **CLOSED/PUSHED** @ `f685c15`. AI-MKT-1b **CLOSED/PUSHED** @ `211d8e9`. AI-MKT-1c **CLOSED/PUSHED** @ `553e239`. AI-MKT-1d **CLOSED/PUSHED** @ `2f6ae43`. AI-MKT-1e **CLOSED/PUSHED** @ `59ff8b0`. AI-MKT-1f **LOCAL_COMPLETE** (offline adversarial evaluation). Principle: *The AI controls the investigation. It does not control what counts as a fact.*
+> **Next:** Owner review **AI-MKT-1f** → **AI-MKT-1.1** Durable Credits & Commercial Cost Controls under separate auth; reconcile CONN/security before market prod. AI-INV-1.1 enablement / UX-INV-1d remain parallel **PROPOSED**.
+> **Prior § AI-MKT-1e / AI-MKT-1d / AI-MKT-1c / AI-MKT-1b / AI-MKT-1a / AI-MKT-0 / AI-ARCH-1f / AI-ARCH-1e / AI-ARCH-0 / DOC-CONTINUITY-6:** Schema/activation authority retained; eng next-step superseded by § AI-MKT-1f.
+> **Prior § 2026-11-26 DOC-TRACK-5 / older:** Historical — do not treat as fresher than § AI-MKT-1f.
 
-## 2026-11-27 — AI-MKT-1e guarded merchant research UX
+## 2026-11-27 — AI-MKT-1f adversarial evaluation & offline acceptance
 
-> **Authority:** Guarded merchant UX under SKU inspector + `lib/market-research` merchant boundary. Production action never injects synthetic fixtures. Soft-show default **OFF**. No live providers, SDKs, public routes, paid research, credits, migrations, or activation. Offline **GO** ≠ live research.
+> **Authority:** Independent offline evaluator for AI-MKT-1a–1e. Fixtures + runner + Vitest only. No product/feature/migration/activation changes. Offline **GO** ≠ live research / soft-show / credits.
 
 | Topic | Current state |
 |---|---|
-| Committed HEAD tip | `2f6ae43` · AI-MKT-1d **CLOSED/PUSHED** · AI-MKT-1c @ `553e239` · AI-MKT-1b @ `211d8e9` · AI-MKT-1a @ `f685c15` · AI-MKT-0 @ `de01686` · AI-ARCH-1 @ `c216ded` |
-| AI-MKT-1e | **`LOCAL_COMPLETE`** · report `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` |
+| Committed HEAD tip | `59ff8b0` · AI-MKT-1e **CLOSED/PUSHED** · AI-MKT-1d @ `2f6ae43` · AI-MKT-1c @ `553e239` · AI-MKT-1b @ `211d8e9` · AI-MKT-1a @ `f685c15` · AI-MKT-0 @ `de01686` · AI-ARCH-1 @ `c216ded` |
+| AI-MKT-1f | **`LOCAL_COMPLETE`** · report `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md` |
+| Eval pack | Fixture `ai/ai-mkt-1f-eval-v1` · runner exercises real 1a–1e · **59** cases (58 mandatory PASS + 1 residual SKIP) |
+| Tests | 1f **66/66 PASS**; 1a–1f **168/168**; AI-ARCH **121/121**; AI-INV **27/27**; typecheck/lint/build **PASS** |
+| Live research / credits / soft-show | **NO-GO**; authenticated merchant browser **NOT CERTIFIED**; 1e fixture browser retained as prior evidence only |
+| Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** (unchanged; not reopened) |
+| Next | Owner review → **AI-MKT-1.1** Durable Credits & Commercial Cost Controls only under separate auth; STOP |
+
+## 2026-11-27 — AI-MKT-1e guarded merchant research UX
+
+> **Authority (historical eng pin):** Guarded merchant UX under SKU inspector + `lib/market-research` merchant boundary. Later **CLOSED/PUSHED** @ `59ff8b0`. Soft-show default **OFF**. Offline **GO** ≠ live research. Superseded for *eng next-step* by § AI-MKT-1f.
+
+| Topic | Current state |
+|---|---|
+| Committed HEAD tip | **CLOSED/PUSHED** @ `59ff8b0` (authoring also referenced `2f6ae43`) |
+| AI-MKT-1e | **CLOSED/PUSHED** @ `59ff8b0` · report `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` |
 | Code | Market Intelligence panel; guarded action; safe DTO; preview isolation; AE design / US-GB preview countries; no auto-run |
 | Tests | Focused **19/19 PASS**; 1a–1e **102/102**; AI-ARCH **121/121**; AI-INV **27/27**; fixture browser 375→2560 **PASS**; typecheck/lint/build **PASS** |
 | Live research / credits | **NO-GO** (live structurally forbidden; 1.1 before paid); authenticated soft-show browser **NOT EXECUTED** |
 | Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** (unchanged; not reopened) |
-| Next | Owner review → **AI-MKT-1f** adversarial evaluation & offline acceptance only under separate auth; STOP |
+| Next (historical) | Was AI-MKT-1f — see § AI-MKT-1f |
 
 ## 2026-11-27 — AI-MKT-1d bounded research orchestration & claim validation
 
-> **Authority (historical):** Offline orchestration under `lib/market-research/orchestration/`. Later **CLOSED/PUSHED** @ `2f6ae43`. Soft-enable / research enablement **OFF**. Superseded for *eng next-step* by § AI-MKT-1e.
+> **Authority (historical):** Offline orchestration under `lib/market-research/orchestration/`. Later **CLOSED/PUSHED** @ `2f6ae43`. Soft-enable / research enablement **OFF**. Superseded for *eng next-step* by § AI-MKT-1f (via 1e).
 
 | Topic | Current state |
 |---|---|
