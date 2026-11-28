@@ -2,14 +2,14 @@
 
 Bootstrap for new ChatGPT / Cursor sessions.
 
-**Read first (compact current truth):** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**AI-MKT-1f-R1**), then `docs/AI_MKT_1F_R1_IMPLEMENTATION_REPORT.md`, `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md`, `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`, `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md`, `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md`, `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md`, `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` (AE-primary commercial geography **superseded**), `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md`, `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` for V1–V15 / CONN-1 exit, and `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+**Read first (compact current truth):** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` (**DOC-LAUNCH-1**), then `docs/DOC_LAUNCH_1_COMMERCIAL_READINESS_STRATEGY.md`, `docs/AI_MKT_1F_R1_IMPLEMENTATION_REPORT.md`, `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md`, `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`, `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md` for V1–V15 / CONN-1 exit.
 **Active PE1.b.6b continuity (JWT / authorization work):** `docs/M6_PE1_B6B_SESSION_HANDOVER.md`
-Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger § **2026-11-28 — AI-MKT-1f-R1**.
-**November 2026 execution plan:** `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md` (§0T / §0S / §0R / §0Q / §0P / §0O / §0N / §0M / §0L / §0K / §0J / §0I / §0H).
+Canonical status pointer: `docs/IMPLEMENTATION_STATUS.md` → living ledger § **2026-11-28 — DOC-LAUNCH-1**.
+**November 2026 execution plan:** `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md` (§0U / §0T / §0S / … / §0H).
 **Migration sync policy:** `.cursor/rules/migration-synchronization-policy.mdc` (`LOCAL_COMPLETE` ≠ `HOSTED_SYNC_PENDING` ≠ `DEPLOYED_VERIFIED`).
 **Overview/Inventory UX delivery:** `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` (UX-INV-1a–**1c.1 CLOSED**; 1d **PLANNED**).
 
-Hosted schema ledger: **57/57 DEPLOYED_VERIFIED** (CONN Option B + post-catalog 23/23; evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z`). Historical 38→52 closeout remains in `docs/HOSTED_38to52_MIGRATION_RUNBOOK.md`. Full Supabase DR **NOT ESTABLISHED**. OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**. **AI-ARCH-0 PROPOSED** (design @ `d12fd04`). **AI-ARCH-1a–1f CLOSED/PUSHED** @ `c216ded` (soft-enable **OFF**; 38/38 · 121/121 · 27/27 PASS). Principle: *The AI controls the investigation. It does not control what counts as a fact.* AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**; enablement **PROPOSED**). **AI-MKT-0…1f CLOSED/PUSHED** through `e6943ce`; **DOC-GLOBAL-1 CLOSED/PUSHED** @ `6b16caa`; **AI-MKT-1f-R1 LOCAL_COMPLETE** (59/59 matrix PASS; M01b PASS; soft-show **OFF**; live **NO-GO**); next **AI-MKT-GEO-1** (not started); sequence **R1 → GEO-1 → DATA-0 → 1.1 → DATA-1**; US/GB/CA/AU targets = KPIs never caps; AI-MKT-1.1…4 **PLANNED**; COMP-1 / CREATIVE-0…2 / LOOP-1 **PROPOSED**. Canonical DOCX §§36–37. M5.6/M5.7: `docs/M5_6_HANDOFF.md`. After every milestone (including blocked): update master handoff before the next — do not rely on chat length.
+Hosted schema ledger: **57/57 DEPLOYED_VERIFIED** (CONN Option B + post-catalog 23/23; evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z`). Full Supabase DR **NOT ESTABLISHED**. OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**. **AI-ARCH-0 PROPOSED**. **AI-ARCH-1a–1f CLOSED/PUSHED** @ `c216ded` (soft-enable **OFF**). Principle: *The AI controls the investigation. It does not control what counts as a fact.* AI-INV-1/1.1 **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**). **AI-MKT-0…1f CLOSED/PUSHED** through `e6943ce`; **DOC-GLOBAL-1 CLOSED/PUSHED** @ `6b16caa`; **AI-MKT-1f-R1 CLOSED/PUSHED** @ `38d63da` (59/59; soft-show **OFF**); **DOC-LAUNCH-1 DOCS_ONLY_COMPLETE** — Track A revenue ahead of Track B AI; next **M7-GAD-1**; **AI-MKT-1.1** paid-research gate only; DATA-0 priority candidates DataForSEO + Pangolinfo (not approved); US/GB/CA/AU targets = KPIs never caps. Canonical DOCX §§36–37. M5.6/M5.7: `docs/M5_6_HANDOFF.md`. After every milestone (including blocked): update master handoff before the next — do not rely on chat length.
 
 ## 1. Thesis and non-negotiables
 
@@ -27,12 +27,12 @@ Data determines reality. Deterministic forecasting and inventory logic calculate
 |---|---|
 | Repository | StoreAgent.si |
 | Branch | `main` |
-| HEAD (verify) | Expect `6b16caa` tip (DOC-GLOBAL-1 CLOSED/PUSHED); AI-MKT-1f-R1 may be uncommitted LOCAL_COMPLETE; ancestors include AI-MKT-1f `e6943ce`, AI-MKT-1e `59ff8b0`, AI-MKT-1d `2f6ae43`, AI-MKT-1c `553e239`, AI-MKT-1b `211d8e9`, AI-MKT-1a `f685c15`, AI-MKT-0 `de01686`, AI-ARCH-1 `c216ded`, ARCH-1e `1c75de5`, ARCH-1a–1d `d56de33`, DOC-CONTINUITY-6 `d12fd04`, FE-ACCEPT-1C `1edc1ff`, … |
-| Remote | Tracking `origin/main` at `6b16caa`. **No CI verification claimed** without evidence. |
-| As-of | 2026-11-28 — **AI-MKT-1f-R1 LOCAL_COMPLETE**; DOC-GLOBAL-1 **CLOSED/PUSHED** @ `6b16caa`; AI-MKT-1f **CLOSED/PUSHED** @ `e6943ce` (post-R1 **59/59** PASS); launch markets **US/GB/CA/AU** (targets=KPIs never caps); local/hosted migrations **57/57**; history md5 `900da6949dfd6f7818a454b7f28ddf33`; post-catalog **23/23 PASS**; schema **DEPLOYED_VERIFIED**; activation **OFF**; soft-show **OFF**; CONN-1 exit **UNMET**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; PE1.b.6b JWT still BLOCKED |
+| HEAD (verify) | Expect `38d63da` tip (AI-MKT-1f-R1 CLOSED/PUSHED); DOC-LAUNCH-1 may be uncommitted DOCS_ONLY_COMPLETE; ancestors include DOC-GLOBAL-1 `6b16caa`, AI-MKT-1f `e6943ce`, AI-MKT-1e `59ff8b0`, … AI-ARCH-1 `c216ded`, DOC-CONTINUITY-6 `d12fd04`, FE-ACCEPT-1C `1edc1ff`, … |
+| Remote | Tracking `origin/main` at `38d63da`. **No CI verification claimed** without evidence. |
+| As-of | 2026-11-28 — **DOC-LAUNCH-1 DOCS_ONLY_COMPLETE**; AI-MKT-1f-R1 **CLOSED/PUSHED** @ `38d63da` (**59/59** PASS); DOC-GLOBAL-1 **CLOSED/PUSHED** @ `6b16caa`; launch markets **US/GB/CA/AU** (targets=KPIs never caps); Track A next **M7-GAD-1**; local/hosted migrations **57/57**; history md5 `900da6949dfd6f7818a454b7f28ddf33`; post-catalog **23/23 PASS**; schema **DEPLOYED_VERIFIED**; activation **OFF**; soft-show **OFF**; CONN-1 exit **UNMET**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**; PE1.b.6b JWT still BLOCKED |
 | Hosted pin | `qlsqminsfdntpqdkhxjx`; ledger **57/57** including CONN `20261121120000`…`20261124120000` |
 
-> **Superseded current-status pins:** Text expecting tip `e6943ce`, DOC-GLOBAL-1 uncommitted, M01b SKIP as *current*, UAE-first commercial launch, hosted schema **52**, or older HEADs as *current* tip is **historical**. Prefer this baseline + ledger § 2026-11-28 AI-MKT-1f-R1.
+> **Superseded current-status pins:** Text expecting tip `6b16caa` / R1 `LOCAL_COMPLETE`, “GEO-1 next” as *sole* priority, M01b SKIP as *current*, UAE-first commercial launch, or older HEADs as *current* tip is **historical**. Prefer this baseline + ledger § 2026-11-28 DOC-LAUNCH-1.
 
 Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Preserve dirty/untracked work; no drive-by Git.
 
@@ -75,9 +75,10 @@ Confirm with `git rev-parse HEAD` and `git log -1 --oneline` before editing. Pre
 | AI-MKT-1e | Guarded merchant research UX | Yes (**CLOSED/PUSHED** @ `59ff8b0`) | — | Soft-show **OFF**; live **NO-GO**; browser **NOT CERTIFIED** |
 | AI-MKT-1f | Adversarial eval / offline acceptance | Yes (**CLOSED/PUSHED** @ `e6943ce`) | — | post-R1 **59/59** PASS; live **NO-GO** |
 | DOC-GLOBAL-1 | Four-market launch strategy | Yes (**CLOSED/PUSHED** @ `6b16caa`) | — | US/GB/CA/AU; KPI≠cap |
-| AI-MKT-1f-R1 | Opaque merchant public IDs | Yes (`LOCAL_COMPLETE`) | — | M01b PASS; soft-show **OFF** |
-| AI-INV-2…6 / AI-MKT-1.1…4 / GEO / DATA | Docs / roadmap | — | — | **GEO-1 next**; then DATA-0 → 1.1 → DATA-1; no paid credits/live research |
-| Billing / trial / ops | Partial docs/code | — | — | Paying launch **NO-GO** |
+| AI-MKT-1f-R1 | Opaque merchant public IDs | Yes (**CLOSED/PUSHED** @ `38d63da`) | — | M01b PASS; soft-show **OFF** |
+| DOC-LAUNCH-1 | Launch-first commercial readiness | Docs (`DOCS_ONLY_COMPLETE`) | — | Track A next **M7-GAD-1**; paid research OFF for core SaaS |
+| AI-INV-2…6 / AI-MKT-1.1…4 / GEO / DATA | Docs / roadmap | — | — | Track A Data Health; Track B GEO/DATA/1.1; no paid credits/live research |
+| Billing / trial / ops | Partial docs/code · **BILL-1 PROPOSED** | — | — | Paying launch **NO-GO** |
 
 ## 4. M5 snapshot
 
@@ -125,9 +126,9 @@ Local implementation/testing committed on `main` through **`6136874`** (P1 → P
 
 ## 6. Next three engineering steps
 
-1. **Owner review of AI-MKT-1f-R1** (`docs/AI_MKT_1F_R1_IMPLEMENTATION_REPORT.md` + ledger § 2026-11-28) — Git checkpoint when authorized; **not** soft-show unlock or GEO-1 start permission.
-2. **Propose next eng (owner-gated):** **AI-MKT-GEO-1** US/GB/CA/AU registry (AE fixture-only); then **AI-MKT-DATA-0** → **AI-MKT-1.1** → **AI-MKT-DATA-1**. CONN-1 exit / V8 JWT / binding / D13/D14 remain blockers for vaulted production connectors; multi-country must not delay Shopify.
-3. **Parallel PLANNED:** UX-INV-1d merchant-first simplification + premium polish (separate UI slice). **Keep blocked:** PE1.b.6b JWT, workers/cron, M6 production forecast, M7 create/purchasing, real model/search, AI-MKT paid credits, soft-show unlock, paying launch.
+1. **Owner review of DOC-LAUNCH-1** (`docs/DOC_LAUNCH_1_COMMERCIAL_READINESS_STRATEGY.md` + ledger § 2026-11-28) — docs Git checkpoint when authorized; **not** M7-GAD-1 / activation / soft-show permission.
+2. **Propose next eng (owner-gated Track A):** **M7-GAD-1** Guarded Action & Delivery → **BILL-1** → **PILOT-CSV-1**. Track B **AI-MKT-GEO-1** non-blocking. CONN-1 exit / V8 JWT / binding / D13/D14 remain Shopify blockers; do not bypass for CSV pilot.
+3. **Parallel PLANNED:** UX-INV-1d · AI-INV-2 Data Health · WORKER-PROD-1 (reuse M0.8). **Keep blocked:** PE1.b.6b JWT, workers/cron, M6 production forecast, M7 create/purchasing, real model/search, AI-MKT paid credits, soft-show unlock, paying launch.
 
 ## 7. Hard bans
 
@@ -162,6 +163,7 @@ From the master roadmap / October–November 2026 addenda (do not rewrite the DO
 | Doc | Use |
 |---|---|
 | `docs/StoreAgent_Master_Roadmap_November_2026_Execution_Plan.md` | November 2026 execution plan (DOCX sync pending) |
+| `docs/DOC_LAUNCH_1_COMMERCIAL_READINESS_STRATEGY.md` | **Launch-first commercial readiness (Track A/B/C)** |
 | `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` | **AI-INV + merchant pain/value + 90-day sequence** |
 | `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` | Overview/Inventory UX-INV-1 delivery |
 | `docs/COMPETITIVE_UX_MERCHANT_PAIN_POINT_ROADMAP.md` | Competitive UX + pain themes |
@@ -187,8 +189,8 @@ From the master roadmap / October–November 2026 addenda (do not rewrite the DO
 
 ## 10. How to start a new chat
 
-1. Confirm HEAD (`454f7ec` or newer verified closure). Confirm `main` ≡ `origin/main`. Preserve unrelated dirty-tree files.
-2. Read `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` + ledger § **2026-11-25 DOC-TRACK-4** first.
+1. Confirm HEAD (`38d63da` or newer verified closure). Confirm `main` ≡ `origin/main`. Preserve unrelated dirty-tree files.
+2. Read `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` + `docs/DOC_LAUNCH_1_COMMERCIAL_READINESS_STRATEGY.md` + ledger § **2026-11-28 DOC-LAUNCH-1** first.
 3. For PE1.b.6b: open `docs/M6_PE1_B6B_SESSION_HANDOVER.md` and paste the ChatGPT or Cursor prompt from that file.
 4. For Overview/Inventory UI: read `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` — UX-INV-1d still PLANNED; engines unchanged; no fake M7 queue.
 5. Default ban: **no** CONN-HR-2 / hosted CONN migration apply / CLI push of #5 / production forecast / workers / PE1.c / live Shopify / M7 create / paying launch without explicit approval.

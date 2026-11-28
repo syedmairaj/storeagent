@@ -2,27 +2,46 @@
 
 ## Active handoff
 
-> **Authoritative current state (2026-11-28 AI-MKT-1f-R1):** See **§ 2026-11-28 — AI-MKT-1f-R1** below. Schema closeout: **§ DOC-CONTINUITY-6**. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Global strategy: `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md`. R1 report: `docs/AI_MKT_1F_R1_IMPLEMENTATION_REPORT.md`. Feasibility: `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` (AE-primary commercial geography **superseded**). 1a–1f reports: `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`. V1–V15 / CONN-1 exit: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Migration sync rule: `.cursor/rules/migration-synchronization-policy.mdc`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI roadmap: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
-> **Git HEAD (committed tip):** `6b16caa` — DOC-GLOBAL-1 **CLOSED/PUSHED**; AI-MKT-1f **CLOSED/PUSHED** @ `e6943ce`; AI-MKT-1e **CLOSED/PUSHED** @ `59ff8b0`; AI-MKT-1d **CLOSED/PUSHED** @ `2f6ae43`; AI-MKT-1c **CLOSED/PUSHED** @ `553e239`; AI-MKT-1b **CLOSED/PUSHED** @ `211d8e9`; AI-MKT-1a **CLOSED/PUSHED** @ `f685c15`; AI-MKT-0 **CLOSED/PUSHED** @ `de01686`; AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded`. AI-MKT-1f-R1 **`LOCAL_COMPLETE`** (uncommitted). `main` aligned with `origin/main` at `6b16caa` (**no CI claim**). Local **57** / hosted **57**. History md5 `900da6949dfd6f7818a454b7f28ddf33`. Post-catalog **23/23 PASS**. Schema **DEPLOYED_VERIFIED** ≠ activation.
+> **Authoritative current state (2026-11-28 DOC-LAUNCH-1):** See **§ 2026-11-28 — DOC-LAUNCH-1** below. Schema closeout: **§ DOC-CONTINUITY-6**. Compact handoff: `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`. Launch-first strategy: `docs/DOC_LAUNCH_1_COMMERCIAL_READINESS_STRATEGY.md`. Global geography: `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md`. R1 report: `docs/AI_MKT_1F_R1_IMPLEMENTATION_REPORT.md`. Feasibility: `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` (AE-primary commercial geography **superseded**). 1a–1f reports: `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`. V1–V15 / CONN-1 exit: `docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md`. Migration sync rule: `.cursor/rules/migration-synchronization-policy.mdc`. Pointer: `docs/IMPLEMENTATION_STATUS.md`. AI roadmap: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md`.
+> **Git HEAD (committed tip):** `38d63da` — AI-MKT-1f-R1 **CLOSED/PUSHED**; DOC-GLOBAL-1 **CLOSED/PUSHED** @ `6b16caa`; AI-MKT-1f **CLOSED/PUSHED** @ `e6943ce`; AI-MKT-1e…0 / AI-ARCH-1 prior pins unchanged. DOC-LAUNCH-1 **`DOCS_ONLY_COMPLETE`** (uncommitted). `main` aligned with `origin/main` at `38d63da` (**no CI claim**). Local **57** / hosted **57**. History md5 `900da6949dfd6f7818a454b7f28ddf33`. Post-catalog **23/23 PASS**. Schema **DEPLOYED_VERIFIED** ≠ activation.
 > **Activation / security:** OAuth / workers / cron / SyncRun / credentials **OFF**. V8 hosted JWT **NOT VERIFIED**. V11 **PARTIAL**. Binding **`NOT_YET_VERIFIED`**. D13/D14 **DEFERRED**. CONN-1 exit **UNMET**. Full Supabase DR **NOT ESTABLISHED**. Soft-enable AI **OFF**. Market-research soft-show **OFF**. Live nested cert **FALSE**. Paying launch **NO-GO**. Authenticated commercial research UX **NOT CERTIFIED**.
-> **Architecture / geography:** AI-ARCH-0 **PROPOSED**. AI-ARCH-1 **CLOSED/PUSHED** @ `c216ded`. AI-MKT-0…1f **CLOSED/PUSHED** through `e6943ce`. DOC-GLOBAL-1 **CLOSED/PUSHED** @ `6b16caa`. Commercial launch markets **US/GB/CA/AU**; targets = KPIs never caps; UAE-first **superseded**. Principle: *The AI controls the investigation. It does not control what counts as a fact.*
-> **Next:** Owner review **AI-MKT-1f-R1** → **AI-MKT-GEO-1**; then **AI-MKT-DATA-0** → **AI-MKT-1.1** → **AI-MKT-DATA-1**. Soft-show remains OFF.
-> **Prior § DOC-GLOBAL-1 / AI-MKT-1f / … / DOC-CONTINUITY-6:** Schema/activation authority retained; eng next-step superseded by § AI-MKT-1f-R1.
-> **Prior § 2026-11-26 DOC-TRACK-5 / older:** Historical — do not treat as fresher than § AI-MKT-1f-R1.
+> **Architecture / geography / priority:** AI-ARCH-0 **PROPOSED**. Commercial launch markets **US/GB/CA/AU**; targets = KPIs never caps; UAE-first **superseded**. **DOC-LAUNCH-1** prioritizes Track A (core revenue / CSV-first pilot) over Track B (GEO/DATA/credits). Principle: *The AI controls the investigation. It does not control what counts as a fact.*
+> **Next:** Owner review **DOC-LAUNCH-1** → **M7-GAD-1**; BILL-1 / PILOT-CSV-1 / LAUNCH-ACCEPT-1 on Track A; GEO-1 remains Track B (non-blocking). Soft-show remains OFF.
+> **Prior § AI-MKT-1f-R1 / DOC-GLOBAL-1 / AI-MKT-1f / … / DOC-CONTINUITY-6:** Schema/activation authority retained; eng next-step / priority superseded by § DOC-LAUNCH-1.
+> **Prior § 2026-11-26 DOC-TRACK-5 / older:** Historical — do not treat as fresher than § DOC-LAUNCH-1.
 
-## 2026-11-28 — AI-MKT-1f-R1 opaque merchant public IDs
+## 2026-11-28 — DOC-LAUNCH-1 launch-first commercial readiness
 
-> **Authority:** Offline remediation of M01b residual. Soft-show / live / paid **NO-GO**. Soft-show still requires separate unlock after GEO/legal/security gates.
+> **Authority:** Docs-only launch-first architecture & commercial readiness. Soft-show / live / paid research / activation **NO-GO**. Does **not** authorize implementation.
 
 | Topic | Current state |
 |---|---|
-| Committed HEAD tip | `6b16caa` · DOC-GLOBAL-1 **CLOSED/PUSHED** · AI-MKT-1f @ `e6943ce` |
-| AI-MKT-1f-R1 | **`LOCAL_COMPLETE`** · `docs/AI_MKT_1F_R1_IMPLEMENTATION_REPORT.md` |
+| Committed HEAD tip | `38d63da` · AI-MKT-1f-R1 **CLOSED/PUSHED** |
+| DOC-LAUNCH-1 | **`DOCS_ONLY_COMPLETE`** · `docs/DOC_LAUNCH_1_COMMERCIAL_READINESS_STRATEGY.md` |
+| Tracks | **A** core revenue · **B** premium AI-MKT · **C** expansion |
+| Pilot | CSV-first US-led 5–10 merchants; buying-plan CSV + PO drafts + BILL-1; paid research OFF |
+| AI-MKT-1.1 | Required before paid research — **not** before core subscription with research disabled |
+| Adapters | Max two initial (1 general + 1 structured REST); rights-aware cache; no cross-tenant reuse; **no** unbounded MCP |
+| DATA-0 candidates | **DataForSEO** + **Pangolinfo** = priority structured Amazon candidates only (not approved); batched New Releases/category/keyword eval; free eval → prepaid/PAYG |
+| Premium scope | COMP-1 · AI-MKT-3 scanner · AI-MKT-1.1 batch→validate→deep · AI-MKT-4 consented monitor — clarified in DOC-LAUNCH-1 §6.2; **no new milestone** |
+| Workers | Preserve M0.8; **WORKER-PROD-1** closes gaps; no duplicate queue |
+| Residuals (R1) | M03 title; optional country/depth skip; correlation + fail-closed success-response → GEO-1 or narrow prereq |
+| Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** |
+| Next | Owner review → authorize **M7-GAD-1**; STOP |
+
+## 2026-11-28 — AI-MKT-1f-R1 opaque merchant public IDs
+
+> **Authority (historical eng pin):** Offline remediation of M01b residual. Later **CLOSED/PUSHED** @ `38d63da`. Soft-show / live / paid **NO-GO**. Eng next-step / priority superseded by § DOC-LAUNCH-1.
+
+| Topic | Current state |
+|---|---|
+| Committed HEAD tip | **CLOSED/PUSHED** @ `38d63da` (authoring tip historically `6b16caa`) |
+| AI-MKT-1f-R1 | **CLOSED/PUSHED** @ `38d63da` · `docs/AI_MKT_1F_R1_IMPLEMENTATION_REPORT.md` |
 | Public IDs | Response-scoped `mev_`/`mfd_`/`mcf_` HMAC digests; internals unchanged |
 | Eval | 1f matrix **59/59** PASS · SKIP **0** · focused R1 **8/8** · AI-MKT **176/176** · AI-ARCH **121/121** · AI-INV **27/27** |
-| Owner sequence | **R1 → GEO-1 → DATA-0 → 1.1 → DATA-1**; AE fixture-only after GEO-1; billing ≠ domicile; legal rights before providers; multi-country must not delay Shopify; targets = KPIs never caps |
+| Owner sequence (historical) | Was **R1 → GEO-1 → DATA-0 → 1.1 → DATA-1** — Track B only after DOC-LAUNCH-1 |
 | Schema / activation | **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF** |
-| Next | Owner review → authorize **AI-MKT-GEO-1**; STOP |
+| Next (historical) | Was AI-MKT-GEO-1 — see § DOC-LAUNCH-1 |
 
 ## 2026-11-28 — DOC-GLOBAL-1 four-market launch strategy
 
