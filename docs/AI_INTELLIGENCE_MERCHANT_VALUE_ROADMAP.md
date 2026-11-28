@@ -2,37 +2,38 @@
 
 **Document ID:** DOC-2026-11 / AI-INV
 **Mode:** Planning & product vision only — **not authorization** to deploy live models, enable workers, run JWT, connect live Shopify, activate M6/M7, spend credits, or claim merchant ROI.
-**As-of:** 2026-11-27 — **AI-MKT-1f** (`LOCAL_COMPLETE` offline; AI-MKT-1e CLOSED/PUSHED @ `59ff8b0`; AI-MKT-1d CLOSED/PUSHED @ `2f6ae43`; AI-MKT-1c CLOSED/PUSHED @ `553e239`; AI-MKT-1b CLOSED/PUSHED @ `211d8e9`; AI-MKT-1a CLOSED/PUSHED @ `f685c15`; AI-MKT-0 CLOSED/PUSHED @ `de01686`; AI-ARCH-1 CLOSED/PUSHED @ `c216ded`; DOC-CONTINUITY-6 schema pins preserved)
-**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-27 — AI-MKT-1f** (falls back to AI-MKT-1e / 1d / 1c / 1b / 1a / AI-MKT-0 / AI-ARCH-1f / AI-ARCH-0 / DOC-CONTINUITY-6)
+**As-of:** 2026-11-28 — **DOC-GLOBAL-1** (`DOCS_ONLY_COMPLETE`; AI-MKT-1f CLOSED/PUSHED @ `e6943ce`; AI-MKT-1e CLOSED/PUSHED @ `59ff8b0`; AI-MKT-1d CLOSED/PUSHED @ `2f6ae43`; AI-MKT-1c CLOSED/PUSHED @ `553e239`; AI-MKT-1b CLOSED/PUSHED @ `211d8e9`; AI-MKT-1a CLOSED/PUSHED @ `f685c15`; AI-MKT-0 CLOSED/PUSHED @ `de01686`; AI-ARCH-1 CLOSED/PUSHED @ `c216ded`; DOC-CONTINUITY-6 schema pins preserved)
+**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-28 — DOC-GLOBAL-1**
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
+**Global strategy decision record:** `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md`
 **Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports · canonical DOCX §36–§37 · `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` · `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`
 
-### 2026-11-27 status pin (DOC-CONTINUITY-6 + AI-ARCH-1 + AI-MKT-0/1a–1f)
+### 2026-11-28 status pin (DOC-GLOBAL-1 + AI-MKT-1f CLOSED/PUSHED)
 
 | Slice | Status |
 |---|---|
-| Git HEAD tip (committed) | `59ff8b0` — AI-MKT-1e **CLOSED/PUSHED** · AI-MKT-1d **CLOSED/PUSHED** @ `2f6ae43` · AI-MKT-1c **CLOSED/PUSHED** @ `553e239` · AI-MKT-1b **CLOSED/PUSHED** @ `211d8e9` · AI-MKT-1a **CLOSED/PUSHED** @ `f685c15` · AI-MKT-0 **CLOSED/PUSHED** @ `de01686` · AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded` · AI-MKT-1f **`LOCAL_COMPLETE`** (uncommitted) · hosted migrations **57/57** · post-catalog **23/23** · schema **DEPLOYED_VERIFIED** · activation **OFF** |
+| Git HEAD tip (committed) | `e6943ce` — AI-MKT-1f **CLOSED/PUSHED** · AI-MKT-1e **CLOSED/PUSHED** @ `59ff8b0` · AI-MKT-1d **CLOSED/PUSHED** @ `2f6ae43` · AI-MKT-1c **CLOSED/PUSHED** @ `553e239` · AI-MKT-1b **CLOSED/PUSHED** @ `211d8e9` · AI-MKT-1a **CLOSED/PUSHED** @ `f685c15` · AI-MKT-0 **CLOSED/PUSHED** @ `de01686` · AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded` · DOC-GLOBAL-1 **`DOCS_ONLY_COMPLETE`** (uncommitted) · hosted migrations **57/57** · post-catalog **23/23** · schema **DEPLOYED_VERIFIED** · activation **OFF** |
+| Launch markets | **US / GB / CA / AU** English-first; registration targets 500/250/125/125 (not forecasts); UAE-first **superseded** |
 | AI-ARCH-0 | **PROPOSED** (design) · closed with DOC-CONTINUITY-6 @ `d12fd04` |
 | AI-ARCH-1a–1f | **CLOSED/PUSHED** @ `c216ded` (1e `1c75de5`; 1a–1d `d56de33`); soft-enable **OFF**; 38/38 · 121/121 · 27/27 PASS |
-| AI-MKT-0 | **CLOSED/PUSHED** @ `de01686` — feasibility + governance rule |
-| AI-MKT-1a | **CLOSED/PUSHED** @ `f685c15` — contracts/registry/rights; offline **GO** / live **NO-GO** |
-| AI-MKT-1b | **CLOSED/PUSHED** @ `211d8e9` — `lib/market-research/adapters/` + `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md`; offline **GO** / live **NO-GO** |
-| AI-MKT-1c | **CLOSED/PUSHED** @ `553e239` — `lib/market-research/normalize/` + `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md`; offline **GO** / live **NO-GO** |
-| AI-MKT-1d | **CLOSED/PUSHED** @ `2f6ae43` — `lib/market-research/orchestration/` + `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md`; offline **GO** / live **NO-GO** |
-| AI-MKT-1e | **CLOSED/PUSHED** @ `59ff8b0` — guarded merchant research UX + `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md`; soft-show **OFF**; offline **GO** / live **NO-GO** |
-| AI-MKT-1f | **`LOCAL_COMPLETE`** — adversarial evaluation + `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`; offline **GO** / live **NO-GO** |
+| AI-MKT-0 | **CLOSED/PUSHED** @ `de01686` — historical AE-primary *commercial* geography superseded by DOC-GLOBAL-1 |
+| AI-MKT-1a…1e | **CLOSED/PUSHED** through `59ff8b0` |
+| AI-MKT-1f | **CLOSED/PUSHED** @ `e6943ce` — 58 mandatory PASS · 1 SKIP (M01b; ≠ PASS); offline **GO** / live **NO-GO** |
+| AI-MKT-1f-R1 | **PROPOSED** — opaque merchant public IDs before soft-show |
+| AI-MKT-GEO-1 | **PROPOSED** — versioned US/GB/CA/AU country + capability registry |
+| AI-MKT-DATA-0 / DATA-1 | **PROPOSED** — four-market source feasibility then conditional adapters |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** (not architecture substitute) |
 | AI-INV-2…6 | **PLANNED** |
-| AI-MKT-1.1 → 2 → 3 → 4 | **PLANNED** (IDs preserved); no live search / paid credits |
+| AI-MKT-1.1 → 2 → 3 → 4 | **PLANNED** (IDs preserved; scope clarified); no live search / paid credits |
 | COMP-1 · CREATIVE-0/1/2 · LOOP-1 | **PROPOSED** |
 | UX-INV-1d | **PLANNED** |
 | OAuth / SyncRun / workers / JWT / M6/M7 / launch | **BLOCKED / NOT AUTHORIZED** |
 
-> Principle: *The AI controls the investigation. It does not control what counts as a fact.* Prefer this pin + master handoff for *current* truth. Dependency order unchanged.
+> Principle: *The AI controls the investigation. It does not control what counts as a fact.* Prefer this pin + DOC-GLOBAL-1 + master handoff for *current* truth.
 
-### Dependency-aware intelligence sequence (AI-ARCH-0)
+### Dependency-aware intelligence sequence (AI-ARCH-0 + DOC-GLOBAL-1)
 
-Not implementation permission. No invented competitor sales/ROAS. Licensed sources only. Human approval for actions. Deterministic inventory math remains canonical.
+Not implementation permission. No invented competitor sales/ROAS. Licensed sources only. Human approval for actions. Deterministic inventory math remains canonical. One commerce domain; future countries via versioned configuration — not separate engines.
 
 | Order | ID | Scope | Status |
 |---|---|---|---|
@@ -40,27 +41,26 @@ Not implementation permission. No invented competitor sales/ROAS. Licensed sourc
 | 1 | **AI-ARCH-1** | Bounded read-only agent (L1) | **CLOSED/PUSHED** @ `c216ded` (1a–1f) |
 | 1b | AI-INV-1.1 enablement | Soft-enable / merchant UX iteration (code CLOSED @ `38f63d6`) | **PROPOSED** (parallel UX path) |
 | 2 | **AI-MKT-0** | Data/source/licensing feasibility | **CLOSED/PUSHED** @ `de01686` |
-| 3a | **AI-MKT-1a** | Research contracts / registry / rights | **CLOSED/PUSHED** @ `f685c15` |
-| 3b | **AI-MKT-1b** | Offline provider adapters & fixtures | **CLOSED/PUSHED** @ `211d8e9` |
-| 3c | **AI-MKT-1c** | Evidence normalization & matching | **CLOSED/PUSHED** @ `553e239` |
-| 3d | **AI-MKT-1d** | Bounded research orchestration & claim validation | **CLOSED/PUSHED** @ `2f6ae43` |
-| 3e | **AI-MKT-1e** | Guarded merchant research UX | **CLOSED/PUSHED** @ `59ff8b0` |
-| 3f | **AI-MKT-1f** | Adversarial evaluation & offline acceptance | **`LOCAL_COMPLETE`** (offline) |
-| 4 | AI-MKT-1.1 | Credits and cost control | PLANNED |
-| 5 | AI-MKT-2 | Zero-sales detective | PLANNED |
-| 6 | COMP-1 | Competitor/customer sentiment workspace | **PROPOSED** |
-| 7 | AI-MKT-3 | Product/country opportunity advisor | PLANNED |
+| 3a–3f | **AI-MKT-1a…1f** | Contracts → adapters → normalize → orchestrate → UX → eval | **CLOSED/PUSHED** through `e6943ce` |
+| 3g | **AI-MKT-1f-R1** | Opaque public evidence/finding IDs (M01b residual) | **PROPOSED** |
+| 3h | **AI-MKT-GEO-1** | Versioned country/capability registry (US/GB/CA/AU) | **PROPOSED** |
+| 3i | **AI-MKT-DATA-0** | Four-market source coverage / licensing / economics | **PROPOSED** |
+| 4 | **AI-MKT-1.1** | Credits, tariffs, budgets, rights-aware cache | **PLANNED** |
+| 4b | **AI-MKT-DATA-1** | Conditional structured/historical adapters (reuse orchestration) | **PROPOSED** (after DATA-0; after 1.1 if paid) |
+| 5 | **AI-MKT-2** | Internal-first Zero-Sales Detective + labeled external hypotheses | **PLANNED** |
+| 6 | **COMP-1** | Competitor pricing/rank/reviews/voice/gaps (no invented sales) | **PROPOSED** |
+| 7 | **AI-MKT-3** | Product/variant/category/country opportunities + landed cost/MOQ/cash | **PLANNED** |
 | 8 | CREATIVE-0 | Ad-platform data feasibility | **PROPOSED** |
 | 9 | CREATIVE-1 | Owned creative/campaign analytics | **PROPOSED** |
 | 10 | CREATIVE-2 | Creative experiments and learning | **PROPOSED** |
-| 11 | AI-MKT-4 | Outcome and buying intelligence | PLANNED / wording **PROPOSED** |
-| 12 | LOOP-1 | Measured decision-learning system | **PROPOSED** |
+| 11 | **AI-MKT-4** | Consented monitoring + buying/outcome intelligence | **PLANNED** |
+| 12 | **LOOP-1** | Decision outcome measurement (tenant-private) | **PROPOSED** |
 
 ---
 
 ## 1. Product position (frozen thesis + AI-ARCH-0 framing)
 
-StoreAgent.si is a **provider-independent AI Commerce Intelligence & Buying Agent** (Inventory Decision Copilot) built on one **evidence-grounded Commerce Decision Loop**.
+StoreAgent.si is a **global, provider-independent AI Inventory, Market Intelligence & Buying Agent** built on one **evidence-grounded Commerce Decision Loop**.
 
 | It is | It is not |
 |---|---|
@@ -68,11 +68,14 @@ StoreAgent.si is a **provider-independent AI Commerce Intelligence & Buying Agen
 | Deterministic metrics + forecast + decision engines with AI investigation/explanation | A generic chatbot bolted onto stock tables |
 | Provider-independent canonical domain (CSV → Shopify → Woo → Amazon) | A Shopify-only widget or ERP replacement |
 | Merchant-controlled Approve/Edit/Dismiss for consequential actions | An autonomous purchasing bot that invents facts |
+| Global-ready architecture; English-first four-market commercial launch | UAE-first / AE-primary commercial product (superseded by DOC-GLOBAL-1) |
 
 **Thesis (unchanged math authority):** Data determines reality. Deterministic forecasting and inventory logic calculate decisions. AI plans investigations, retrieves scoped evidence, explains, and assists. Merchants approve actions until automation earns trust. **AI-ARCH-0 principle:** *The AI controls the investigation. It does not control what counts as a fact.*
 
+**Commercial launch markets (DOC-GLOBAL-1):** **US, GB, CA, AU** — English-first. Separate merchant domicile, billing currency, locale, timezone, selling marketplace/country, warehouse, and research geography. Future countries via versioned configuration/capabilities — **not** separate intelligence engines. Noon remains a regional marketplace **example** only.
+**First 1,000 registration targets (not forecasts):** US **500** · GB **250** · CA **125** · AU **125**.
 **Initial ICP (hypothesis to validate — not achieved traction):** SMB / mid-market merchants ≈ **200–5,000 SKUs**, regular replenishment, spreadsheet/ops pain.
-**Long-term goal:** **1,000 merchants** — aspirational product goal, **not** current customers, paying launch, or guaranteed market success.
+**Long-term goal:** **1,000 merchants** — aspirational product goal aligned with registration targets above; **not** current customers, paying launch, or guaranteed market success.
 
 **Paying-customer launch:** **NO-GO** until independent launch acceptance.
 
@@ -228,18 +231,22 @@ Use sales, inventory, contribution margin, returns, creative metrics, CPA/ROAS *
 | 3c | **AI-MKT-1c** | Evidence normalization & matching | **CLOSED/PUSHED** @ `553e239` | AI-MKT-1b | Offline Evidence DTO + match tests PASS | Live before 1.1 |
 | 3d | **AI-MKT-1d** | Bounded research orchestration & claim validation | **CLOSED/PUSHED** @ `2f6ae43` | AI-MKT-1c | Offline orchestration PASS | Live before 1.1 |
 | 3e | **AI-MKT-1e** | Guarded merchant research UX | **CLOSED/PUSHED** @ `59ff8b0` | AI-MKT-1d | Offline UX + fixture browser PASS | Live before 1.1 |
-| 3f | **AI-MKT-1f** | Adversarial evaluation & offline acceptance | **`LOCAL_COMPLETE`** | AI-MKT-1e | Offline eval PASS (168/168) | Live before 1.1 |
-| 4 | AI-MKT-1.1 | Credits / cost control | **PLANNED** | Billing primitives | Idempotent reserve/settle | Silent spend |
-| 5 | AI-MKT-2 | Zero-sales detective | **PLANNED** | AI-INV-1.1; optional AI-MKT-1 | Hypotheses labeled | Confirmed causes |
-| 6 | **COMP-1** | Competitor & customer voice | **PROPOSED** | AI-MKT-0/1 | No invented competitor sales | Scraping without rights |
-| 7 | AI-MKT-3 | Opportunity advisor | **PLANNED** | AI-MKT-1 | Comparison quality gates | Auto-buy |
+| 3f | **AI-MKT-1f** | Adversarial evaluation & offline acceptance | **CLOSED/PUSHED** @ `e6943ce` | AI-MKT-1e | 58 mandatory PASS · 1 SKIP ≠ PASS | Live before 1.1 |
+| 3g | **AI-MKT-1f-R1** | Opaque merchant public IDs | **PROPOSED** | AI-MKT-1f | Soft-show DTO has no org UUID leakage | Soft-show unlock |
+| 3h | **AI-MKT-GEO-1** | Country/capability registry US/GB/CA/AU | **PROPOSED** | AI-MKT-1a–1f | Fifth synthetic market via config only | Separate engines |
+| 3i | **AI-MKT-DATA-0** | Four-market source feasibility | **PROPOSED** | GEO-1 | Rights/coverage/economics recorded | Subscriptions this slice |
+| 4 | **AI-MKT-1.1** | Credits / tariffs / budgets / cache | **PLANNED** | Billing primitives | Idempotent reserve/settle/refund | Silent spend |
+| 4b | **AI-MKT-DATA-1** | Structured/historical adapters | **PROPOSED** | DATA-0; 1.1 if paid | Reuse rights/normalize/orchestrate | New research engine |
+| 5 | **AI-MKT-2** | Zero-sales detective (internal-first) | **PLANNED** | AI-INV-1.1; optional external | Hypotheses labeled | Confirmed causes |
+| 6 | **COMP-1** | Competitor pricing/rank/reviews/voice/gaps | **PROPOSED** | AI-MKT-0/1 + licensed sources | No invented competitor sales | Unauthorized scraping |
+| 7 | **AI-MKT-3** | Opportunity advisor (+ landed cost/MOQ/cash) | **PLANNED** | AI-MKT-1 + GEO | Comparison quality gates | Auto-buy |
 | 8 | **CREATIVE-0** | Ads/creative data feasibility | **PROPOSED** | Licensing | Feasibility doc | Live ad APIs |
 | 9 | **CREATIVE-1** | Owned campaign performance | **PROPOSED** | CREATIVE-0 | Metrics only from APIs | Invented ROAS |
 | 10 | **CREATIVE-2** | Creative experiments | **PROPOSED** | CREATIVE-1; LOOP patterns | Merchant-approved tests | Uncontrolled spend |
-| 11 | AI-MKT-4 | Outcome / buying intelligence | **PLANNED** | M7/supplier where actions | No auto-buy | Autonomous purchasing |
+| 11 | **AI-MKT-4** | Consented monitoring + outcome/buying intelligence | **PLANNED** | M7/supplier where actions | No auto-buy | Autonomous purchasing |
 | 12 | **LOOP-1** | Decision/outcome learning | **PROPOSED** | AI-ARCH-0; outcomes plumbing | Tenant-private learning | Cross-merchant training |
 
-**Preserved IDs:** AI-MKT-0/1/1.1/2/3/4 · AI-INV-1.1 CLOSED @ `38f63d6` · COMP-1 · CREATIVE-0…2 · LOOP-1.
+**Preserved IDs:** AI-MKT-0/1/1.1/2/3/4 · new **1f-R1 / GEO-1 / DATA-0 / DATA-1** · AI-INV-1.1 CLOSED @ `38f63d6` · COMP-1 · CREATIVE-0…2 · LOOP-1.
 **Feature gates:** connector activation, JWT, workers, live model, paid credits remain separately authorized.
 
 
@@ -421,12 +428,19 @@ Controls: per-org caps, cache identical research keys, clear confirmation UX, no
 | **AI-MKT-1c** | Evidence normalization & product/geographic matching | **CLOSED/PUSHED** @ `553e239` | `lib/market-research/normalize/` + `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md`; offline GO / live NO-GO |
 | **AI-MKT-1d** | Bounded research orchestration & claim validation | **CLOSED/PUSHED** @ `2f6ae43` | `lib/market-research/orchestration/` + `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md`; offline GO / live NO-GO |
 | **AI-MKT-1e** | Guarded merchant research UX | **CLOSED/PUSHED** @ `59ff8b0` | SKU inspector panel + guarded action + `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md`; offline GO / live NO-GO |
-| **AI-MKT-1f** | Adversarial evaluation & offline acceptance | **`LOCAL_COMPLETE`** | Fixture/runner/Vitest + `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`; offline GO / live NO-GO |
-| **AI-MKT-1** (umbrella) | On-demand sourced SKU/country market research | **IN PROGRESS** (1a–1f offline) | Offline path: 1a → 1b → 1c → 1d → 1e → 1f; evidence contract; no paid calls before 1.1 |
-| **AI-MKT-1.1** | Credit ledger, cost caps, cache, billing controls | **PLANNED** | Billing primitives; idempotent reserve/settle |
-| **AI-MKT-2** | Zero-Sales Detective: internal analytics + market hypotheses | **PLANNED** | AI-INV-1.1 situations; AI-MKT-1 for optional external |
-| **AI-MKT-3** | Country/Product/Color/Variant Opportunity Advisor | **PLANNED** | AI-MKT-1 + comparison quality gates |
-| **AI-MKT-4** | Controlled experiments, outcome tracking, supplier/cash scenarios | **PLANNED** | M7/supplier gates where actions apply; no auto-buy |
+| **AI-MKT-1f** | Adversarial evaluation & offline acceptance | **CLOSED/PUSHED** @ `e6943ce` | Fixture/runner/Vitest + `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`; 58 PASS · 1 SKIP; offline GO / live NO-GO |
+| **DOC-GLOBAL-1** | Four-market launch strategy decision | **`DOCS_ONLY_COMPLETE`** | `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md`; US/GB/CA/AU; UAE-first superseded |
+| **AI-MKT-1f-R1** | Opaque merchant public evidence/finding IDs | **PROPOSED** | Before soft-show; preserve internal citation bindings |
+| **AI-MKT-GEO-1** | Versioned country + capability registry | **PROPOSED** | Launch eligibility ≠ connector ≠ research capability; fail closed |
+| **AI-MKT-DATA-0** | Four-market source coverage/licensing/economics | **PROPOSED** | Free/PAYG first; no subscription commitment |
+| **AI-MKT-DATA-1** | Conditional structured/historical adapters | **PROPOSED** | Reuse rights/normalize/orchestrate; no new engine |
+| **AI-MKT-1** (umbrella) | On-demand sourced SKU/country market research | **OFFLINE CLOSED** (1a–1f); soft-show/live open | Evidence contract; GEO/DATA/R1 before commercial research UX; no paid calls before 1.1 |
+| **AI-MKT-1.1** | Credit ledger, tariffs, budgets, rights-aware cache | **PLANNED** | Idempotent reserve/settle/refund; hard budgets |
+| **AI-MKT-2** | Zero-Sales Detective: internal-first + labeled external hypotheses | **PLANNED** | Visibility/pricing/availability/demand hypotheses; AI-INV-1.1 |
+| **COMP-1** | Competitor pricing, rank signals, reviews, voice, gaps | **PROPOSED** | Licensed only; BSR/search/reviews ≠ sales |
+| **AI-MKT-3** | Country/Product/Variant Opportunity Advisor | **PLANNED** | Landed cost, margin, MOQ, cash, supplier feasibility |
+| **AI-MKT-4** | Consented monitoring + outcome/buying intelligence | **PLANNED** | M7/supplier gates where actions apply; no auto-buy |
+| **LOOP-1** | Measured decision-learning system | **PROPOSED** | Tenant-private; no cross-merchant training |
 
 **Exclusions until separately authorized:** live web/AI calls, paid tool spend, billing execution, schema/migrations for credits, OAuth/SyncRun, workers, hosted JWT unlock, M6/M7 activation.
 
@@ -532,8 +546,8 @@ Canonical DOCX: `docs/StoreAgent_Master_Roadmap_Updated_2026-11-10.docx` — §�
 
 ## 7. Owner decisions requested
 
-1. Accept **AI-ARCH-0** architecture framing + milestone IDs (`AI-ARCH-0`, `AI-ARCH-1`) as **PROPOSED**?
-2. Keep AI-INV-1.1 **CLOSED** @ `38f63d6` (soft-enable OFF); treat enablement/UX as separate **PROPOSED** slice?
-3. Authorize DOC-CONTINUITY-6 + AI-ARCH-0 **docs Git closure** when ready (selective paths only)?
-4. Keep PE1.b.6b / workers / M6 prod / M7 create / live Shopify / live model / AI-MKT spend / paying launch **BLOCKED** (recommended YES)?
-5. Keep AI-MKT-0…4 **PLANNED**; COMP/CREATIVE/LOOP **PROPOSED**; UX-INV-1d **PLANNED** until separately authorized?
+1. Accept **DOC-GLOBAL-1** four-market launch strategy (US/GB/CA/AU; UAE-first superseded) and authorize docs Git checkpoint when ready?
+2. Prefer **AI-MKT-1f-R1** before soft-show; **AI-MKT-GEO-1** before four-market research UX; **AI-MKT-DATA-0** before new sources; **AI-MKT-1.1** before paid?
+3. Keep AI-INV-1.1 **CLOSED** @ `38f63d6` (soft-enable OFF); treat enablement/UX as separate **PROPOSED** slice?
+4. Keep PE1.b.6b / workers / M6 prod / M7 create / live Shopify / live model / soft-show / AI-MKT spend / paying launch **BLOCKED** (recommended YES)?
+5. Keep COMP/CREATIVE/LOOP **PROPOSED**; UX-INV-1d **PLANNED**; AE as fixture-only (not launch eligibility) after GEO-1?

@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Document ID | DOC-TRACK-1…5 · DOC-CONTINUITY-6 · AI-ARCH-0 · AI-ARCH-1 · AI-MKT-0 · AI-MKT-1a · AI-MKT-1b · AI-MKT-1c · AI-MKT-1d · AI-MKT-1e · **AI-MKT-1f** (`LOCAL_COMPLETE`) |
+| Document ID | DOC-TRACK-1…5 · DOC-CONTINUITY-6 · AI-ARCH-0 · AI-ARCH-1 · AI-MKT-0 · AI-MKT-1a · AI-MKT-1b · AI-MKT-1c · AI-MKT-1d · AI-MKT-1e · AI-MKT-1f · **DOC-GLOBAL-1** (`DOCS_ONLY_COMPLETE`) |
 | Canonical path | `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md` |
-| As-of | 2026-11-27 (Asia/Dubai) — AI-MKT-1f |
+| As-of | 2026-11-28 (Asia/Dubai) — DOC-GLOBAL-1 |
 | Mode | Living compact handoff — **not** a substitute for frozen contracts, audit reports, or original decision docs |
 | Update policy | After **every** milestone completion or block, refresh current-state §§2–4/7/8 + append §11 **before** starting the next milestone. Never rely on ChatGPT thread length. Never silently rewrite historical approvals or promote schema deploy to connector activation |
 | Migration sync rule | `.cursor/rules/migration-synchronization-policy.mdc` — DoD: `LOCAL_COMPLETE` ≠ `HOSTED_SYNC_PENDING` ≠ `DEPLOYED_VERIFIED` |
@@ -19,8 +19,9 @@
 
 | Frozen rule | Meaning |
 |---|---|
-| Independent SaaS | StoreAgent.si hosts merchant UX; Shopify is first native connector (standalone OAuth later), then Woo / Amazon / Noon by separate gates |
-| One canonical commerce domain | Adapters normalize into one domain; **never** separate calculation engines per provider; unknown ≠ zero |
+| Independent SaaS | StoreAgent.si hosts merchant UX; Shopify is first native connector (standalone OAuth later), then Woo / Amazon; eBay/regional by demand; Noon = regional example only |
+| One canonical commerce domain | Adapters normalize into one domain; **never** separate calculation engines per provider or per country; unknown ≠ zero |
+| Global launch (DOC-GLOBAL-1) | Commercial markets **US/GB/CA/AU** English-first; domicile ≠ billing ≠ locale ≠ selling market ≠ warehouse ≠ research geo; UAE-first **superseded** |
 | Deterministic spine | M5 metrics → M6 forecasting → M7 REORDER / REDUCE / PROMOTE / WATCH; AI **investigates/explains**, never owns numbers |
 | AI-ARCH principle | *The AI controls the investigation. It does not control what counts as a fact.* (AI-ARCH-0 **PROPOSED**) |
 | No auto SKU merge | Cross-channel linking requires merchant approval; do not double-count shared physical stock |
@@ -38,21 +39,21 @@
 |---|---|
 | Repository | `/Users/syedmairaj/Documents/storeagent` · `syedmairaj/storeagent` |
 | Branch | `main` |
-| HEAD tip (committed) | `59ff8b0` — `feat(ai-mkt): add guarded merchant research UX (1e)` |
-| Full SHA | `59ff8b065e7c0cddb24a216639f4228eb49b21a9` |
-| `origin/main` | **Aligned** at `59ff8b0` (`main...origin/main`; no CI claim) |
-| Last Git closure on tip | **AI-MKT-1e** @ `59ff8b0` · AI-MKT-1d @ `2f6ae43` · AI-MKT-1c @ `553e239` · AI-MKT-1b @ `211d8e9` · AI-MKT-1a @ `f685c15` · AI-MKT-0 @ `de01686` · AI-ARCH-1 @ `c216ded` |
-| Uncommitted slice | **AI-MKT-1f** `LOCAL_COMPLETE` (adversarial evaluation + offline acceptance + continuity docs) |
-| Prior continuity pins | AI-MKT-1e `59ff8b0` → AI-MKT-1d `2f6ae43` → AI-MKT-1c `553e239` → AI-MKT-1b `211d8e9` → AI-MKT-1a `f685c15` → AI-MKT-0 `de01686` → AI-ARCH-1f `c216ded` → AI-ARCH-1e `1c75de5` → AI-ARCH-1a–1d `d56de33` → DOC-CONTINUITY-6 + AI-ARCH-0 @ `d12fd04` → … |
+| HEAD tip (committed) | `e6943ce` — `test(ai-mkt): add adversarial evaluation and offline acceptance (1f)` |
+| Full SHA | `e6943ce3f8ceb4185681ebe245bf7be9726577fc` |
+| `origin/main` | **Aligned** at `e6943ce` (`main...origin/main`; no CI claim) |
+| Last Git closure on tip | **AI-MKT-1f** @ `e6943ce` · AI-MKT-1e @ `59ff8b0` · AI-MKT-1d @ `2f6ae43` · AI-MKT-1c @ `553e239` · AI-MKT-1b @ `211d8e9` · AI-MKT-1a @ `f685c15` · AI-MKT-0 @ `de01686` · AI-ARCH-1 @ `c216ded` |
+| Uncommitted slice | **DOC-GLOBAL-1** `DOCS_ONLY_COMPLETE` (four-market strategy + continuity docs) |
+| Prior continuity pins | AI-MKT-1f `e6943ce` → AI-MKT-1e `59ff8b0` → AI-MKT-1d `2f6ae43` → AI-MKT-1c `553e239` → AI-MKT-1b `211d8e9` → AI-MKT-1a `f685c15` → AI-MKT-0 `de01686` → AI-ARCH-1f `c216ded` → AI-ARCH-1e `1c75de5` → AI-ARCH-1a–1d `d56de33` → DOC-CONTINUITY-6 + AI-ARCH-0 @ `d12fd04` → … |
 | Local migrations | **57** files = **57** `migrations.sha256` entries (latest `20261124120000`) |
 | Hosted migrations | **57** (owner-confirmed; Option B apply of five CONN migrations) |
 | Hosted history fingerprint | `versions_md5=900da6949dfd6f7818a454b7f28ddf33` |
 | Hosted post-catalog | **23/23 PASS** · evidence `~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z` · `post_catalog_utc=2026-11-27T04:06:14Z` |
 | Migration DoD | Schema path **`DEPLOYED_VERIFIED`** for CONN 53–57 + catalog · **≠** connector production activation |
-| Staging | Dirty/untracked work present (incl. AI-MKT-1f + protected dirties); **do not** auto-stage |
+| Staging | Dirty/untracked work present (incl. DOC-GLOBAL-1 + protected dirties); **do not** auto-stage |
 | Dirty tree (preserve) | Modified `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` (**do not edit/stage/restore**), `docs/BACKGROUND_JOBS.md`, `docs/SERVICE_ROLE_BOUNDARY.md`, `next-env.d.ts`; deleted tracked `docs/StoreAgent_Roadmap_2026.docx`; untracked `.tmp/` (incl. `ai-mkt-1e-accept`), `.vitest/`, `AGENTS.md`, `scripts/conn-hr-1/operator/`, SQL snippets, DOCX/archives, `supabase/snippets/`, dated handoff draft, etc. **Never** auto stage/clean/reset/stash |
 
-**Current milestone:** **AI-MKT-1f** — Adversarial Evaluation & Offline Acceptance (`LOCAL_COMPLETE`; offline; uncommitted). Prior: **AI-MKT-1e CLOSED/PUSHED** @ `59ff8b0`; **AI-MKT-1d CLOSED/PUSHED** @ `2f6ae43`; **AI-MKT-1c CLOSED/PUSHED** @ `553e239`; **AI-MKT-1b CLOSED/PUSHED** @ `211d8e9`; **AI-MKT-1a CLOSED/PUSHED** @ `f685c15`; **AI-MKT-0 CLOSED/PUSHED** @ `de01686`; **AI-ARCH-1a–1f CLOSED/PUSHED** @ `c216ded`; AI-ARCH-0 design **PROPOSED** / DOC-CONTINUITY-6 @ `d12fd04`. Schema baseline unchanged: **57/57** · **23/23** · **DEPLOYED_VERIFIED** ≠ OAuth / workers / cron / SyncRun / credential activation (all **OFF**). Commerce-agent soft-enable **OFF**; market-research soft-show **OFF**; live research **NO-GO**. V11 **PARTIAL**; V8 hosted JWT **NOT VERIFIED**; binding **`NOT_YET_VERIFIED`**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**; full Supabase DR **NOT ESTABLISHED**. **Exact next (owner-gated):** review AI-MKT-1f → then **AI-MKT-1.1** (Durable Credits & Commercial Cost Controls) under separate auth; reconcile CONN-1 exit / V8 JWT / binding before any market-research **production** use. AI-INV-1/1.1 code remains **CLOSED/PUSHED** @ `38f63d6` (soft-enable **OFF**). Sequence preserved: AI-MKT-0 → 1a → 1b → 1c → 1d → 1e → 1f → 1.1 → 2 → COMP-1 → 3 → CREATIVE-0…2 → 4 → LOOP-1.
+**Current milestone:** **DOC-GLOBAL-1** — Global Architecture / Four-Market Launch Strategy (`DOCS_ONLY_COMPLETE`; uncommitted). Prior: **AI-MKT-1f CLOSED/PUSHED** @ `e6943ce` (58 mandatory PASS · 1 SKIP ≠ PASS); **AI-MKT-1e CLOSED/PUSHED** @ `59ff8b0`; **AI-MKT-1d…0** and **AI-ARCH-1a–1f** unchanged. Schema baseline unchanged: **57/57** · **23/23** · **DEPLOYED_VERIFIED** ≠ OAuth / workers / cron / SyncRun / credential activation (all **OFF**). Commerce-agent soft-enable **OFF**; market-research soft-show **OFF**; live research **NO-GO**; authenticated commercial UX **NOT CERTIFIED**. Launch markets **US/GB/CA/AU**; UAE-first **superseded**. V11 **PARTIAL**; V8 hosted JWT **NOT VERIFIED**; binding **`NOT_YET_VERIFIED`**; D13/D14 **DEFERRED**; CONN-1 exit **UNMET**; full Supabase DR **NOT ESTABLISHED**. **Exact next (owner-gated):** review DOC-GLOBAL-1 → **AI-MKT-1f-R1** and/or **AI-MKT-GEO-1**; **AI-MKT-DATA-0** before new sources; **AI-MKT-1.1** before paid path; reconcile CONN-1 exit / V8 JWT / binding before market-research **production** use. Sequence: AI-MKT-0 → 1a…1f → **1f-R1 / GEO-1 / DATA-0** → 1.1 → DATA-1 → 2 → COMP-1 → 3 → CREATIVE-0…2 → 4 → LOOP-1.
 
 ---
 
@@ -102,10 +103,14 @@
 | **AI-MKT-1c** | **CLOSED/PUSHED** | `553e239` · `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` · `lib/market-research/normalize/` | Evidence normalization; product/geo matching; citation binding; honesty/dedupe; synthetic L1 promotion forbidden | No live/credits | AI-MKT-1d |
 | **AI-MKT-1d** | **CLOSED/PUSHED** | `2f6ae43` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` · `lib/market-research/orchestration/` | Bounded orchestration; trusted binding; claim validation; offline draft fallback; Gemini analyze denied | No live/credits | AI-MKT-1e UX |
 | **AI-MKT-1e** | **CLOSED/PUSHED** | `59ff8b0` · `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` | Guarded merchant research UX; safe DTO; preview isolation; fixture browser PASS | No live/paid/soft-show unlock | AI-MKT-1f |
-| **AI-MKT-1f** | **LOCAL_COMPLETE** | uncommitted · `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md` | Adversarial eval pack; 58/58 mandatory PASS + 1 residual SKIP; 168/168 · 121/121 · 27/27 | No live/paid/soft-show unlock | AI-MKT-1.1 (separate auth) |
+| **AI-MKT-1f** | **CLOSED/PUSHED** | `e6943ce` · `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md` | Adversarial eval pack; **58** mandatory PASS + **1** residual SKIP (≠ PASS); 168/168 · 121/121 · 27/27 | No live/paid/soft-show unlock; M01b residual | AI-MKT-1f-R1 / GEO-1 |
+| **DOC-GLOBAL-1** | **DOCS_ONLY_COMPLETE** | uncommitted · `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md` | US/GB/CA/AU launch; GEO/DATA/R1 proposals; UAE-first superseded | No runtime | Owner review → 1f-R1 / GEO-1 |
+| AI-MKT-1f-R1 | **PROPOSED** | — | Opaque public evidence/finding IDs | Soft-show blocked until done | Soft-show gate |
+| AI-MKT-GEO-1 | **PROPOSED** | — | Versioned country/capability registry | AE-centric runtime residue | Before four-market research UX |
+| AI-MKT-DATA-0 / DATA-1 | **PROPOSED** | — | Four-market source feasibility → adapters | No new engine; 1.1 before paid | After GEO-1 |
 | CONN-2…6 | PLANNED / BLOCKED | CONN-0 sequence | — | OAuth, webhooks, live cert, SyncRun, health UX; V10 bind/reclaim (with D13) | After binding + D13/D14 + separate auth |
 | CONN-MP-0 | CLOSED/PUSHED (docs) | `1e18029` | Multi-provider architecture freeze | D13/D14 **DEFERRED**; impl gated | CONN-MP-1 / CRED |
-| Woo / Amazon / Noon | PLANNED | CONN-MP-0 | Design only | Amazon/Noon enum **CONTRACT_CHANGE**; partner approvals | After Shopify-first path |
+| Woo / Amazon / eBay / regional | PLANNED | CONN-MP-0 | Design only; Noon = regional example | Amazon/Noon enum **CONTRACT_CHANGE**; partner approvals | After Shopify-first path |
 | UX-INV-1a–1c.1 | CLOSED/PUSHED | `10d9de6`…`0402564` | Attention Overview + inspector + replenishment copy | Local FE-ACCEPT-1C browser cert **PASS** @ `1edc1ff` (≠ hosted) | UX-INV-1d |
 | UX-INV-1d | PLANNED | Delivery doc §5 | — | Owner UI slice approval | Engines unchanged |
 | AI-INV-1 / 1.1 | CLOSED/PUSHED | `38f63d6` | Grounded explainer + situational guidance | Soft-enable **OFF**; not live-certified | Enablement/UX **PROPOSED** (parallel to AI-ARCH-1) |
@@ -116,9 +121,11 @@
 | AI-MKT-1c | CLOSED/PUSHED | `553e239` · normalize/ + 1c report | Evidence normalization / matching | No live | AI-MKT-1d |
 | AI-MKT-1d | CLOSED/PUSHED | `2f6ae43` · orchestration/ + 1d report | Bounded orchestration / claim validation | No live | AI-MKT-1e |
 | AI-MKT-1e | CLOSED/PUSHED | `59ff8b0` · 1e report + SKU panel + guarded action | Guarded merchant research UX | No live/paid | AI-MKT-1f |
-| AI-MKT-1f | LOCAL_COMPLETE | 1f report + eval fixture/runner | Adversarial evaluation & offline acceptance | No live/paid | AI-MKT-1.1 (separate auth) |
-| AI-MKT-1.1→4 | PLANNED | AI roadmap | Sequence preserved | Licensed evidence only; no live spend before 1.1 | After AI-MKT-1f owner accept |
-| COMP-1 · CREATIVE-0…2 · LOOP-1 | **PROPOSED** | AI-ARCH-0 / AI roadmap | Competitor/sentiment · creative · measured learning loop | Owner must approve before implementation | After AI-MKT deps as listed in AI roadmap |
+| AI-MKT-1f | CLOSED/PUSHED | `e6943ce` · 1f report + eval fixture/runner | Adversarial evaluation & offline acceptance | No live/paid; M01b SKIP | 1f-R1 / GEO-1 |
+| DOC-GLOBAL-1 | DOCS_ONLY_COMPLETE | strategy decision record | Four-market US/GB/CA/AU launch | No runtime | Owner review |
+| AI-MKT-1f-R1 / GEO-1 / DATA-0/1 | PROPOSED | AI roadmap + DOC-GLOBAL-1 | Opaque IDs · country registry · source feasibility/adapters | Separate auth each | Soft-show / paid gates |
+| AI-MKT-1.1→4 | PLANNED | AI roadmap | Sequence clarified (credits → detective → opportunity → monitoring) | Licensed evidence only; no live spend before 1.1 | After GEO/DATA as applicable |
+| COMP-1 · CREATIVE-0…2 · LOOP-1 | **PROPOSED** | AI-ARCH-0 / AI roadmap | Competitor/voice · creative · measured learning loop | Owner must approve before implementation | After AI-MKT deps as listed in AI roadmap |
 | Supplier Intelligence V1 | PLANNED AFTER CORE | AI-INV-5 | — | No auto-contact/buy | Trusted quotes |
 | Hosted schema ledger | **DEPLOYED_VERIFIED** @ **57/57** | Owner evidence 2026-11-27 | 38→52 historical closeout + CONN 53–57 Option B + catalog 23/23 | ≠ OAuth/workers/SyncRun unlock; full DR **NOT ESTABLISHED** | Binding / JWT / ops gates |
 | DB drift Phase 1 | CLOSED/PUSHED local | `d73790a` | Manifest + CI workflow file | Actions run **NOT YET VERIFIED** | — |
@@ -219,7 +226,7 @@ DOC-TRACK-1 does **not** implement UX-INV-1d.
 
 **Architecture (PROPOSED design):** AI-ARCH-0 Commerce Decision Loop + evidence contracts. **L1 eng:** AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded` (soft-enable **OFF**). Principle: *The AI controls the investigation. It does not control what counts as a fact.* Full detail: `docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md` · DOCX §37 · `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md`.
 
-**AI-MKT-0 (CLOSED/PUSHED @ `de01686`):** `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` — source/rights/country feasibility; evidence authority; provider-independent research DTOs (docs); MVP recommends OpenAI `web_search` primary / Gemini grounding fallback (display-only cache limits); AE allowlist design; live spend **NO-GO** until AI-MKT-1.1.
+**AI-MKT-0 (CLOSED/PUSHED @ `de01686`):** `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` — source/rights/country feasibility; evidence authority; provider-independent research DTOs (docs); MVP recommends OpenAI `web_search` primary / Gemini grounding fallback (display-only cache limits); historical AE allowlist design — **commercial geography superseded by DOC-GLOBAL-1** (US/GB/CA/AU); live spend **NO-GO** until AI-MKT-1.1.
 
 **AI-MKT-1a (CLOSED/PUSHED @ `f685c15`):** `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` · `lib/market-research/` — versioned contracts, immutable source registry, executable rights (deny-by-default), AE design allowlist + US/GB fixtures, trusted MerchantContext scope, research enablement default OFF, live path structurally forbidden. L1 `web_search`/`market.*` remain forbidden.
 
@@ -231,11 +238,13 @@ DOC-TRACK-1 does **not** implement UX-INV-1d.
 
 **AI-MKT-1e (CLOSED/PUSHED @ `59ff8b0`):** `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` — guarded merchant research UX in SKU inspector; safe DTO; production preview isolation; fixture browser 375→2560 PASS; soft-show **OFF**; no live/paid.
 
-**AI-MKT-1f (`LOCAL_COMPLETE` offline):** `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md` — adversarial evaluation pack; real 1a–1e functions; 58/58 mandatory PASS + 1 residual SKIP; soft-show **OFF**; offline **GO** / live **NO-GO**.
+**AI-MKT-1f (CLOSED/PUSHED @ `e6943ce`):** `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md` — adversarial evaluation pack; real 1a–1e functions; **58** mandatory PASS + **1** residual SKIP (M01b; ≠ PASS); soft-show **OFF**; offline **GO** / live **NO-GO**.
 
-**Remaining sequence (unchanged IDs):** AI-MKT-1.1 → 2 → 3 → 4. External research requires authorized/licensed evidence. OpenAI/Gemini grounding are **adapters**, not retail transaction DBs. Credits/billing/live research remain **unimplemented**.
+**DOC-GLOBAL-1 (`DOCS_ONLY_COMPLETE`):** `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md` — global architecture; US/GB/CA/AU English-first launch; registration targets 500/250/125/125; proposes **AI-MKT-1f-R1**, **AI-MKT-GEO-1**, **AI-MKT-DATA-0/1**; clarifies **1.1 / 2 / COMP-1 / 3 / 4 / LOOP-1**.
 
-**Dependency-aware product sequence (owner approval required; order unchanged):**
+**Remaining sequence (IDs preserved + new proposals):** 1f-R1 / GEO-1 / DATA-0 → 1.1 → DATA-1 → 2 → COMP-1 → 3 → CREATIVE-0…2 → 4 → LOOP-1. External research requires authorized/licensed evidence. BSR/search/reviews ≠ sales. Credits/billing/live research remain **unimplemented**.
+
+**Dependency-aware product sequence (owner approval required):**
 
 | Order | ID | Intent | Status |
 |---|---|---|---|
@@ -243,20 +252,20 @@ DOC-TRACK-1 does **not** implement UX-INV-1d.
 | 1 | **AI-ARCH-1** | Bounded read-only agent (L1) | **CLOSED/PUSHED** @ `c216ded` (1a–1f) |
 | 1b | AI-INV-1.1 enablement | Soft-enable / merchant UX (code CLOSED @ `38f63d6`) | **PROPOSED** |
 | 2 | **AI-MKT-0** | Data/source/licensing feasibility | **CLOSED/PUSHED** @ `de01686` |
-| 3a | **AI-MKT-1a** | Research contracts / registry / rights | **CLOSED/PUSHED** @ `f685c15` |
-| 3b | **AI-MKT-1b** | Offline provider adapters & fixtures | **CLOSED/PUSHED** @ `211d8e9` |
-| 3c | **AI-MKT-1c** | Evidence normalization & matching | **CLOSED/PUSHED** @ `553e239` |
-| 3d | **AI-MKT-1d** | Bounded research orchestration & claim validation | **CLOSED/PUSHED** @ `2f6ae43` |
-| 3e | **AI-MKT-1e** | Guarded merchant research UX | **CLOSED/PUSHED** @ `59ff8b0` |
-| 3f | **AI-MKT-1f** | Adversarial evaluation & offline acceptance | **`LOCAL_COMPLETE`** (offline) |
-| 4 | AI-MKT-1.1 | Credits and cost control | PLANNED |
-| 5 | AI-MKT-2 | Zero-sales detective | PLANNED |
-| 6 | **COMP-1** | Competitor/customer sentiment workspace | **PROPOSED** |
-| 7 | AI-MKT-3 | Product/country opportunity advisor | PLANNED |
+| 3a–3f | **AI-MKT-1a…1f** | Contracts → eval | **CLOSED/PUSHED** through `e6943ce` |
+| — | **DOC-GLOBAL-1** | Four-market launch strategy | **`DOCS_ONLY_COMPLETE`** |
+| 3g | **AI-MKT-1f-R1** | Opaque public IDs | **PROPOSED** |
+| 3h | **AI-MKT-GEO-1** | US/GB/CA/AU country registry | **PROPOSED** |
+| 3i | **AI-MKT-DATA-0** | Four-market source feasibility | **PROPOSED** |
+| 4 | **AI-MKT-1.1** | Credits / tariffs / budgets / cache | **PLANNED** |
+| 4b | **AI-MKT-DATA-1** | Structured/historical adapters | **PROPOSED** |
+| 5 | **AI-MKT-2** | Zero-sales detective (internal-first) | **PLANNED** |
+| 6 | **COMP-1** | Competitor pricing/rank/reviews/voice/gaps | **PROPOSED** |
+| 7 | **AI-MKT-3** | Opportunity advisor (+ landed cost/MOQ/cash) | **PLANNED** |
 | 8 | **CREATIVE-0** | Ad-platform data feasibility | **PROPOSED** |
 | 9 | **CREATIVE-1** | Owned creative/campaign analytics | **PROPOSED** |
 | 10 | **CREATIVE-2** | Creative experiments and learning | **PROPOSED** |
-| 11 | AI-MKT-4 | Outcome / buying intelligence | PLANNED / wording **PROPOSED** |
+| 11 | **AI-MKT-4** | Consented monitoring + outcome intelligence | **PLANNED** |
 | 12 | **LOOP-1** | Measured decision-learning system | **PROPOSED** |
 
 **Principles (frozen):** provider-independent commerce engine; Shopify first; evidence before AI conclusions; country-aware research; authorized/licensed sources only; no invented competitor sales/ROAS; human approval for actions; deterministic inventory math canonical; premium/responsive merchant UX; **no feature activation by documentation**.
@@ -308,9 +317,9 @@ Supplier Intelligence V1 **PLANNED AFTER CORE** — compare merchant-provided qu
 
 **Recorded 2026-11-27 (DOC-CONTINUITY-6):** Hosted CONN migrations **DEPLOYED_VERIFIED** — local **57** / hosted **57**; history md5 `900da6949dfd6f7818a454b7f28ddf33`; post-catalog **23/23 PASS** (`~/StoreAgentEvidence/conn-hr-2c-postcatalog-20261127T040549Z`). Option B apply COMMITTED; parser-mismatch incident resolved offline. Backup checksum verified; **full Supabase DR NOT ESTABLISHED**. OAuth / workers / cron / SyncRun / credentials **OFF**. Migration sync Cursor rule installed. HEAD `78c1d45`. (Prior DOC-TRACK-5 @ `78c1d45` / FE-ACCEPT-1C `1edc1ff` unchanged for local browser cert ≠ hosted.)
 
-1. Accept **AI-MKT-1f** (`LOCAL_COMPLETE` offline) and authorize Git checkpoint when ready; preserve unresolved AI-MKT-0 LEGAL items. (AI-MKT-1e reconciled **CLOSED/PUSHED** @ `59ff8b0`.)
-2. Authorize **next eng slice**: **AI-MKT-1.1** Durable Credits & Commercial Cost Controls **only** (separate auth) **and/or** AI-INV-1.1 soft-enable / UX **or** UX-INV-1d — do **not** authorize live/paid research yet without 1.1.
-3. Keep sequence AI-MKT-0 → 1a → 1b → 1c → 1d → 1e → 1f → connectivity/security as applicable → 1.1 → 2 → COMP-1 → 3 → CREATIVE-0…2 → 4 → LOOP-1.
+1. Accept **DOC-GLOBAL-1** (`DOCS_ONLY_COMPLETE`) and authorize docs Git checkpoint when ready; AI-MKT-1f reconciled **CLOSED/PUSHED** @ `e6943ce`; preserve unresolved AI-MKT-0 LEGAL items; retain M01b SKIP ≠ PASS.
+2. Authorize **next eng slice**: **AI-MKT-1f-R1** and/or **AI-MKT-GEO-1** first; **AI-MKT-DATA-0** before new sources; **AI-MKT-1.1** before any paid path; and/or AI-INV-1.1 soft-enable / UX **or** UX-INV-1d — do **not** authorize live/paid research or soft-show unlock yet.
+3. Keep sequence AI-MKT-0 → 1a…1f → **1f-R1 / GEO-1 / DATA-0** → connectivity/security as applicable → 1.1 → DATA-1 → 2 → COMP-1 → 3 → CREATIVE-0…2 → 4 → LOOP-1.
 4. Choose hosted **V8 JWT/PostgREST** verification venue (empty-vault probe or PE1.b.6b J-matrix) — still **NOT VERIFIED** (required before AI-MKT **production** use).
 5. Authorize production **binding** slice; resolve **D14** KEK before any vault **write**; **D13** before CONN-2 bind design.
 6. Reconcile protected `docs/SERVICE_ROLE_BOUNDARY.md` with 1d-E TRIGGER revoke (not edited here).
@@ -342,11 +351,11 @@ Each step needs its own owner authorization. Migration DoD classes: `LOCAL_COMPL
 3. Migration synchronization policy rule installed.
 
 **Immediate**
-4. Owner review of **AI-MKT-1f** (`LOCAL_COMPLETE` offline) — STOP; do **not** start AI-MKT-1.1 without separate authorization.
+4. Owner review of **DOC-GLOBAL-1** (`DOCS_ONLY_COMPLETE`) — STOP; do **not** start GEO/DATA/1.1 without separate authorization. AI-MKT-1f is **CLOSED/PUSHED** @ `e6943ce`.
 
 **Recommended next eng (separately gated)**
-5. **AI-MKT-1.1** (Durable Credits & Commercial Cost Controls — no live paid path without 1.1). Parallel: **AI-INV-1.1** soft-enable / UX (**PROPOSED**; soft-enable stays OFF until auth) **or** **UX-INV-1d**.
-5a. Soft-show / opaque evidenceId residual (M01b) before any merchant unlock.
+5. **AI-MKT-1f-R1** (opaque public IDs; M01b residual) and/or **AI-MKT-GEO-1** (US/GB/CA/AU registry). Soft-show blocked until 1f-R1.
+5a. **AI-MKT-DATA-0** four-market source feasibility; **AI-MKT-1.1** before any paid path; **AI-MKT-DATA-1** after. Parallel: **AI-INV-1.1** soft-enable / UX **or** **UX-INV-1d**.
 5b. **Before AI-MKT production use:** reconcile CONN-1 exit / hosted **V8 JWT** / binding / D13/D14 (still UNMET / NOT VERIFIED / NOT_YET_VERIFIED / DEFERRED).
 
 **Before OAuth / runtime credential ops**
@@ -356,10 +365,10 @@ Each step needs its own owner authorization. Migration DoD classes: `LOCAL_COMPL
 
 **Before SyncRun:** `lease_held` retry · fail-finalization / stale-run · real-clock lease test.
 
-**Intelligence track (dependency order unchanged; no live spend without AI-MKT-1.1):**
-**AI-ARCH-0 → AI-ARCH-1 (CLOSED/PUSHED @ `c216ded`) → AI-MKT-0 (CLOSED/PUSHED @ `de01686`) → AI-MKT-1a (CLOSED/PUSHED @ `f685c15`) → AI-MKT-1b (CLOSED/PUSHED @ `211d8e9`) → AI-MKT-1c (CLOSED/PUSHED @ `553e239`) → AI-MKT-1d (CLOSED/PUSHED @ `2f6ae43`) → AI-MKT-1e (CLOSED/PUSHED @ `59ff8b0`) → AI-MKT-1f (`LOCAL_COMPLETE`) → 1.1 → 2 → COMP-1 → AI-MKT-3 → CREATIVE-0→1→2 → AI-MKT-4 → LOOP-1** (AI-INV-1.1 enablement may run in parallel as UX; CONN/security gates before market production use).
+**Intelligence track (DOC-GLOBAL-1; no live spend without AI-MKT-1.1):**
+**AI-ARCH-0 → AI-ARCH-1 (CLOSED/PUSHED @ `c216ded`) → AI-MKT-0 (CLOSED/PUSHED @ `de01686`) → AI-MKT-1a…1f (CLOSED/PUSHED through `e6943ce`) → DOC-GLOBAL-1 → 1f-R1 / GEO-1 / DATA-0 → 1.1 → DATA-1 → 2 → COMP-1 → AI-MKT-3 → CREATIVE-0→1→2 → AI-MKT-4 → LOOP-1** (AI-INV-1.1 enablement may run in parallel as UX; CONN/security gates before market production use).
 
-**Still later / blocked:** live nested cert → SyncRun → AI-INV-2…6 → M6 production (post-JWT) → M7 inbox → Woo/Amazon/Noon → paying launch.
+**Still later / blocked:** live nested cert → SyncRun → AI-INV-2…6 → M6 production (post-JWT) → M7 inbox → Woo/Amazon/eBay/regional → paying launch.
 
 ---
 
@@ -367,11 +376,11 @@ Each step needs its own owner authorization. Migration DoD classes: `LOCAL_COMPL
 
 ```text
 Continue StoreAgent.si as engineering reviewer/planner, not an autonomous production operator.
-1) Verify: git branch=main, HEAD tip=59ff8b0 (AI-MKT-1e CLOSED/PUSHED; AI-MKT-1d @ 2f6ae43; AI-MKT-1c @ 553e239; AI-MKT-1b @ 211d8e9; AI-MKT-1a @ f685c15; AI-MKT-0 @ de01686; AI-ARCH-1 @ c216ded); AI-MKT-1f may be uncommitted LOCAL_COMPLETE; origin aligned; preserve protected dirty/untracked files (incl. dirty docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md — do not edit/stage/restore).
-2) Read first: docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md (this file), docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md, docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md, docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md, docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md, docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md, docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md, docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md, then the frozen contract for the authorized slice.
-3) Frozen truth: Hosted migrations 57/57 DEPLOYED_VERIFIED; history md5 900da6949dfd6f7818a454b7f28ddf33; post-catalog 23/23 PASS (evidence conn-hr-2c-postcatalog-20261127T040549Z). FE-ACCEPT-1C @ 1edc1ff local browser cert PASS ≠ hosted. V11 PARTIAL; V8 hosted JWT NOT VERIFIED; CONN-1 exit UNMET; binding NOT_YET_VERIFIED; D13/D14 DEFERRED; OAuth/workers/cron/SyncRun OFF; full Supabase DR NOT ESTABLISHED. AI-INV-1/1.1 @ 38f63d6 soft-enable OFF. AI-ARCH-0 PROPOSED; AI-ARCH-1 CLOSED/PUSHED @ c216ded (soft-enable OFF). AI-MKT-0 CLOSED/PUSHED @ de01686. AI-MKT-1a CLOSED/PUSHED @ f685c15. AI-MKT-1b CLOSED/PUSHED @ 211d8e9. AI-MKT-1c CLOSED/PUSHED @ 553e239. AI-MKT-1d CLOSED/PUSHED @ 2f6ae43. AI-MKT-1e CLOSED/PUSHED @ 59ff8b0. AI-MKT-1f LOCAL_COMPLETE offline (live NO-GO). Principle: AI controls investigation, not facts. Migration sync rule: .cursor/rules/migration-synchronization-policy.mdc.
-4) Next: owner review of AI-MKT-1f → AI-MKT-1.1 Durable Credits & Commercial Cost Controls only under separate auth; reconcile CONN/security before market production — not OAuth/SyncRun/activation from docs alone.
-5) Bans: no OAuth/SyncRun/workers/JWT/M6-prod/M7-create/purchasing/live AI research; no migration reapply/repair; no fake ROI or autonomous buying; no drive-by Git on protected dirties.
+1) Verify: git branch=main, HEAD tip=e6943ce (AI-MKT-1f CLOSED/PUSHED; AI-MKT-1e @ 59ff8b0; AI-MKT-1d @ 2f6ae43; AI-MKT-1c @ 553e239; AI-MKT-1b @ 211d8e9; AI-MKT-1a @ f685c15; AI-MKT-0 @ de01686; AI-ARCH-1 @ c216ded); DOC-GLOBAL-1 may be uncommitted DOCS_ONLY_COMPLETE; origin aligned; preserve protected dirty/untracked files (incl. dirty docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md — do not edit/stage/restore).
+2) Read first: docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md (this file), docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md, docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md, docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md, docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md (AE-primary commercial geography superseded), docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md, docs/SHOPIFY_CONN_1D_F_SECURITY_EXIT_READINESS_REPORT.md, docs/AI_INTELLIGENCE_MERCHANT_VALUE_ROADMAP.md, then the frozen contract for the authorized slice.
+3) Frozen truth: Hosted migrations 57/57 DEPLOYED_VERIFIED; history md5 900da6949dfd6f7818a454b7f28ddf33; post-catalog 23/23 PASS (evidence conn-hr-2c-postcatalog-20261127T040549Z). FE-ACCEPT-1C @ 1edc1ff local browser cert PASS ≠ hosted. V11 PARTIAL; V8 hosted JWT NOT VERIFIED; CONN-1 exit UNMET; binding NOT_YET_VERIFIED; D13/D14 DEFERRED; OAuth/workers/cron/SyncRun OFF; full Supabase DR NOT ESTABLISHED. AI-INV-1/1.1 @ 38f63d6 soft-enable OFF. AI-ARCH-0 PROPOSED; AI-ARCH-1 CLOSED/PUSHED @ c216ded (soft-enable OFF). AI-MKT-0…1f CLOSED/PUSHED through e6943ce (1f: 58 PASS · 1 SKIP ≠ PASS; live NO-GO). DOC-GLOBAL-1 DOCS_ONLY_COMPLETE — launch US/GB/CA/AU; UAE-first superseded. Principle: AI controls investigation, not facts. Migration sync rule: .cursor/rules/migration-synchronization-policy.mdc.
+4) Next: owner review of DOC-GLOBAL-1 → AI-MKT-1f-R1 and/or AI-MKT-GEO-1; AI-MKT-DATA-0 before new sources; AI-MKT-1.1 before paid path; reconcile CONN/security before market production — not OAuth/SyncRun/activation from docs alone.
+5) Bans: no OAuth/SyncRun/workers/JWT/M6-prod/M7-create/purchasing/live AI research/soft-show unlock; no migration reapply/repair; no fake ROI or autonomous buying; no drive-by Git on protected dirties.
 6) After EVERY milestone (including BLOCKED): update this handoff current-state + §11 + living ledger pins BEFORE the next milestone. Do not rely on chat length.
 ```
 
@@ -404,6 +413,7 @@ Continue StoreAgent.si as engineering reviewer/planner, not an autonomous produc
 | `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` | AI-MKT-1d bounded orchestration / claim validation acceptance |
 | `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` | AI-MKT-1e guarded merchant research UX acceptance |
 | `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md` | AI-MKT-1f adversarial evaluation & offline acceptance |
+| `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md` | DOC-GLOBAL-1 four-market launch / global architecture decision |
 | `.cursor/rules/commerce-intelligence-governance.mdc` | Permanent always-apply commerce intelligence governance |
 | `.cursor/rules/migration-synchronization-policy.mdc` | Permanent migration local↔hosted DoD (unchanged) |
 | `docs/MERCHANT_UX_OVERVIEW_INVENTORY_DELIVERY.md` | UX-INV-1 delivery |
@@ -451,7 +461,8 @@ Continue StoreAgent.si as engineering reviewer/planner, not an autonomous produc
 - **2026-11-27 (AI-MKT-1a Git closure):** **CLOSED/PUSHED** @ `f685c15` ≡ `origin/main` (18-file checkpoint: `846ffea` contracts/rights + `f685c15` index/test). Focused **24/24**; AI-ARCH **121/121**; AI-INV **27/27**. Soft-enable / live research **OFF**/**NO-GO**. Continuity pins reconciled.
 - **2026-11-27 (AI-MKT-1b):** Verified `main` @ `f685c15` ≡ `origin/main`. Offline adapters/fixtures **`LOCAL_COMPLETE`** (uncommitted): `lib/market-research/adapters/` — provider-independent adapter interface (`offline_stub`/`recorded_replay`, `supportsLiveNetwork=false`); immutable offline registry; OpenAI Responses/web_search-shaped synthetic fixtures (success/citations/empty/malformed/conflict/missing provenance/timeout/transient/cancel/late); Gemini display-only fixtures; gated invoke reusing 1a gates; separate provider approval/egress; no automatic fallback; no evidence normalization (1c). Focused Vitest **21/21 PASS**; 1a+1b **45/45**; AI-ARCH **121/121**; AI-INV **27/27**; typecheck/lint/build/whitespace **PASS**. Schema **57/57** prior · **23/23** prior · **DEPLOYED_VERIFIED** · activation **OFF**. CONN-1 exit **UNMET**; V8 JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**. Offline **GO** / live **NO-GO**. Report: `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md`. Historical note: later **CLOSED/PUSHED** @ `211d8e9`.
 - **2026-11-27 (AI-MKT-1b Git closure):** **CLOSED/PUSHED** @ `211d8e9` ≡ `origin/main`. Soft-enable / live research **OFF**/**NO-GO**. Continuity pins reconciled from prior LOCAL_COMPLETE/uncommitted wording.
-- **2026-11-27 (AI-MKT-1f):** Verified `main` @ `59ff8b0` ≡ `origin/main`. Adversarial evaluation & offline acceptance **`LOCAL_COMPLETE`** (uncommitted): fixture `ai/ai-mkt-1f-eval-v1` + runner exercising real 1a–1e; **59** cases (58 mandatory PASS + 1 residual SKIP for opaque evidenceId); critical failures **none**. Focused Vitest **66/66 PASS**; 1a–1f **168/168**; AI-ARCH **121/121**; AI-INV **27/27**; typecheck/lint/build/whitespace **PASS**. Schema **57/57** · **23/23** prior · **DEPLOYED_VERIFIED** · activation **OFF**. Offline **GO** / live **NO-GO**. Authenticated merchant browser **NOT CERTIFIED**. Report: `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`. AI-MKT-1e reconciled **CLOSED/PUSHED** @ `59ff8b0`. Protected dirty `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` untouched. **Do not start AI-MKT-1.1** without owner authorization. STOP.
+- **2026-11-28 (DOC-GLOBAL-1):** Verified `main` @ `e6943ce` ≡ `origin/main`. Docs-only four-market launch strategy **`DOCS_ONLY_COMPLETE`** (uncommitted): `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md`. Commercial launch **US/GB/CA/AU** English-first; registration targets 500/250/125/125 (not forecasts); UAE-first / AE-primary commercial geography **superseded** (AI-MKT-0 historical report preserved). Proposes **AI-MKT-1f-R1** (opaque public IDs; M01b residual; SKIP ≠ PASS), **AI-MKT-GEO-1**, **AI-MKT-DATA-0/1**; clarifies **1.1 / 2 / COMP-1 / 3 / 4 / LOOP-1**. AI-MKT-1f reconciled **CLOSED/PUSHED** @ `e6943ce` from Git evidence. Schema **57/57** · **23/23** · **DEPLOYED_VERIFIED** · activation **OFF**. Soft-show / live / paid **NO-GO**. Authenticated commercial UX **NOT CERTIFIED**. CONN-1 exit **UNMET**; V8 JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**. Protected dirty `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` untouched. No runtime/migrations/deps/env/providers/Git. STOP for owner review.
+- **2026-11-27 (AI-MKT-1f):** Later **CLOSED/PUSHED** @ `e6943ce` (authoring tip historically `59ff8b0`). Adversarial evaluation & offline acceptance: fixture `ai/ai-mkt-1f-eval-v1` + runner exercising real 1a–1e; **59** cases (**58** mandatory PASS + **1** residual SKIP for opaque evidenceId; SKIP ≠ PASS); critical failures **none**. Focused Vitest **66/66 PASS**; 1a–1f **168/168**; AI-ARCH **121/121**; AI-INV **27/27**; typecheck/lint/build/whitespace **PASS**. Schema **57/57** · **23/23** prior · **DEPLOYED_VERIFIED** · activation **OFF**. Offline **GO** / live **NO-GO**. Authenticated merchant browser **NOT CERTIFIED**. Report: `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`. AI-MKT-1e reconciled **CLOSED/PUSHED** @ `59ff8b0`. Historical next-step (start 1.1) revised by DOC-GLOBAL-1.
 - **2026-11-27 (AI-MKT-1e):** Later **CLOSED/PUSHED** @ `59ff8b0` (authoring tip historically `2f6ae43`). Guarded merchant research UX: SKU inspector Market Intelligence panel (default hidden); server action with identity→membership→inventory.read→independent research enablement→grain→trusted target→1d orchestration; safe DTO (no free-form researchAnswer/traces); production never injects synthetic fixtures; env/public overrides refused; fixture browser 375/768/1280/1440/2560 **PASS** (`.tmp/ai-mkt-1e-accept/`); live soft-show browser **NOT EXECUTED**. Focused Vitest **19/19 PASS**; 1a–1e **102/102**; AI-ARCH **121/121**; AI-INV **27/27**; typecheck/lint/build/whitespace **PASS**. Schema **57/57** · **23/23** prior · **DEPLOYED_VERIFIED** · activation **OFF**. Offline **GO** / live **NO-GO**. Report: `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md`. AI-MKT-1d reconciled **CLOSED/PUSHED** @ `2f6ae43`. Historical next-step (start 1f) completed under AI-MKT-1f.
 - **2026-11-27 (AI-MKT-1d):** Verified `main` @ `553e239` ≡ `origin/main` (historical authoring tip). Bounded research orchestration & claim validation later **CLOSED/PUSHED** @ `2f6ae43`: `lib/market-research/orchestration/` — admit→retrieve→normalize→analyze→synthesize via actual 1a/1b/1c; AI-ARCH ceilings (6/4/8000) with research defaults; trusted binding; claim validation matrix; deterministic + offline draft fallback; Gemini normalize/analyze/fallback denied; synthetic origin preserved; L1 promotion forbidden; spend/credits=0. Focused Vitest **19/19 PASS**; 1a–1d **83/83**; AI-ARCH **121/121**; AI-INV **27/27**; typecheck/lint/build/whitespace **PASS**. Schema **57/57** prior · **23/23** prior · **DEPLOYED_VERIFIED** · activation **OFF**. CONN-1 exit **UNMET**; V8 JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**. Offline **GO** / live **NO-GO**. Report: `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md`. AI-MKT-1c reconciled **CLOSED/PUSHED** @ `553e239`. Historical note: authored while 1d was LOCAL_COMPLETE/uncommitted; reconciled CLOSED/PUSHED by AI-MKT-1e continuity. **Do not start AI-MKT-1e** without owner authorization. STOP.
 - **2026-11-27 (AI-MKT-1c):** Verified `main` @ `211d8e9` ≡ `origin/main`. Evidence normalization & product/geographic matching **`LOCAL_COMPLETE`** (uncommitted): `lib/market-research/normalize/` — consume admitted 1b adapter results; re-evaluate normalize rights; deterministic product/geo matching; citation binding; honesty (search/rank/review ≠ sales; injection reject); freshness with injected clock; dedupe/conflicts; Gemini normalize denied; synthetic origin preserved; L1 promotion forbidden. Minimal fixture metadata extensions. Focused Vitest **19/19 PASS**; 1a+1b+1c **64/64**; AI-ARCH **121/121**; AI-INV **27/27**; typecheck/lint/build/whitespace **PASS**. Schema **57/57** prior · **23/23** prior · **DEPLOYED_VERIFIED** · activation **OFF**. CONN-1 exit **UNMET**; V8 JWT **NOT VERIFIED**; binding **NOT_YET_VERIFIED**; D13/D14 **DEFERRED**. Offline **GO** / live **NO-GO**. Report: `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md`. **Do not start AI-MKT-1d** without owner authorization. STOP for owner review.
