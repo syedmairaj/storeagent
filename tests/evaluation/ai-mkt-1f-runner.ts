@@ -36,9 +36,11 @@ import {
   detectForbiddenSyntheticEnvOverrides,
   evaluateEvidenceFreshness,
   evaluateSourceOperationRights,
+  findInternalIdLeakage,
   geminiAutomaticFallbackAllowed,
   hashAcceptedResearchEvidence,
   isCurrentMarketResearchResponse,
+  isOpaqueMerchantPublicId,
   isSha256EvidenceHash,
   isValidHttpCitationUrl,
   matchGeographicObservation,
@@ -1708,6 +1710,7 @@ async function runDtoCase(
       ...dto.findings.map((f) => f.findingId),
       ...dto.findings.map((f) => f.evidenceId),
       ...dto.citations.map((c) => c.evidenceId),
+      ...dto.conflicts.map((c) => c.conflictId),
     ].join("\n");
     if (
       ids.includes(AI_MKT_1F_STORE) ||
@@ -1717,7 +1720,90 @@ async function runDtoCase(
     ) {
       return fail(caseDef, "finding/evidence IDs leak store/location/variant/foreign org");
     }
-    // Own org may appear in current evidenceId format — residual tracked in M01b.
+  }
+
+  if (
+    caseDef.expected.opaquePublicIds ||
+    caseDef.expected.noOwnOrgInPublicIds ||
+    caseDef.expected.noRequestSnippetInPublicIds ||
+    caseDef.expected.publicIdReferentialIntegrity ||
+    caseDef.expected.publicIdUniqueness
+  ) {
+    const publicIds = [
+      ...dto.findings.map((f) => f.findingId),
+      ...dto.findings.map((f) => f.evidenceId),
+      ...dto.citations.map((c) => c.evidenceId),
+      ...dto.conflicts.map((c) => c.conflictId),
+    ];
+
+    if (caseDef.expected.opaquePublicIds) {
+      for (const id of publicIds) {
+        if (!isOpaqueMerchantPublicId(id)) {
+          return fail(caseDef, `public ID not opaque format: ${id}`);
+        }
+      }
+      if (dto.findings.length === 0) {
+        return fail(caseDef, "expected findings for opaque public ID case");
+      }
+    }
+
+    if (caseDef.expected.publicIdUniqueness) {
+      const findingIds = dto.findings.map((f) => f.findingId);
+      const evidenceIds = dto.findings.map((f) => f.evidenceId);
+      const conflictIds = dto.conflicts.map((c) => c.conflictId);
+      if (new Set(findingIds).size !== findingIds.length) {
+        return fail(caseDef, "findingId not unique within response");
+      }
+      if (new Set(evidenceIds).size !== evidenceIds.length) {
+        return fail(caseDef, "finding evidenceId not unique within response");
+      }
+      if (new Set(conflictIds).size !== conflictIds.length) {
+        return fail(caseDef, "conflictId not unique within response");
+      }
+    }
+
+    if (caseDef.expected.publicIdReferentialIntegrity) {
+      const allowed = new Set(dto.findings.map((f) => f.evidenceId));
+      for (const citation of dto.citations) {
+        if (!allowed.has(citation.evidenceId)) {
+          return fail(
+            caseDef,
+            `citation evidenceId ${citation.evidenceId} not in displayed findings`,
+          );
+        }
+      }
+    }
+
+    const publicBlob = JSON.stringify(dto);
+    if (caseDef.expected.noOwnOrgInPublicIds) {
+      if (
+        publicBlob.includes(AI_MKT_1F_ORG) ||
+        publicBlob.includes(AI_MKT_1F_OTHER_ORG)
+      ) {
+        return fail(caseDef, "DTO embeds organization UUID");
+      }
+    }
+    if (caseDef.expected.noRequestSnippetInPublicIds) {
+      if (/mkt1c:|mkt1d-finding:/.test(publicBlob)) {
+        return fail(caseDef, "DTO retains internal mkt1c/mkt1d-finding identifiers");
+      }
+      for (const id of publicIds) {
+        if (id.includes(AI_MKT_1F_REQ) || id.includes("oa-")) {
+          return fail(caseDef, `public ID embeds request/snippet token: ${id}`);
+        }
+      }
+    }
+
+    const leaks = findInternalIdLeakage(dto, [
+      AI_MKT_1F_ORG,
+      AI_MKT_1F_OTHER_ORG,
+      AI_MKT_1F_STORE,
+      AI_MKT_1F_LOCATION,
+      AI_MKT_1F_VARIANT,
+    ]);
+    if (leaks.length > 0) {
+      return fail(caseDef, `internal ID leakage: ${leaks.join(",")}`);
+    }
   }
 
   if (caseDef.id.includes("M02-citations")) {

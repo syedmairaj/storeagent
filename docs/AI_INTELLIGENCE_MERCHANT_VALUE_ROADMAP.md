@@ -2,26 +2,27 @@
 
 **Document ID:** DOC-2026-11 / AI-INV
 **Mode:** Planning & product vision only — **not authorization** to deploy live models, enable workers, run JWT, connect live Shopify, activate M6/M7, spend credits, or claim merchant ROI.
-**As-of:** 2026-11-28 — **DOC-GLOBAL-1** (`DOCS_ONLY_COMPLETE`; AI-MKT-1f CLOSED/PUSHED @ `e6943ce`; AI-MKT-1e CLOSED/PUSHED @ `59ff8b0`; AI-MKT-1d CLOSED/PUSHED @ `2f6ae43`; AI-MKT-1c CLOSED/PUSHED @ `553e239`; AI-MKT-1b CLOSED/PUSHED @ `211d8e9`; AI-MKT-1a CLOSED/PUSHED @ `f685c15`; AI-MKT-0 CLOSED/PUSHED @ `de01686`; AI-ARCH-1 CLOSED/PUSHED @ `c216ded`; DOC-CONTINUITY-6 schema pins preserved)
-**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-28 — DOC-GLOBAL-1**
+**As-of:** 2026-11-28 — **AI-MKT-1f-R1** (`LOCAL_COMPLETE`; DOC-GLOBAL-1 CLOSED/PUSHED @ `6b16caa`; AI-MKT-1f CLOSED/PUSHED @ `e6943ce`; AI-MKT-1e CLOSED/PUSHED @ `59ff8b0`; AI-MKT-1d CLOSED/PUSHED @ `2f6ae43`; AI-MKT-1c CLOSED/PUSHED @ `553e239`; AI-MKT-1b CLOSED/PUSHED @ `211d8e9`; AI-MKT-1a CLOSED/PUSHED @ `f685c15`; AI-MKT-0 CLOSED/PUSHED @ `de01686`; AI-ARCH-1 CLOSED/PUSHED @ `c216ded`; DOC-CONTINUITY-6 schema pins preserved)
+**Authoritative current status table:** `docs/StoreAgent_IMPLEMENTATION_STATUS_Updated_2026-11-10.md` § **2026-11-28 — AI-MKT-1f-R1**
 **Compact handoff:** `docs/STOREAGENT_MASTER_MILESTONE_HANDOFF.md`
 **Global strategy decision record:** `docs/DOC_GLOBAL_1_FOUR_MARKET_LAUNCH_STRATEGY.md`
-**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports · canonical DOCX §36–§37 · `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` · `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md`
+**Related:** November execution plan · Merchant UX delivery · Competitive UX roadmap · PE1.b.6b handoff · Shopify RO / CONN reports · canonical DOCX §36–§37 · `docs/AI_ARCH_1F_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_0_FEASIBILITY_AND_SOURCE_ARCHITECTURE.md` · `docs/AI_MKT_1A_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1B_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1C_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1D_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1E_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1F_IMPLEMENTATION_REPORT.md` · `docs/AI_MKT_1F_R1_IMPLEMENTATION_REPORT.md`
 
-### 2026-11-28 status pin (DOC-GLOBAL-1 + AI-MKT-1f CLOSED/PUSHED)
+### 2026-11-28 status pin (AI-MKT-1f-R1 LOCAL_COMPLETE)
 
 | Slice | Status |
 |---|---|
-| Git HEAD tip (committed) | `e6943ce` — AI-MKT-1f **CLOSED/PUSHED** · AI-MKT-1e **CLOSED/PUSHED** @ `59ff8b0` · AI-MKT-1d **CLOSED/PUSHED** @ `2f6ae43` · AI-MKT-1c **CLOSED/PUSHED** @ `553e239` · AI-MKT-1b **CLOSED/PUSHED** @ `211d8e9` · AI-MKT-1a **CLOSED/PUSHED** @ `f685c15` · AI-MKT-0 **CLOSED/PUSHED** @ `de01686` · AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded` · DOC-GLOBAL-1 **`DOCS_ONLY_COMPLETE`** (uncommitted) · hosted migrations **57/57** · post-catalog **23/23** · schema **DEPLOYED_VERIFIED** · activation **OFF** |
-| Launch markets | **US / GB / CA / AU** English-first; registration targets 500/250/125/125 (not forecasts); UAE-first **superseded** |
+| Git HEAD tip (committed) | `6b16caa` — DOC-GLOBAL-1 **CLOSED/PUSHED** · AI-MKT-1f **CLOSED/PUSHED** @ `e6943ce` · AI-MKT-1e **CLOSED/PUSHED** @ `59ff8b0` · AI-MKT-1d **CLOSED/PUSHED** @ `2f6ae43` · AI-MKT-1c **CLOSED/PUSHED** @ `553e239` · AI-MKT-1b **CLOSED/PUSHED** @ `211d8e9` · AI-MKT-1a **CLOSED/PUSHED** @ `f685c15` · AI-MKT-0 **CLOSED/PUSHED** @ `de01686` · AI-ARCH-1a–1f **CLOSED/PUSHED** @ `c216ded` · AI-MKT-1f-R1 **`LOCAL_COMPLETE`** (uncommitted) · hosted migrations **57/57** · post-catalog **23/23** · schema **DEPLOYED_VERIFIED** · activation **OFF** |
+| Launch markets | **US / GB / CA / AU** English-first; acquisition targets 500/250/125/125 = flexible **KPIs only** (never caps/entitlements); UAE-first **superseded** |
 | AI-ARCH-0 | **PROPOSED** (design) · closed with DOC-CONTINUITY-6 @ `d12fd04` |
 | AI-ARCH-1a–1f | **CLOSED/PUSHED** @ `c216ded` (1e `1c75de5`; 1a–1d `d56de33`); soft-enable **OFF**; 38/38 · 121/121 · 27/27 PASS |
 | AI-MKT-0 | **CLOSED/PUSHED** @ `de01686` — historical AE-primary *commercial* geography superseded by DOC-GLOBAL-1 |
 | AI-MKT-1a…1e | **CLOSED/PUSHED** through `59ff8b0` |
-| AI-MKT-1f | **CLOSED/PUSHED** @ `e6943ce` — 58 mandatory PASS · 1 SKIP (M01b; ≠ PASS); offline **GO** / live **NO-GO** |
-| AI-MKT-1f-R1 | **PROPOSED** — opaque merchant public IDs before soft-show |
-| AI-MKT-GEO-1 | **PROPOSED** — versioned US/GB/CA/AU country + capability registry |
-| AI-MKT-DATA-0 / DATA-1 | **PROPOSED** — four-market source feasibility then conditional adapters |
+| AI-MKT-1f | **CLOSED/PUSHED** @ `e6943ce` — post-R1 matrix **59/59** PASS; offline **GO** / live **NO-GO** |
+| AI-MKT-1f-R1 | **`LOCAL_COMPLETE`** — opaque public IDs; M01b PASS; 8/8 · 176/176 · 121/121 · 27/27; soft-show still **OFF** |
+| AI-MKT-GEO-1 | **PROPOSED** (next) — versioned US/GB/CA/AU country + capability registry; AE fixture-only after |
+| AI-MKT-DATA-0 / DATA-1 | **PROPOSED** — after GEO-1; DATA-1 after 1.1 if paid |
+| Sequence | **R1 → GEO-1 → DATA-0 → 1.1 → DATA-1**; billing ≠ domicile; legal rights before provider selection; multi-country must not delay Shopify |
 | AI-INV-1 / 1.1 | **CLOSED/PUSHED** @ `38f63d6`; soft-enable **OFF**; enablement/UX **PROPOSED** (not architecture substitute) |
 | AI-INV-2…6 | **PLANNED** |
 | AI-MKT-1.1 → 2 → 3 → 4 | **PLANNED** (IDs preserved; scope clarified); no live search / paid credits |
@@ -29,7 +30,7 @@
 | UX-INV-1d | **PLANNED** |
 | OAuth / SyncRun / workers / JWT / M6/M7 / launch | **BLOCKED / NOT AUTHORIZED** |
 
-> Principle: *The AI controls the investigation. It does not control what counts as a fact.* Prefer this pin + DOC-GLOBAL-1 + master handoff for *current* truth.
+> Principle: *The AI controls the investigation. It does not control what counts as a fact.* Prefer this pin + R1 report + DOC-GLOBAL-1 + master handoff for *current* truth.
 
 ### Dependency-aware intelligence sequence (AI-ARCH-0 + DOC-GLOBAL-1)
 
@@ -42,8 +43,9 @@ Not implementation permission. No invented competitor sales/ROAS. Licensed sourc
 | 1b | AI-INV-1.1 enablement | Soft-enable / merchant UX iteration (code CLOSED @ `38f63d6`) | **PROPOSED** (parallel UX path) |
 | 2 | **AI-MKT-0** | Data/source/licensing feasibility | **CLOSED/PUSHED** @ `de01686` |
 | 3a–3f | **AI-MKT-1a…1f** | Contracts → adapters → normalize → orchestrate → UX → eval | **CLOSED/PUSHED** through `e6943ce` |
-| 3g | **AI-MKT-1f-R1** | Opaque public evidence/finding IDs (M01b residual) | **PROPOSED** |
-| 3h | **AI-MKT-GEO-1** | Versioned country/capability registry (US/GB/CA/AU) | **PROPOSED** |
+| — | **DOC-GLOBAL-1** | Four-market launch strategy | **CLOSED/PUSHED** @ `6b16caa` |
+| 3g | **AI-MKT-1f-R1** | Opaque public evidence/finding IDs (M01b residual) | **`LOCAL_COMPLETE`** |
+| 3h | **AI-MKT-GEO-1** | Versioned country/capability registry (US/GB/CA/AU); AE fixture-only | **PROPOSED** (next) |
 | 3i | **AI-MKT-DATA-0** | Four-market source coverage / licensing / economics | **PROPOSED** |
 | 4 | **AI-MKT-1.1** | Credits, tariffs, budgets, rights-aware cache | **PLANNED** |
 | 4b | **AI-MKT-DATA-1** | Conditional structured/historical adapters (reuse orchestration) | **PROPOSED** (after DATA-0; after 1.1 if paid) |

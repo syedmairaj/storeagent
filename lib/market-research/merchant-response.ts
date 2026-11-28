@@ -1,7 +1,8 @@
 /**
- * AI-MKT-1e — merchant-safe market research DTO.
+ * AI-MKT-1e / AI-MKT-1f-R1 — merchant-safe market research DTO.
  * Explicit field allowlist from validated findings + bound evidence + display rights.
  * Never leaks traces, secrets, hashes of internals, approvals, adapters, or rejected evidence.
+ * Browser-facing evidence/finding/conflict IDs are opaque response-scoped public IDs (1f-R1).
  */
 
 import type {
@@ -13,6 +14,11 @@ import type {
 import type { MerchantResearchStructuredDepth } from "@/lib/market-research/merchant-intents";
 import type { MerchantResearchStructuredIntent } from "@/lib/market-research/merchant-intents";
 import type { MerchantResearchCountryCode } from "@/lib/market-research/merchant-intents";
+import {
+  createMerchantPublicIdMapper,
+  looksLikeInternalMarketResearchId,
+  type MerchantPublicIdMapper,
+} from "@/lib/market-research/merchant-public-ids";
 import type {
   ResearchConflict,
   ResearchEvidenceClaimClass,
@@ -122,12 +128,15 @@ const SENSITIVE_KEY_RE =
 export const SYNTHETIC_PREVIEW_WARNING =
   "Synthetic preview only — not live market evidence. External signals are not verified inventory or sales facts. Partial match ≠ exact SKU; stale ≠ current; unknown ≠ zero; search/reviews/rank ≠ sales. No buying or pricing recommendation.";
 
-function mapFinding(finding: ValidatedResearchFinding): MerchantResearchFindingDto {
+function mapFinding(
+  finding: ValidatedResearchFinding,
+  ids: MerchantPublicIdMapper,
+): MerchantResearchFindingDto {
   return {
-    findingId: finding.findingId,
-    evidenceId: finding.evidenceId,
-    label: finding.label,
-    value: finding.value,
+    findingId: ids.mapFindingId(finding.findingId),
+    evidenceId: ids.mapEvidenceId(finding.evidenceId),
+    label: ids.redactInternalIdentifiers(finding.label),
+    value: ids.redactInternalIdentifiers(finding.value),
     unit: finding.unit,
     claimClass: finding.claimClass,
     signalClass: finding.signalClass,
@@ -137,16 +146,21 @@ function mapFinding(finding: ValidatedResearchFinding): MerchantResearchFindingD
     confidenceClass: finding.confidenceClass,
     countryCode: finding.countryCode,
     currencyCode: finding.currencyCode,
-    limitations: [...finding.limitations],
+    limitations: finding.limitations.map((line) =>
+      ids.redactInternalIdentifiers(line),
+    ),
     syntheticOriginPreserved: true,
     isRealMerchantOrMarketFact: false,
   };
 }
 
-function mapConflict(conflict: ResearchConflict): MerchantResearchConflictDto {
+function mapConflict(
+  conflict: ResearchConflict,
+  ids: MerchantPublicIdMapper,
+): MerchantResearchConflictDto {
   return {
-    conflictId: conflict.conflictId,
-    summary: conflict.summary,
+    conflictId: ids.mapConflictId(conflict.conflictId),
+    summary: ids.redactInternalIdentifiers(conflict.summary),
   };
 }
 
@@ -169,6 +183,7 @@ function buildSummaryLines(
 
 function collectCitations(
   result: MarketResearchOrchestrationSuccess,
+  ids: MerchantPublicIdMapper,
 ): readonly MerchantResearchCitationDto[] {
   const out: MerchantResearchCitationDto[] = [];
   const seen = new Set<string>();
@@ -177,12 +192,13 @@ function collectCitations(
       if (!/^https:\/\//i.test(url)) {
         continue;
       }
-      const key = `${item.evidenceId}::${url}`;
+      const publicEvidenceId = ids.mapEvidenceId(item.evidenceId);
+      const key = `${publicEvidenceId}::${url}`;
       if (seen.has(key)) {
         continue;
       }
       seen.add(key);
-      out.push({ url, evidenceId: item.evidenceId });
+      out.push({ url, evidenceId: publicEvidenceId });
     }
   }
   return out;
@@ -217,6 +233,7 @@ function merchantMessageForAbstention(code: string, detail: string): string {
 /**
  * Convert orchestration result into a merchant-safe DTO.
  * Omits free-form researchAnswer / traces / binding / spend / rejected evidence.
+ * Replaces internal evidence/finding/conflict IDs with opaque public IDs (1f-R1).
  */
 export function toMerchantResearchDto(input: {
   result: MarketResearchOrchestrationResult;
@@ -224,12 +241,15 @@ export function toMerchantResearchDto(input: {
   intentClass: MerchantResearchStructuredIntent;
   countryCode: MerchantResearchCountryCode;
   depth: MerchantResearchStructuredDepth;
+  /** Test-only stable mapper key — never accept from browser. */
+  publicIdKeyMaterial?: string | Buffer;
 }): MerchantResearchAnswerDto | MerchantResearchAbstentionDto {
   const { result, clientRequestId, intentClass, countryCode, depth } = input;
+  const ids = createMerchantPublicIdMapper(input.publicIdKeyMaterial);
 
   if (result.status === "answered" || result.status === "partial") {
     const success = result as MarketResearchOrchestrationSuccess;
-    const findings = success.findings.map(mapFinding);
+    const findings = success.findings.map((finding) => mapFinding(finding, ids));
     return {
       ok: true,
       kind: success.status === "partial" ? "partial" : "answered",
@@ -239,9 +259,11 @@ export function toMerchantResearchDto(input: {
       depth,
       status: success.status,
       findings,
-      citations: collectCitations(success),
-      conflicts: success.conflicts.map(mapConflict),
-      limitations: [...success.limitations],
+      citations: collectCitations(success, ids),
+      conflicts: success.conflicts.map((conflict) => mapConflict(conflict, ids)),
+      limitations: success.limitations.map((line) =>
+        ids.redactInternalIdentifiers(line),
+      ),
       summaryLines: buildSummaryLines(findings),
       originClass: "synthetic_fixture",
       syntheticOriginPreserved: true,
@@ -262,9 +284,13 @@ export function toMerchantResearchDto(input: {
     countryCode,
     depth,
     code: failure.code,
-    merchantMessage: merchantMessageForAbstention(failure.code, failure.detail),
-    limitations: [...failure.limitations],
-    conflicts: failure.conflicts.map(mapConflict),
+    merchantMessage: ids.redactInternalIdentifiers(
+      merchantMessageForAbstention(failure.code, failure.detail),
+    ),
+    limitations: failure.limitations.map((line) =>
+      ids.redactInternalIdentifiers(line),
+    ),
+    conflicts: failure.conflicts.map((conflict) => mapConflict(conflict, ids)),
     originClass: "synthetic_fixture",
     syntheticOriginPreserved: true,
     isRealMerchantOrMarketFact: false,
@@ -277,16 +303,18 @@ export function merchantResearchError(input: {
   error: string;
   clientRequestId?: string;
 }): MerchantResearchErrorDto {
+  const ids = createMerchantPublicIdMapper();
   return {
     ok: false,
     code: input.code,
-    error: input.error,
+    error: ids.redactInternalIdentifiers(input.error),
     clientRequestId: input.clientRequestId,
   };
 }
 
 /**
- * Deep-ish scan that a serializable DTO does not leak sensitive internals.
+ * Deep-ish scan that a serializable DTO does not leak sensitive internals
+ * or internal market-research identifier formats.
  */
 export function assertMerchantResearchSafeDto(value: unknown): void {
   const seen = new Set<unknown>();
@@ -312,6 +340,18 @@ export function assertMerchantResearchSafeDto(value: unknown): void {
       }
       if (key === "trace" || key === "steps" || key === "binding") {
         throw new Error(`UNSAFE_MERCHANT_RESEARCH_DTO_KEY:${key}`);
+      }
+      if (
+        (key === "evidenceId" ||
+          key === "findingId" ||
+          key === "conflictId") &&
+        typeof nested === "string" &&
+        looksLikeInternalMarketResearchId(nested)
+      ) {
+        throw new Error(`UNSAFE_MERCHANT_RESEARCH_DTO_INTERNAL_ID:${key}`);
+      }
+      if (typeof nested === "string" && looksLikeInternalMarketResearchId(nested)) {
+        throw new Error(`UNSAFE_MERCHANT_RESEARCH_DTO_INTERNAL_ID:${key}`);
       }
       stack.push(nested);
     }

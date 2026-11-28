@@ -310,6 +310,15 @@ export {
 } from "@/lib/market-research/merchant-response";
 
 export {
+  createMerchantPublicIdMapper,
+  isOpaqueMerchantPublicId,
+  looksLikeInternalMarketResearchId,
+  findInternalIdLeakage,
+  type MerchantPublicIdMapper,
+  type MerchantPublicIdKind,
+} from "@/lib/market-research/merchant-public-ids";
+
+export {
   runGuardedMerchantResearch,
   buildTrustedTargetProductFromRow,
   FORBIDDEN_MERCHANT_RESEARCH_CLIENT_KEYS,

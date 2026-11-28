@@ -166,6 +166,12 @@ export type AiMkt1fCaseDefinition = {
     readonly merchantSafe?: boolean;
     readonly noTenantIdLeak?: boolean;
     readonly opaqueEvidenceHash?: boolean;
+    /** AI-MKT-1f-R1: opaque response-scoped public evidence/finding/conflict IDs. */
+    readonly opaquePublicIds?: boolean;
+    readonly publicIdReferentialIntegrity?: boolean;
+    readonly publicIdUniqueness?: boolean;
+    readonly noOwnOrgInPublicIds?: boolean;
+    readonly noRequestSnippetInPublicIds?: boolean;
     readonly generator?:
       | "deterministic"
       | "draft_validated"
@@ -1003,16 +1009,22 @@ const cases: readonly AiMkt1fCaseDefinition[] = [
   },
   {
     id: "ai-mkt-1f/M01b-opaque-evidence-id-residual",
-    title: "Residual: evidenceId omits own organization UUID (pre soft-show)",
-    matrixRef: "merchant evidenceId opaque residual",
+    title:
+      "Opaque public evidence/finding/conflict IDs; no org/request/snippet leakage",
+    matrixRef: "merchant evidenceId opaque public IDs (1f-R1)",
     category: "merchant",
-    risk: "high",
+    risk: "critical",
     kind: "dto",
     expected: {
-      status: "skip",
-      skipReason:
-        "evidenceId currently embeds own organizationId (mkt1c:org:request:snippet); redaction residual before soft-show unlock",
-      residualGate: "AI-MKT soft-show / merchant DTO opaque evidenceId hardening",
+      status: "pass",
+      merchantSafe: true,
+      opaqueEvidenceHash: true,
+      opaquePublicIds: true,
+      publicIdReferentialIntegrity: true,
+      publicIdUniqueness: true,
+      noTenantIdLeak: true,
+      noOwnOrgInPublicIds: true,
+      noRequestSnippetInPublicIds: true,
     },
   },
   {
